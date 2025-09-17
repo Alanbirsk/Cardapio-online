@@ -16,26 +16,35 @@
   --combo-bg:#ffe0b2;
   --highlight:#fbc02d;
 }
+
+/* Corpo e base */
 body {
   margin:0;
   font-family:Arial,sans-serif;
   background:var(--bg-light);
   color:var(--text-dark);
-  padding-top:80px;
+  padding-top:90px;
 }
+
+/* Cabeçalho moderno */
 header {
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  background:linear-gradient(90deg,var(--purple),#9c27b0);
-  color:#fff;
-  padding:15px;
-  text-align:center;
-  font-size:1.5rem;
-  font-weight:bold;
-  z-index:1000;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(90deg, #4a0072, #9c27b0);
+  color: #fff;
+  padding: 15px;
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: bold;
+  z-index: 1000;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
 }
+
+/* Main */
 main {
   max-width:600px;
   margin:0 auto;
@@ -151,8 +160,26 @@ main {
 .cart-subtotal { background:#e0e0e0; color:#222; }
 .cart-delivery { background:#fff3e0; color:#e65100; }
 .cart-total { background:linear-gradient(90deg,var(--purple),#9c27b0); color:#fff; text-align:right; }
-#checkout-btn { background:linear-gradient(90deg,var(--purple),#9c27b0); color:#fff; padding:10px; border:none; border-radius:10px; font-weight:700; margin:5px 0; cursor:pointer; width:100%; }
-#checkout-btn:hover{ transform:translateY(-2px); }
+
+/* Botão Pedir Agora */
+#checkout-btn {
+  background: linear-gradient(90deg, #f57c00, #ff9800);
+  color: #fff;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  margin: 5px 0;
+  cursor: pointer;
+  width: 100%;
+  font-size: 1rem;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  transition: all 0.2s ease;
+}
+#checkout-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
 
 /* Mobile adjustments */
 @media(max-width:600px){
@@ -368,13 +395,11 @@ document.getElementById('checkout-btn').addEventListener('click', ()=>{
   const pagamento=document.getElementById('pagamento').value;
   if(!nome){alert('Informe seu nome'); return;}
   if(retirada==='entrega' && !endereco){alert('Informe o endereço'); return;}
-  let msg='Pedido Aquarius Burguer:%0A';
-  cart.forEach(i=>{ msg+=`${i.nome} x${i.qtd} (${i.obs}) - R$${(i.preco*i.qtd).toFixed(2)}%0A`; });
-  msg+=`${subtotalEl.textContent}%0A${deliveryEl.textContent}%0A${totalEl.textContent}%0A`;
-  msg+=`Nome: ${nome}%0AEndereço: ${endereco}%0ARetirada: ${retirada}%0APagamento: ${pagamento}`;
-  window.open(`https://wa.me/5546999241298?text=${msg}`,'_blank');
-  cart=[];
-  updateCart();
+  let msg=`Pedido Aquarius Burguer:\n`;
+  cart.forEach(i=>{msg+=`- ${i.nome} x${i.qtd} (${i.obs}) R$${(i.preco*i.qtd).toFixed(2)}\n`;});
+  msg+=`${subtotalEl.textContent}\n${deliveryEl.textContent}\n${totalEl.textContent}\n`;
+  msg+=`Nome: ${nome}\nEndereço: ${endereco}\nRetirada: ${retirada}\nPagamento: ${pagamento}`;
+  window.open(`https://wa.me/5546999241298?text=${encodeURIComponent(msg)}`,'_blank');
 });
 </script>
 
