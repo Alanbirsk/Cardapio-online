@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aquarius Burguer - Delivery</title>
+<style>
+:root {
+  --purple:#4a0072; /* roxo mais escuro */
+  --green:#1b5e20;  /* verde mais escuro */
+  --orange:#f57c00;
+  --bg-light:#fafafa; 
+  --text-dark:#222;
+  --lanche-bg:#e1bee7; 
+  --bebida-bg:#c8e6c9; 
+  --combo-bg:#ffe0b2;
+  --highlight:#fbc02d;
+}
+body{margin:0;padding-top:80px;font-family:Arial,sans-serif;background:var(--bg-light);color:var(--text-dark);}
+header{position:fixed;top:0;left:0;width:100%;background:#fff;padding:1rem 2rem;box-shadow:0 4px 10px rgba(0,0,0,0.1);z-index:1000;text-align:center;}
+header h1{color:var(--green);}
+main{max-width:1200px;margin:0 auto;padding:1rem;display:flex;flex-wrap:wrap;gap:1rem;}
+section{background:#fff;border-radius:15px;padding:1rem;flex:1;min-width:300px;box-shadow:0 5px 15px rgba(0,0,0,0.05);}
+h2{text-align:center;color:var(--purple);}
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;}
+.menu-card{background:#fff;border-radius:12px;text-align:center;overflow:hidden;box-shadow:0 3px 10px rgba(0,0,0,0.1);}
+.menu-card img{width:100%;height:150px;object-fit:cover;}
+.menu-card h3{margin:5px 0;color:var(--purple);}
+.menu-card p{font-size:0.9rem;margin:0 5px 5px;}
+.menu-card .price{display:inline-block;background:var(--green);color:#fff;padding:5px 10px;border-radius:8px;margin-bottom:5px;}
+.menu-card button{padding:8px 12px;margin-bottom:5px;border:none;border-radius:8px;background:var(--green);color:#fff;cursor:pointer;}
+.menu-card button:hover{background:#145214;}
+#floating-cart{position:fixed;top:150px;right:20px;cursor:pointer;background:var(--green);color:#fff;padding:12px 15px;border-radius:50px;z-index:1000;display:flex;align-items:center;gap:8px;}
+#cart-count{position:absolute;top:-8px;right:-8px;background:var(--highlight);color:#000;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;}
+.cart-dropdown{display:none;position:absolute;top:60px;right:0;width:380px;background:#fff;border-radius:12px;box-shadow:0 5px 20px rgba(0,0,0,0.3);padding:10px;z-index:1001;flex-direction:column;max-height:500px;overflow-y:auto;}
+#cart-items{padding-right:5px;margin-bottom:10px;}
+.cart-item{padding:8px;border-radius:10px;margin-bottom:5px;display:flex;flex-direction:column;}
+.cart-item.lanche{background:var(--lanche-bg);}
+.cart-item.bebida{background:var(--bebida-bg);}
+.cart-item.combo{background:var(--combo-bg);}
+.cart-item-header{display:flex;justify-content:space-between;font-weight:600;color:var(--purple);}
+.cart-qtd{display:flex;gap:5px;align-items:center;margin:3px 0;}
+.cart-qtd button{border:none;padding:3px 8px;border-radius:5px;color:#fff;cursor:pointer;}
+.cart-lanche .cart-qtd button{background:var(--purple);}
+.cart-bebida .cart-qtd button{background:var(--green);}
+.cart-combo .cart-qtd button{background:var(--orange);}
+.cart-observacao input{width:100%;border-radius:6px;border:1px solid #ccc;padding:4px;font-size:0.85rem;margin-bottom:3px;}
+.remove-item{background:#c62828;color:#fff;border:none;padding:5px;border-radius:6px;cursor:pointer;font-size:0.85rem;}
+.cart-subtotal, .cart-delivery, .cart-total{padding:5px;border-radius:6px;font-weight:600;margin:3px 0;}
+.cart-subtotal{background:#e0e0e0;color:#222;}
+.cart-delivery{background:#fff3e0;color:#e65100;}
+.cart-total{background:linear-gradient(90deg,var(--purple),#9c27b0);color:#fff;text-align:right;}
+#checkout-btn{background:linear-gradient(90deg,var(--purple),#9c27b0);color:#fff;padding:10px;border:none;border-radius:10px;font-weight:700;margin:5px 0;cursor:pointer;width:100%;}
+#checkout-btn:hover{transform:translateY(-2px);}
+.cart-form{display:flex;flex-direction:column;gap:5px;}
+.cart-form input, .cart-form select{padding:6px;border-radius:6px;border:1px solid #ccc;}
+.cart-form label{font-weight:500;}
+@media(max-width:768px){main{flex-direction:column;} .menu-card img{height:200px;}}
+</style>
+</head>
+<body>
+
+<header><h1>🍔 Aquarius Burguer</h1></header>
+
+<main>
+<section>
+<h2>Cardápio</h2>
+<div class="menu-grid">
+  <div class="menu-card">
+    <img src="https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=600" alt="Clássico">
+    <h3>Clássico</h3>
+    <p>Pão brioche, hambúrguer 160g, alface, tomate, maionese da casa.</p>
+    <div class="price">R$22</div>
+    <button class="add-cardapio" data-item="Clássico" data-preco="22" data-categoria="lanche">Adicionar</button>
+  </div>
+  <div class="menu-card">
+    <img src="https://images.unsplash.com/photo-1598514982516-22aa60d96cf5?q=80&w=600" alt="Refrigerante">
+    <h3>Refrigerante 350ml</h3>
+    <p>Refresco gelado para acompanhar seu lanche.</p>
+    <div class="price">R$7</div>
+    <button class="add-cardapio" data-item="Refrigerante 350ml" data-preco="7" data-categoria="bebida">Adicionar</button>
+  </div>
+</div>
+</section>
+</main>
+
+<div id="floating-cart">
+🛒 <span id="cart-count">0</span>
+<div class="cart-dropdown" id="cart-dropdown">
+  <div id="cart-items"></div>
+  <div class="cart-subtotal">Subtotal dos itens: R$0</div>
+  <div class="cart-delivery">Taxa de entrega: R$0</div>
+  <div class="cart-total">Total: R$0</div>
+  <button id="checkout-btn">📲 Enviar Pedido</button>
+  <div class="cart-form">
+    <label for="nome">Nome</label>
+    <input type="text" id="nome" placeholder="Seu nome">
+    <label for="endereco">Endereço</label>
+    <input type="text" id="endereco" placeholder="Rua, nº, Bairro">
+    <label for="retirada">Tipo de retirada</label>
+    <select id="retirada">
+      <option value="entrega">Entrega</option>
+      <option value="balcao">Retirar no balcão</option>
+    </select>
+    <label for="pagamento">Forma de pagamento</label>
+    <select id="pagamento">
+      <option value="dinheiro">Dinheiro</option>
+      <option value="pix">PIX</option>
+      <option value="cartao">Cartão</option>
+    </select>
+  </div>
+</div>
+</div>
+
+<script>
+let cart = [];
+const cartDropdown = document.getElementById('cart-dropdown');
+const cartCount = document.getElementById('cart-count');
+const cartItemsContainer = document.getElementById('cart-items');
+const subtotalEl = document.querySelector('.cart-subtotal');
+const deliveryEl = document.querySelector('.cart-delivery');
+const totalEl = document.querySelector('.cart-total');
+
+document.getElementById('floating-cart').addEventListener('click', e=>{
+  if(e.target.id==='floating-cart' || e.target.id==='cart-count' || e.target.parentElement.id==='floating-cart'){
+    cartDropdown.style.display = cartDropdown.style.display==='flex'?'none':'flex';
+  }
+});
+cartDropdown.addEventListener('click', e=>{ e.stopPropagation(); });
+
+document.querySelectorAll('.add-cardapio').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const item={nome:btn.dataset.item, preco:parseFloat(btn.dataset.preco), categoria:btn.dataset.categoria, qtd:1, obs:''};
+    cart.push(item); updateCart();
+  });
+});
+
+function updateCart(){
+  cartItemsContainer.innerHTML='';
+  cart.forEach((item,i)=>{
+    const div=document.createElement('div');
+    div.className=cart-item ${item.categoria};
+    div.innerHTML=`
+      <div class="cart-item-header">${item.nome} - R$${item.preco.toFixed(2)}</div>
+      <div class="cart-qtd">
+        <button onclick="changeQty(${i},-1)">-</button> ${item.qtd} <button onclick="changeQty(${i},1)">+</button>
+      </div>
+      <div class="cart-observacao"><input placeholder="Observações" value="${item.obs}" onchange="updateObs(${i},this.value)"></div>
+      <button class="remove-item" onclick="removeItem(${i})">Remover</button>
+    `;
+    cartItemsContainer.appendChild(div);
+  });
+  cartCount.textContent=cart.length;
+  calculateTotal();
+}
+
+function changeQty(index,delta){
+  cart[index].qtd+=delta;
+  if(cart[index].qtd<1) cart[index].qtd=1;
+  updateCart();
+}
+function removeItem(index){cart.splice(index,1);updateCart();}
+function updateObs(index,val){cart[index].obs=val;}
+function calculateTotal(){
+  let subtotal=0;
+  cart.forEach(i=>subtotal+=i.preco*i.qtd);
+  let delivery=0;
+  const tipoRetirada=document.getElementById('retirada').value;
+  if(tipoRetirada==='entrega' && subtotal>0 && subtotal<35) delivery=10;
+  subtotalEl.textContent=Subtotal dos itens: R${subtotal.toFixed(2)};
+  deliveryEl.textContent=Taxa de entrega: R${tipoRetirada==='balcao'?0:delivery.toFixed(2)};
+  totalEl.textContent=Total: R${(subtotal+(tipoRetirada==='balcao'?0:delivery)).toFixed(2)};
+}
+document.getElementById('retirada').addEventListener('change',calculateTotal);
+
+document.getElementById('checkout-btn').addEventListener('click', ()=>{
+  if(cart.length===0){alert('Carrinho vazio!'); return;}
+  const nome=document.getElementById('nome').value;
+  const endereco=document.getElementById('endereco').value;
+  const retirada=document.getElementById('retirada').value;
+  const pagamento=document.getElementById('pagamento').value;
+  if(!nome){alert('Informe seu nome'); return;}
+  if(retirada==='entrega' && !endereco){alert('Informe o endereço'); return;}
+  let msg=Pedido Aquarius Burguer:\n;
+  cart.forEach(i=>{msg+=- ${i.nome} x${i.qtd} (${i.obs}) R${(i.preco*i.qtd).toFixed(2)}\n;});
+  msg+=${subtotalEl.textContent}\n${deliveryEl.textContent}\n${totalEl.textContent}\n;
+  msg+=Nome: ${nome}\nEndereço: ${endereco}\nRetirada: ${retirada}\nPagamento: ${pagamento};
+  // Substitua pelo seu número de WhatsApp correto
+  window.open(https://wa.me/5546999241298?text=${encodeURIComponent(msg)},'_blank');
+});
+</script>
+
+</body>
+</html>
