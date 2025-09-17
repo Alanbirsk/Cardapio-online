@@ -41,6 +41,8 @@ main {
   margin:0 auto;
   padding:10px;
 }
+
+/* Menu Cards */
 .menu-card {
   display:flex;
   background:#fff;
@@ -117,9 +119,9 @@ main {
 }
 .cart-dropdown {
   display:none;
-  position:absolute;
+  position:fixed;
   bottom:70px;
-  right:0;
+  right:20px;
   width:320px;
   background:#fff;
   border-radius:12px;
@@ -152,10 +154,17 @@ main {
 #checkout-btn { background:linear-gradient(90deg,var(--purple),#9c27b0); color:#fff; padding:10px; border:none; border-radius:10px; font-weight:700; margin:5px 0; cursor:pointer; width:100%; }
 #checkout-btn:hover{ transform:translateY(-2px); }
 
+/* Mobile adjustments */
 @media(max-width:600px){
   main { padding:5px; }
   .menu-card img { width:90px; height:90px; }
-  .cart-dropdown { width:90%; right:5%; bottom:80px; }
+  .cart-dropdown {
+    width:90%;
+    right:5%;
+    bottom:90px;
+    max-height:70vh;
+    padding:15px;
+  }
 }
 </style>
 </head>
@@ -287,6 +296,7 @@ main {
 </div>
 
 <script>
+// Carrinho
 let cart=[];
 const cartDropdown=document.getElementById('cart-dropdown');
 const cartCount=document.getElementById('cart-count');
