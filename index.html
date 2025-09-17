@@ -1,158 +1,242 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Aquarius Burguer</title>
+<title>Aquarius Burguer - Delivery</title>
 <style>
-  body { font-family: Arial, sans-serif; margin:0; background:#fafafa; }
-  header { background: linear-gradient(90deg, #ff5722, #ff9800); color:#fff; text-align:center; padding:20px; }
-  header h1 { margin:0; font-size:28px; letter-spacing:1px; }
-  main { display:flex; flex-wrap:wrap; gap:20px; justify-content:center; padding:20px; }
-  .item { background:#fff; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,0.1); padding:10px; width:200px; text-align:center; display:flex; flex-direction:column; }
-  .item img { width:100%; height:130px; object-fit:cover; border-radius:10px; }
-  .item h3 { margin:10px 0 5px; font-size:18px; }
-  .item p { margin:5px 0; color:#666; font-size:14px; }
-  .item button { background:#ff5722; color:#fff; border:none; padding:10px; border-radius:5px; cursor:pointer; margin-top:auto; }
-  .item button:hover { background:#e64a19; }
-  
-  #cart { position:fixed; right:0; top:0; width:320px; height:100%; background:#fff; border-left:2px solid #ddd; display:flex; flex-direction:column; }
-  #cart h2 { margin:0; padding:15px; background:#ff9800; color:#fff; }
-  #cart-items { flex:1; overflow-y:auto; padding:10px; }
-  .cart-item { border-bottom:1px solid #eee; padding:8px 0; font-size:14px; }
-  .cart-item button { margin:0 5px; }
-  #cart-total { padding:15px; border-top:1px solid #ddd; }
-  #checkout-btn { background:#4caf50; color:#fff; border:none; padding:12px; width:100%; border-radius:5px; font-size:16px; cursor:pointer; margin-top:10px; }
-  #checkout-btn:hover { background:#388e3c; }
+:root {
+  --primary:#ff5722;
+  --secondary:#222;
+  --bg:#fff;
+  --card-bg:#f9f9f9;
+  --highlight:#ff9800;
+}
+body {
+  margin:0;
+  font-family: Arial, sans-serif;
+  background: #fafafa;
+  color: var(--secondary);
+  padding-bottom: 80px; /* espaço para carrinho fixo */
+}
+header {
+  position: sticky;
+  top:0;
+  background: var(--bg);
+  padding:15px;
+  text-align:center;
+  font-size:1.5rem;
+  font-weight:bold;
+  border-bottom:1px solid #eee;
+  z-index:100;
+}
+main {
+  padding:10px;
+  display:flex;
+  flex-direction:column;
+  gap:15px;
+}
+.menu-card {
+  display:flex;
+  background: var(--card-bg);
+  border-radius:10px;
+  overflow:hidden;
+  box-shadow:0 2px 5px rgba(0,0,0,0.1);
+  gap:10px;
+}
+.menu-card img {
+  width:100px;
+  height:100px;
+  object-fit:cover;
+  border-radius:10px 0 0 10px;
+}
+.menu-info {
+  flex:1;
+  padding:10px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+.menu-info h3 {
+  margin:0;
+  font-size:1rem;
+  color: var(--secondary);
+}
+.menu-info p {
+  margin:5px 0;
+  font-size:0.9rem;
+  color:#555;
+}
+.menu-info .price {
+  color: var(--primary);
+  font-weight:bold;
+}
+.menu-info button {
+  background: var(--primary);
+  color:#fff;
+  border:none;
+  border-radius:5px;
+  padding:6px;
+  cursor:pointer;
+}
+.menu-info button:hover {
+  background: #e64a19;
+}
+
+/* Carrinho fixo */
+#cart {
+  position: fixed;
+  bottom:0;
+  left:0;
+  width:100%;
+  background:#fff;
+  border-top:1px solid #ddd;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:10px;
+  box-shadow:0 -2px 5px rgba(0,0,0,0.1);
+  z-index:1000;
+}
+#cart span {
+  font-weight:bold;
+}
+#checkout-btn {
+  background: var(--primary);
+  color:#fff;
+  border:none;
+  padding:10px 15px;
+  border-radius:5px;
+  font-weight:bold;
+  cursor:pointer;
+}
+#checkout-btn:hover { background:#e64a19; }
 </style>
 </head>
 <body>
-<header>
-  <h1>🍔 Aquarius Burguer</h1>
-  <p>Peça já seu lanche favorito!</p>
-</header>
+
+<header>🍔 Aquarius Burguer</header>
 
 <main id="menu">
   <!-- Lanches -->
-  <div class="item">
-    <img src="https://images.unsplash.com/photo-1550547660-d9450f859349" alt="X-Burguer">
-    <h3>X-Burguer</h3>
-    <p>Pão, carne e queijo</p>
-    <p><strong>R$15,00</strong></p>
-    <button onclick="addToCart('X-Burguer', 15)">Adicionar</button>
+  <div class="menu-card">
+    <img src="https://images.unsplash.com/photo-1550547660-d9450f859349" alt="Clássico">
+    <div class="menu-info">
+      <h3>Clássico</h3>
+      <p>Pão brioche, hambúrguer, alface, tomate, maionese</p>
+      <span class="price">R$22</span>
+      <button onclick="addToCart('Clássico',22)">Adicionar</button>
+    </div>
   </div>
-  <div class="item">
-    <img src="https://images.unsplash.com/photo-1606756793085-59e17fe9d3f0" alt="X-Salada">
-    <h3>X-Salada</h3>
-    <p>Alface, tomate e queijo</p>
-    <p><strong>R$18,00</strong></p>
-    <button onclick="addToCart('X-Salada', 18)">Adicionar</button>
+  <div class="menu-card">
+    <img src="https://images.unsplash.com/photo-1606756793085-59e17fe9d3f0" alt="Cheddar Bacon">
+    <div class="menu-info">
+      <h3>Cheddar Bacon</h3>
+      <p>Brioche, hambúrguer, cheddar cremoso, bacon</p>
+      <span class="price">R$28</span>
+      <button onclick="addToCart('Cheddar Bacon',28)">Adicionar</button>
+    </div>
   </div>
-  <div class="item">
-    <img src="https://images.unsplash.com/photo-1617196038435-97e1b85bbff0" alt="X-Bacon">
-    <h3>X-Bacon</h3>
-    <p>Bacon crocante</p>
-    <p><strong>R$20,00</strong></p>
-    <button onclick="addToCart('X-Bacon', 20)">Adicionar</button>
+  <div class="menu-card">
+    <img src="https://images.unsplash.com/photo-1617196038435-97e1b85bbff0" alt="Duplo Smash">
+    <div class="menu-info">
+      <h3>Duplo Smash</h3>
+      <p>Dois smash burgers 100g, queijo, cebola caramelizada</p>
+      <span class="price">R$32</span>
+      <button onclick="addToCart('Duplo Smash',32)">Adicionar</button>
+    </div>
   </div>
-  <div class="item">
-    <img src="https://images.unsplash.com/photo-1612874742237-65216f0a8b12" alt="X-Egg">
-    <h3>X-Egg</h3>
-    <p>Ovo frito e queijo</p>
-    <p><strong>R$19,00</strong></p>
-    <button onclick="addToCart('X-Egg', 19)">Adicionar</button>
+  <div class="menu-card">
+    <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd" alt="Frango Crocante">
+    <div class="menu-info">
+      <h3>Frango Crocante</h3>
+      <p>Filé de frango empanado, maionese, alface</p>
+      <span class="price">R$25</span>
+      <button onclick="addToCart('Frango Crocante',25)">Adicionar</button>
+    </div>
   </div>
-  <div class="item">
-    <img src="https://images.unsplash.com/photo-1626084574714-31346a2ee511" alt="X-Tudo">
-    <h3>X-Tudo</h3>
-    <p>Tudo que você imagina</p>
-    <p><strong>R$25,00</strong></p>
-    <button onclick="addToCart('X-Tudo', 25)">Adicionar</button>
+  <div class="menu-card">
+    <img src="https://images.unsplash.com/photo-1617196036767-97e96d2f7f92" alt="Veggie Burger">
+    <div class="menu-info">
+      <h3>Veggie Burger</h3>
+      <p>Hambúrguer de grão de bico, alface, tomate, molho</p>
+      <span class="price">R$24</span>
+      <button onclick="addToCart('Veggie Burger',24)">Adicionar</button>
+    </div>
+  </div>
+  
+  <!-- Bebidas -->
+  <div class="menu-card">
+    <img src="https://images.unsplash.com/photo-1598514982516-22aa60d96cf5" alt="Refrigerante">
+    <div class="menu-info">
+      <h3>Refrigerante 350ml</h3>
+      <p>Geladinho</p>
+      <span class="price">R$7</span>
+      <button onclick="addToCart('Refrigerante 350ml',7)">Adicionar</button>
+    </div>
+  </div>
+  <div class="menu-card">
+    <img src="https://images.unsplash.com/photo-1509042239860-f550ce710b93" alt="Suco Natural">
+    <div class="menu-info">
+      <h3>Suco Natural</h3>
+      <p>Laranja, limão ou maracujá</p>
+      <span class="price">R$10</span>
+      <button onclick="addToCart('Suco Natural',10)">Adicionar</button>
+    </div>
+  </div>
+  <div class="menu-card">
+    <img src="https://images.unsplash.com/photo-1527168027773-0cc890c5f6a9" alt="Milkshake Chocolate">
+    <div class="menu-info">
+      <h3>Milkshake Chocolate</h3>
+      <p>Sorvete batido com leite e chantilly</p>
+      <span class="price">R$15</span>
+      <button onclick="addToCart('Milkshake Chocolate',15)">Adicionar</button>
+    </div>
+  </div>
+  <div class="menu-card">
+    <img src="https://images.unsplash.com/photo-1622484214038-98a2e7a3a065" alt="Cerveja Long Neck">
+    <div class="menu-info">
+      <h3>Cerveja Long Neck</h3>
+      <p>330ml, gelada</p>
+      <span class="price">R$12</span>
+      <button onclick="addToCart('Cerveja Long Neck',12)">Adicionar</button>
+    </div>
+  </div>
+  <div class="menu-card">
+    <img src="https://images.unsplash.com/photo-1551024709-8f23befc6f87" alt="Água Mineral">
+    <div class="menu-info">
+      <h3>Água Mineral</h3>
+      <p>Com ou sem gás</p>
+      <span class="price">R$5</span>
+      <button onclick="addToCart('Água Mineral',5)">Adicionar</button>
+    </div>
   </div>
 
-  <!-- Bebidas -->
-  <div class="item">
-    <img src="https://images.unsplash.com/photo-1586190848861-99aa4a171e90" alt="Coca-Cola Lata">
-    <h3>Coca-Cola Lata</h3>
-    <p>350ml</p>
-    <p><strong>R$6,00</strong></p>
-    <button onclick="addToCart('Coca-Cola Lata', 6)">Adicionar</button>
-  </div>
-  <div class="item">
-    <img src="https://images.unsplash.com/photo-1608874973579-70d76eb3c3a0" alt="Guaraná Lata">
-    <h3>Guaraná Lata</h3>
-    <p>350ml</p>
-    <p><strong>R$5,00</strong></p>
-    <button onclick="addToCart('Guaraná Lata', 5)">Adicionar</button>
-  </div>
-  <div class="item">
-    <img src="https://images.unsplash.com/photo-1527169402691-feff5539e52c" alt="Suco de Laranja">
-    <h3>Suco de Laranja</h3>
-    <p>Natural</p>
-    <p><strong>R$8,00</strong></p>
-    <button onclick="addToCart('Suco de Laranja', 8)">Adicionar</button>
-  </div>
-  <div class="item">
-    <img src="https://images.unsplash.com/photo-1551024601-bec78aea704b" alt="Água Mineral">
-    <h3>Água Mineral</h3>
-    <p>500ml</p>
-    <p><strong>R$3,00</strong></p>
-    <button onclick="addToCart('Água Mineral', 3)">Adicionar</button>
-  </div>
-  <div class="item">
-    <img src="https://images.unsplash.com/photo-1544145945-f90425340c7e" alt="Chá Gelado">
-    <h3>Chá Gelado</h3>
-    <p>Limão</p>
-    <p><strong>R$7,00</strong></p>
-    <button onclick="addToCart('Chá Gelado', 7)">Adicionar</button>
-  </div>
 </main>
 
 <div id="cart">
-  <h2>🛒 Seu Carrinho</h2>
-  <div id="cart-items"></div>
-  <div id="cart-total">
-    <p id="subtotal">Subtotal: R$0,00</p>
-    <button id="checkout-btn">Pedir pelo WhatsApp</button>
-  </div>
+  <span id="cart-count">0 itens</span>
+  <button id="checkout-btn">📲 Pedir</button>
 </div>
 
 <script>
-  let cart = [];
-  function addToCart(name, price){
-    const item = cart.find(i => i.name === name);
-    if(item){ item.qtd++; } else { cart.push({name, price, qtd:1}); }
-    renderCart();
-  }
-  function renderCart(){
-    const container = document.getElementById("cart-items");
-    container.innerHTML = "";
-    let subtotal = 0;
-    cart.forEach((i, idx)=>{
-      subtotal += i.price * i.qtd;
-      container.innerHTML += `
-        <div class="cart-item">
-          ${i.name} - R$${i.price.toFixed(2)} x ${i.qtd}
-          <button onclick="changeQty(${idx},-1)">-</button>
-          <button onclick="changeQty(${idx},1)">+</button>
-        </div>
-      `;
-    });
-    document.getElementById("subtotal").textContent = "Subtotal: R$"+subtotal.toFixed(2);
-  }
-  function changeQty(idx, delta){
-    cart[idx].qtd += delta;
-    if(cart[idx].qtd <= 0) cart.splice(idx,1);
-    renderCart();
-  }
-  document.getElementById("checkout-btn").addEventListener("click", ()=>{
-    if(cart.length===0){ alert("Carrinho vazio!"); return; }
-    let msg = "Pedido Aquarius Burguer:%0A";
-    cart.forEach(i=>{
-      msg += `${i.name} x${i.qtd} - R$${(i.price*i.qtd).toFixed(2)}%0A`;
-    });
-    window.open(`https://wa.me/5546999241298?text=${msg}`, "_blank");
-  });
+let cart = [];
+function addToCart(name, price){
+  let item = cart.find(i => i.name===name);
+  if(item) item.qtd++; else cart.push({name, price, qtd:1});
+  renderCart();
+}
+function renderCart(){
+  let count = cart.reduce((a,b)=>a+b.qtd,0);
+  document.getElementById('cart-count').textContent = `${count} item${count!==1?'s':''}`;
+}
+document.getElementById('checkout-btn').addEventListener('click',()=>{
+  if(cart.length===0){ alert("Carrinho vazio!"); return;}
+  let msg = "Pedido Aquarius Burguer:%0A";
+  cart.forEach(i=> msg+=`${i.name} x${i.qtd} - R$${(i.price*i.qtd).toFixed(2)}%0A`);
+  window.open(`https://wa.me/5546999241298?text=${msg}`, "_blank");
+});
 </script>
+
 </body>
 </html>
