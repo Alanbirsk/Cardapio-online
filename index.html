@@ -6,8 +6,8 @@
 <title>Aquarius Burguer - Delivery</title>
 <style>
 :root {
-  --purple:#4a0072; /* roxo mais escuro */
-  --green:#1b5e20;  /* verde mais escuro */
+  --purple:#4a0072; 
+  --green:#1b5e20;  
   --orange:#f57c00;
   --bg-light:#fafafa; 
   --text-dark:#222;
@@ -139,7 +139,7 @@ function updateCart(){
   cartItemsContainer.innerHTML='';
   cart.forEach((item,i)=>{
     const div=document.createElement('div');
-    div.className=cart-item ${item.categoria};
+    div.className=`cart-item ${item.categoria}`;
     div.innerHTML=`
       <div class="cart-item-header">${item.nome} - R$${item.preco.toFixed(2)}</div>
       <div class="cart-qtd">
@@ -161,15 +161,16 @@ function changeQty(index,delta){
 }
 function removeItem(index){cart.splice(index,1);updateCart();}
 function updateObs(index,val){cart[index].obs=val;}
+
 function calculateTotal(){
   let subtotal=0;
   cart.forEach(i=>subtotal+=i.preco*i.qtd);
   let delivery=0;
   const tipoRetirada=document.getElementById('retirada').value;
   if(tipoRetirada==='entrega' && subtotal>0 && subtotal<35) delivery=10;
-  subtotalEl.textContent=Subtotal dos itens: R$${subtotal.toFixed(2)};
-  deliveryEl.textContent=Taxa de entrega: R$${tipoRetirada==='balcao'?0:delivery.toFixed(2)};
-  totalEl.textContent=Total: R$${(subtotal+(tipoRetirada==='balcao'?0:delivery)).toFixed(2)};
+  subtotalEl.textContent=`Subtotal dos itens: R$${subtotal.toFixed(2)}`;
+  deliveryEl.textContent=`Taxa de entrega: R$${tipoRetirada==='balcao'?0:delivery.toFixed(2)}`;
+  totalEl.textContent=`Total: R$${(subtotal+(tipoRetirada==='balcao'?0:delivery)).toFixed(2)}`;
 }
 document.getElementById('retirada').addEventListener('change',calculateTotal);
 
@@ -181,12 +182,16 @@ document.getElementById('checkout-btn').addEventListener('click', ()=>{
   const pagamento=document.getElementById('pagamento').value;
   if(!nome){alert('Informe seu nome'); return;}
   if(retirada==='entrega' && !endereco){alert('Informe o endereço'); return;}
-  let msg=Pedido Aquarius Burguer:\n;
-  cart.forEach(i=>{msg+=- ${i.nome} x${i.qtd} (${i.obs}) R$${(i.preco*i.qtd).toFixed(2)}\n;});
-  msg+=${subtotalEl.textContent}\n${deliveryEl.textContent}\n${totalEl.textContent}\n;
-  msg+=Nome: ${nome}\nEndereço: ${endereco}\nRetirada: ${retirada}\nPagamento: ${pagamento};
+  
+  let msg=`Pedido Aquarius Burguer:\n`;
+  cart.forEach(i=>{
+    msg+=`- ${i.nome} x${i.qtd} (${i.obs}) R$${(i.preco*i.qtd).toFixed(2)}\n`;
+  });
+  msg+=`${subtotalEl.textContent}\n${deliveryEl.textContent}\n${totalEl.textContent}\n`;
+  msg+=`Nome: ${nome}\nEndereço: ${endereco}\nRetirada: ${retirada}\nPagamento: ${pagamento}`;
+  
   // Substitua pelo seu número de WhatsApp correto
-  window.open(https://wa.me/5546999241298?text=${encodeURIComponent(msg)},'_blank');
+  window.open(`https://wa.me/5546999241298?text=${encodeURIComponent(msg)}`,'_blank');
 });
 </script>
 
