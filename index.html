@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Aquarius Burguer - Delivery</title>
+<!-- Fonte moderna para o cabeçalho -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;900&display=swap" rel="stylesheet">
 <style>
 :root {
   --primary-purple:#4a0072;
@@ -26,6 +28,7 @@ header{
   display:flex;align-items:center;justify-content:center;gap:10px;
   z-index:1000;box-shadow:0 4px 15px rgba(0,0,0,0.2);
   border-bottom-left-radius:12px;border-bottom-right-radius:12px;
+  font-family:'Poppins', sans-serif; /* fonte atualizada */
 }
 header h1{margin:0;display:flex;align-items:center;gap:8px;}
 header h1 span{font-size:1.6rem;}
@@ -114,7 +117,7 @@ main{max-width:600px;margin:100px auto 20px;padding:10px;}
 </header>
 
 <main>
-  <!-- Exemplo Lanches -->
+  <!-- Lanches -->
   <div class="category">
     <div class="category-header">Lanches <span>+</span></div>
     <div class="category-items">
@@ -136,11 +139,10 @@ main{max-width:600px;margin:100px auto 20px;padding:10px;}
           <button class="add-cardapio" data-item="Cheddar Bacon" data-preco="28" data-categoria="lanche">Adicionar</button>
         </div>
       </div>
-      <!-- Adicione mais lanches aqui -->
     </div>
   </div>
 
-  <!-- Exemplo Bebidas -->
+  <!-- Bebidas -->
   <div class="category">
     <div class="category-header">Bebidas <span>+</span></div>
     <div class="category-items">
@@ -153,7 +155,6 @@ main{max-width:600px;margin:100px auto 20px;padding:10px;}
           <button class="add-cardapio" data-item="Refrigerante 350ml" data-preco="7" data-categoria="bebida">Adicionar</button>
         </div>
       </div>
-      <!-- Mais bebidas -->
     </div>
   </div>
 
