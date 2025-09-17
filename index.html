@@ -66,6 +66,8 @@ h2{text-align:center;color:var(--purple);}
 <section>
 <h2>Cardápio</h2>
 <div class="menu-grid">
+
+  <!-- Lanches -->
   <div class="menu-card">
     <img src="https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=600" alt="Clássico">
     <h3>Clássico</h3>
@@ -73,17 +75,85 @@ h2{text-align:center;color:var(--purple);}
     <div class="price">R$22</div>
     <button class="add-cardapio" data-item="Clássico" data-preco="22" data-categoria="lanche">Adicionar</button>
   </div>
+
   <div class="menu-card">
-    <img src="https://images.unsplash.com/photo-1598514982516-22aa60d96cf5?q=80&w=600" alt="Refrigerante">
+    <img src="https://images.unsplash.com/photo-1606756790138-5c5f7a81c1d1?q=80&w=600" alt="Cheddar Bacon">
+    <h3>Cheddar Bacon</h3>
+    <p>Brioche, hambúrguer 160g, cheddar cremoso e bacon crocante.</p>
+    <div class="price">R$28</div>
+    <button class="add-cardapio" data-item="Cheddar Bacon" data-preco="28" data-categoria="lanche">Adicionar</button>
+  </div>
+
+  <div class="menu-card">
+    <img src="https://images.unsplash.com/photo-1617196036710-e2c295afbfde?q=80&w=600" alt="Duplo Smash">
+    <h3>Duplo Smash</h3>
+    <p>Dois smash burgers 100g, queijo prato, cebola caramelizada.</p>
+    <div class="price">R$32</div>
+    <button class="add-cardapio" data-item="Duplo Smash" data-preco="32" data-categoria="lanche">Adicionar</button>
+  </div>
+
+  <div class="menu-card">
+    <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=600" alt="Frango Crocante">
+    <h3>Frango Crocante</h3>
+    <p>Pão brioche, filé de frango empanado, maionese da casa, alface.</p>
+    <div class="price">R$25</div>
+    <button class="add-cardapio" data-item="Frango Crocante" data-preco="25" data-categoria="lanche">Adicionar</button>
+  </div>
+
+  <div class="menu-card">
+    <img src="https://images.unsplash.com/photo-1617196036767-97e96d2f7f92?q=80&w=600" alt="Veggie Burger">
+    <h3>Veggie Burger</h3>
+    <p>Pão integral, hambúrguer de grão de bico, alface, tomate e molho.</p>
+    <div class="price">R$24</div>
+    <button class="add-cardapio" data-item="Veggie Burger" data-preco="24" data-categoria="lanche">Adicionar</button>
+  </div>
+
+  <!-- Bebidas -->
+  <div class="menu-card">
+    <img src="https://images.unsplash.com/photo-1598514982516-22aa60d96cf5?q=80&w=600" alt="Refrigerante 350ml">
     <h3>Refrigerante 350ml</h3>
     <p>Refresco gelado para acompanhar seu lanche.</p>
     <div class="price">R$7</div>
     <button class="add-cardapio" data-item="Refrigerante 350ml" data-preco="7" data-categoria="bebida">Adicionar</button>
   </div>
+
+  <div class="menu-card">
+    <img src="https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=600" alt="Suco Natural">
+    <h3>Suco Natural</h3>
+    <p>Laranja, limão ou maracujá – feito na hora.</p>
+    <div class="price">R$10</div>
+    <button class="add-cardapio" data-item="Suco Natural" data-preco="10" data-categoria="bebida">Adicionar</button>
+  </div>
+
+  <div class="menu-card">
+    <img src="https://images.unsplash.com/photo-1527168027773-0cc890c5f6a9?q=80&w=600" alt="Milkshake Chocolate">
+    <h3>Milkshake Chocolate</h3>
+    <p>Cremoso, feito com sorvete de chocolate e chantilly.</p>
+    <div class="price">R$15</div>
+    <button class="add-cardapio" data-item="Milkshake Chocolate" data-preco="15" data-categoria="bebida">Adicionar</button>
+  </div>
+
+  <div class="menu-card">
+    <img src="https://images.unsplash.com/photo-1622484214038-98a2e7a3a065?q=80&w=600" alt="Cerveja Long Neck">
+    <h3>Cerveja Long Neck</h3>
+    <p>Cerveja gelada 330ml – perfeita para o happy hour.</p>
+    <div class="price">R$12</div>
+    <button class="add-cardapio" data-item="Cerveja Long Neck" data-preco="12" data-categoria="bebida">Adicionar</button>
+  </div>
+
+  <div class="menu-card">
+    <img src="https://images.unsplash.com/photo-1551024709-8f23befc6f87?q=80&w=600" alt="Água Mineral">
+    <h3>Água Mineral</h3>
+    <p>Com ou sem gás – sempre gelada.</p>
+    <div class="price">R$5</div>
+    <button class="add-cardapio" data-item="Água Mineral" data-preco="5" data-categoria="bebida">Adicionar</button>
+  </div>
+
 </div>
 </section>
 </main>
 
+<!-- Carrinho -->
 <div id="floating-cart">
 🛒 <span id="cart-count">0</span>
 <div class="cart-dropdown" id="cart-dropdown">
@@ -183,14 +253,13 @@ document.getElementById('checkout-btn').addEventListener('click', ()=>{
   if(!nome){alert('Informe seu nome'); return;}
   if(retirada==='entrega' && !endereco){alert('Informe o endereço'); return;}
   
-  let msg=`Pedido Aquarius Burguer:\n`;
+  let msg=`🍔 Pedido Aquarius Burguer:\n\n`;
   cart.forEach(i=>{
     msg+=`- ${i.nome} x${i.qtd} (${i.obs}) R$${(i.preco*i.qtd).toFixed(2)}\n`;
   });
-  msg+=`${subtotalEl.textContent}\n${deliveryEl.textContent}\n${totalEl.textContent}\n`;
-  msg+=`Nome: ${nome}\nEndereço: ${endereco}\nRetirada: ${retirada}\nPagamento: ${pagamento}`;
+  msg+=`\n${subtotalEl.textContent}\n${deliveryEl.textContent}\n${totalEl.textContent}\n`;
+  msg+=`\n👤 Nome: ${nome}\n📍 Endereço: ${endereco}\n📦 Retirada: ${retirada}\n💳 Pagamento: ${pagamento}`;
   
-  // Substitua pelo seu número de WhatsApp correto
   window.open(`https://wa.me/5546999241298?text=${encodeURIComponent(msg)}`,'_blank');
 });
 </script>
