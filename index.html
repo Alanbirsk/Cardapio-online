@@ -19,7 +19,30 @@
 
 /* Reset e corpo */
 *{box-sizing:border-box}
-body{margin:0;font-family:'Segoe UI',sans-serif;background:var(--bg-light);color:var(--text-dark);}
+body{
+  margin:0;
+  font-family:'Segoe UI',sans-serif;
+  color:var(--text-dark);
+  /* A imagem de fundo é definida no ::before abaixo */
+  background: var(--bg-light); /* cor de backup caso a imagem não carregue */
+  position: relative;
+}
+
+/* Pseudo-elemento para a imagem de fundo */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('https://gastronomiacarioca.zonasul.com.br/wp-content/uploads/2021/05/dia_do_hamburguer_zona_sul_destaque.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  /* O desfoque (blur) foi removido aqui */
+  z-index: -1; /* Fica por baixo do conteúdo */
+}
 
 /* Cabeçalho simples */
 /* aumenta padding para não deixar o botão colado na borda */
@@ -68,7 +91,7 @@ main{ max-width:700px; margin:75px auto 20px; padding:10px; }
   font-size:1rem; border-radius:var(--card-radius);
 }
 .category-header span{ font-size:1.1rem; }
-.category-items{ display:none; flex-direction:column; background:#fff; transition:all var(--transition); }
+.category-items{ display:none; flex-direction:column; background:rgba(255, 255, 255, 0.85); transition:all var(--transition); }
 
 /* Cards */
 .menu-card{
@@ -144,7 +167,6 @@ main{ max-width:700px; margin:75px auto 20px; padding:10px; }
 </header>
 
 <main>
-  <!-- Lanches -->
   <div class="category">
     <div class="category-header">Lanches <span>+</span></div>
     <div class="category-items">
@@ -178,7 +200,6 @@ main{ max-width:700px; margin:75px auto 20px; padding:10px; }
     </div>
   </div>
 
-  <!-- Bebidas -->
   <div class="category">
     <div class="category-header">Bebidas <span>+</span></div>
     <div class="category-items">
@@ -203,7 +224,6 @@ main{ max-width:700px; margin:75px auto 20px; padding:10px; }
     </div>
   </div>
 
-  <!-- Combos -->
   <div class="category">
     <div class="category-header">Combos <span>+</span></div>
     <div class="category-items">
@@ -219,7 +239,6 @@ main{ max-width:700px; margin:75px auto 20px; padding:10px; }
     </div>
   </div>
 
-  <!-- Promoções -->
   <div class="category">
     <div class="category-header">Promoções <span>+</span></div>
     <div class="category-items">
@@ -236,7 +255,6 @@ main{ max-width:700px; margin:75px auto 20px; padding:10px; }
   </div>
 </main>
 
-<!-- Carrinho -->
 <div id="cart-container" aria-hidden="true">
   <div id="cart-header">
     Carrinho <span id="close-cart" style="cursor:pointer;">✖</span>
@@ -261,7 +279,7 @@ main{ max-width:700px; margin:75px auto 20px; padding:10px; }
       <option value="pix">PIX</option>
       <option value="cartao">Cartão</option>
     </select>
-    <button id="checkout-btn">📲 Pedir Agora</button>
+    <button id="checkout-btn">🍔 Pedir Agora</button>
   </div>
 </div>
 
