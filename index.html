@@ -1,159 +1,203 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Aquarius Burguer - Delivery</title>
+<meta name="description" content="Cardápio Aquarius Burguer. Peça pelo WhatsApp." />
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap" rel="stylesheet">
 <style>
-:root {
+:root{
   --primary-purple:#4a0072;
   --primary-green:#1b5e20;
   --primary-orange:#f57c00;
   --bg-light:#fafafa;
   --text-dark:#222;
-  --highlight:#fbc02d;
   --card-radius:12px;
-  --transition:0.3s ease;
+  --transition:0.28s ease;
 }
 
-/* Reset e corpo */
+/* dark mode automático */
+@media (prefers-color-scheme: dark){
+  :root{ --bg-light:#121212; --text-dark:#eaeaea; }
+  body{ background:#0f0f0f; color:var(--text-dark); }
+  .menu-card{ background:#161616; border:1px solid #222; }
+  .category{ background:transparent; box-shadow:none; }
+  .category-header{ background:#3a0f4f; }
+}
+
+/* base */
 *{box-sizing:border-box}
+html,body{height:100%}
 body{
   margin:0;
-  font-family:'Segoe UI',sans-serif;
+  font-family:'Poppins',system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+  background:var(--bg-light);
   color:var(--text-dark);
-  /* A imagem de fundo é definida no ::before abaixo */
-  background: var(--bg-light); /* cor de backup caso a imagem não carregue */
-  position: relative;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
 }
 
-/* Pseudo-elemento para a imagem de fundo */
-body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: url('https://gastronomiacarioca.zonasul.com.br/wp-content/uploads/2021/05/dia_do_hamburguer_zona_sul_destaque.jpg');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  /* O desfoque (blur) foi removido aqui */
-  z-index: -1; /* Fica por baixo do conteúdo */
+/* header */
+header{
+  position:fixed;
+  top:0; left:0; right:0;
+  height:56px;
+  background:var(--primary-purple);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 14px;
+  z-index:1200;
+  box-shadow:0 2px 10px rgba(0,0,0,0.15);
 }
+header .title{font-weight:700; font-size:1.05rem; letter-spacing:0.2px;}
 
-/* Cabeçalho simples */
-/* aumenta padding para não deixar o botão colado na borda */
-header {
-  position:fixed; top:0; left:0; width:100%; height:55px;
-  background:var(--primary-purple); color:#fff;
-  display:flex; align-items:center; justify-content:space-between;
-  padding:0 16px; font-family:'Poppins',sans-serif;
-  box-shadow:0 2px 8px rgba(0,0,0,0.2); z-index:1000;
-}
-header .title { font-weight:700; font-size:1.2rem; }
-
-/* Botão carrinho mais chamativo e com margem (não colar na borda) */
+/* botão flutuante - canto superior direito (mantive estilo original) */
 #floating-cart{
   background:var(--primary-orange);
   color:#fff;
-  padding:6px 14px;
-  border-radius:20px;
-  font-weight:600;
-  box-shadow:0 3px 8px rgba(0,0,0,0.3);
+  padding:7px 14px;
+  border-radius:22px;
+  font-weight:700;
+  display:flex; gap:10px; align-items:center;
   cursor:pointer;
-  font-size:0.95rem;
-  display:flex;
-  align-items:center;
-  gap:8px;
-  transition:all 0.18s ease;
-  margin-right:4px; /* espaçamento extra para evitar corte */
+  box-shadow:0 6px 18px rgba(0,0,0,0.15);
+  transition:transform var(--transition);
 }
-#floating-cart:hover{ transform:scale(1.03); }
-#cart-count{
-  background:var(--highlight); color:#000; font-weight:700;
-  border-radius:50%; width:20px; height:20px;
-  display:flex; align-items:center; justify-content:center;
-  font-size:0.8rem;
-}
+#floating-cart:hover{ transform:translateY(-3px); }
+#cart-count{ background:#fbc02d; color:#000; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.85rem;}
 #cart-total-mini{ font-weight:700; font-size:0.95rem; }
 
-/* Main */
-main{ max-width:700px; margin:75px auto 20px; padding:10px; }
+/* main container */
+main{ max-width:900px; margin:72px auto 24px; padding:12px; }
 
-/* Categorias */
-.category{ margin-bottom:15px; border-radius:var(--card-radius); overflow:hidden; box-shadow:0 3px 10px rgba(0,0,0,0.1);}
+/* categoria */
+.category{
+  margin-bottom:16px;
+  border-radius:var(--card-radius);
+  overflow:visible;
+}
 .category-header{
-  background:var(--primary-purple); color:#fff; padding:12px 15px;
-  cursor:pointer; font-weight:700; display:flex; justify-content:space-between; align-items:center;
-  font-size:1rem; border-radius:var(--card-radius);
+  background:var(--primary-purple);
+  color:#fff;
+  padding:12px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  cursor:pointer;
+  font-weight:700;
+  border-radius:12px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.08);
 }
-.category-header span{ font-size:1.1rem; }
-.category-items{ display:none; flex-direction:column; background:rgba(255, 255, 255, 0.85); transition:all var(--transition); }
+.category-header span.ind{ font-size:1.1rem; opacity:0.95; }
 
-/* Cards */
+/* category-items: responsivo em GRID; por padrão ABERTO (classe .collapsed fecha) */
+.category-items{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap:14px;
+  padding:14px;
+  background: rgba(255,255,255,0.85);
+  border-radius:0 0 12px 12px;
+  transition: max-height var(--transition), opacity var(--transition);
+}
+
+/* fechar quando adicionar classe collapsed */
+.category.collapsed .category-items{
+  display:none;
+}
+
+/* card do produto */
 .menu-card{
-  display:flex; margin:10px; padding:10px; border-radius:var(--card-radius);
-  box-shadow:0 2px 6px rgba(0,0,0,0.1); align-items:center; gap:10px; background:#fff;
-  transition:transform .12s ease;
+  background:#fff;
+  border-radius:12px;
+  overflow:hidden;
+  box-shadow:0 6px 18px rgba(0,0,0,0.06);
+  display:flex;
+  flex-direction:column;
+  transition:transform var(--transition);
 }
-.menu-card:hover{ transform:translateY(-3px); }
-.menu-card img{ width:80px; height:80px; object-fit:cover; border-radius:10px;}
-.menu-info{ flex:1; display:flex; flex-direction:column; justify-content:space-between; }
-.menu-info h3{ margin:0; color:var(--primary-purple); font-size:1rem; }
-.menu-info p{ margin:5px 0; font-size:0.85rem; color:#555; }
-.menu-info .price{ font-weight:bold; color:var(--primary-green); }
-.menu-info button{
-  padding:8px 10px; border:none; border-radius:10px; background:var(--primary-green);
-  color:#fff; cursor:pointer; font-weight:700; transition:all var(--transition);
+.menu-card:hover{ transform:translateY(-6px); }
+.menu-card img{ width:100%; height:170px; object-fit:cover; display:block; }
+.menu-info{ padding:10px 12px; display:flex; flex-direction:column; gap:8px; flex:1; }
+.menu-info h3{ margin:0; font-size:1rem; color:var(--primary-purple); text-transform:capitalize; }
+.menu-info p{ margin:0; font-size:0.87rem; color:#555; line-height:1.2; min-height:2.2em; }
+.menu-info .price{ font-weight:800; color:var(--primary-green); }
+.menu-info .add-cardapio{
+  margin-top:auto;
+  border:none;
+  background:var(--primary-green);
+  color:#fff;
+  padding:9px 10px;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:700;
 }
-.menu-info button:hover{ background:#145214; }
+.menu-info .add-cardapio:active{ transform:translateY(1px); }
 
-/* Carrinho */
+/* carrinho lateral (mobile full width, desktop max-width) */
 #cart-container{
-  position:fixed; top:0; right:-100%; width:90%; max-width:420px; height:100%;
-  background:#fff; box-shadow:-5px 0 20px rgba(0,0,0,0.3);
-  transition:right var(--transition); z-index:1002; display:flex; flex-direction:column;
+  position:fixed;
+  top:0;
+  right:-110%;
+  width:100%;
+  max-width:420px;
+  height:100%;
+  background:#fff;
+  box-shadow:-8px 0 30px rgba(0,0,0,0.25);
+  transition:right 0.35s cubic-bezier(.2,.9,.2,1);
+  z-index:1400;
+  display:flex;
+  flex-direction:column;
 }
 #cart-container.open{ right:0; }
-#cart-header{ padding:15px; background:var(--primary-purple); color:#fff; font-weight:700;
-  display:flex; justify-content:space-between; align-items:center;}
-#cart-items{ flex:1; overflow-y:auto; padding:10px; }
-.cart-item{ display:flex; flex-direction:column; background:#f5f5f5; margin-bottom:8px; padding:8px; border-radius:var(--card-radius);}
-.cart-item-header{ font-weight:600; color:var(--primary-purple);}
-.cart-qtd{ display:flex; gap:8px; align-items:center; margin:6px 0;}
-.cart-qtd button{ border:none; padding:5px 9px; border-radius:6px; color:#fff; cursor:pointer; font-weight:700;}
-.cart-lanche .cart-qtd button{background:var(--primary-purple);}
-.cart-bebida .cart-qtd button{background:var(--primary-green);}
-.cart-combo .cart-qtd button{background:var(--primary-orange);}
-.cart-promo .cart-qtd button{background:var(--highlight); color:#000;}
-.cart-observacao input{ width:100%; border-radius:6px; border:1px solid #ccc; padding:6px; font-size:0.9rem; margin-bottom:6px;}
-.remove-item{ background:#c62828; color:#fff; border:none; padding:8px; border-radius:8px; cursor:pointer; font-size:0.9rem; margin-top:6px;}
-.cart-subtotal,.cart-delivery,.cart-total{ padding:8px; border-radius:8px; font-weight:700; margin:6px 0;}
-.cart-subtotal{ background:#e0e0e0; color:#222;}
-.cart-delivery{ background:#fff3e0; color:#e65100;}
-.cart-total{ background:linear-gradient(90deg,var(--primary-purple),#9c27b0); color:#fff; text-align:right; padding-right:12px;}
-#checkout-btn{
-  background:linear-gradient(90deg,var(--primary-orange),#ff9800);
-  color:#fff; padding:12px; border:none; border-radius:12px; font-weight:700;
-  margin:8px 12px; cursor:pointer; font-size:1rem; box-shadow:0 5px 15px rgba(0,0,0,0.2);
-  transition:all 0.2s ease;
+#cart-header{
+  background:var(--primary-purple);
+  color:#fff;
+  padding:14px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-weight:700;
 }
-#checkout-btn:hover{ transform:translateY(-3px); box-shadow:0 8px 20px rgba(0,0,0,0.3); }
+#cart-items{ padding:12px; overflow:auto; flex:1; background:#fafafa; }
+.cart-item{ background:#fff; padding:10px; margin-bottom:10px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.05); }
+.cart-item-header{ font-weight:700; color:var(--primary-purple); margin-bottom:6px; }
+.cart-qtd{ display:flex; gap:8px; align-items:center; margin:6px 0; }
+.cart-qtd button{ padding:6px 10px; border-radius:6px; border:none; color:#fff; font-weight:800; cursor:pointer; }
+.cart-lanche .cart-qtd button{ background:var(--primary-purple); }
+.cart-bebida .cart-qtd button{ background:var(--primary-green); }
+.cart-combo .cart-qtd button{ background:var(--primary-orange); }
+.cart-observacao input{ width:100%; padding:8px; border-radius:8px; border:1px solid #ddd; }
+.remove-item{ background:#c62828; color:#fff; border:none; padding:8px; border-radius:8px; cursor:pointer; margin-top:8px; width:100%; }
 
-.cart-form{ display:flex; flex-direction:column; padding:0 12px 18px 12px; }
-.cart-form label{ font-weight:600; margin-top:6px; font-size:0.95rem; }
-.cart-form input, .cart-form select{ padding:8px; border-radius:8px; border:1px solid #ccc; margin-bottom:8px; font-size:0.95rem; }
+/* resumo + checkout */
+.cart-summary{ padding:12px; border-top:1px solid #eee; background:#fff; }
+.cart-subtotal, .cart-delivery, .cart-total{ padding:8px; border-radius:8px; margin-bottom:8px; font-weight:700; }
+.cart-subtotal{ background:#eaeaea; color:#222; }
+.cart-delivery{ background:#fff3e0; color:#e65100; }
+.cart-total{ background:linear-gradient(90deg,var(--primary-purple),#9c27b0); color:#fff; text-align:right; }
 
-/* Mobile */
-@media(max-width:600px){
-  .menu-card img{ width:90px; height:90px; }
-  #cart-container{ width:100%; border-radius:0; }
-  #cart-header{ font-size:1.05rem; padding:14px; }
-  main{ margin-top:66px; padding:8px; }
-  .menu-info button{ padding:10px 12px; border-radius:8px; }
+/* botões */
+#checkout-btn{ width:calc(100% - 24px); margin:10px 12px; padding:12px; border-radius:12px; border:none; background:linear-gradient(90deg,var(--primary-orange),#ff9800); color:#fff; font-weight:800; cursor:pointer; box-shadow:0 8px 22px rgba(0,0,0,0.12); }
+#close-cart-btn{ width:calc(100% - 24px); margin:6px 12px 18px; padding:10px; border-radius:10px; border:none; background:#ddd; cursor:pointer; }
+
+/* toast */
+.toast{ position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); color:#fff; padding:10px 14px; border-radius:8px; z-index:20000; }
+
+/* responsividade extra */
+@media(max-width:720px){
+  .menu-card img{ height:150px; }
+  .category-items{ grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); padding:12px; gap:12px; }
+}
+@media(max-width:420px){
+  header{ font-size:14px; padding:10px; height:52px; }
+  main{ margin-top:64px; padding:10px; }
+  .menu-card img{ height:140px; }
+  .menu-info p{ min-height:2.6em; }
+  #floating-cart{ right:12px; bottom:14px; padding:10px 12px; border-radius:18px; }
 }
 </style>
 </head>
@@ -161,245 +205,393 @@ main{ max-width:700px; margin:75px auto 20px; padding:10px; }
 
 <header>
   <div class="title">🍔 Aquarius Burguer</div>
-  <div id="floating-cart" aria-label="Abrir carrinho">
-    🛒 <span id="cart-count">0</span> | <span id="cart-total-mini">R$0,00</span>
+  <div id="floating-cart" role="button" aria-label="Abrir carrinho">
+    🛒 <span id="cart-count" aria-live="polite">0</span> | <span id="cart-total-mini">R$0,00</span>
   </div>
 </header>
 
-<main>
-  <div class="category">
-    <div class="category-header">Lanches <span>+</span></div>
+<main aria-label="Cardápio Principal">
+  <!-- Lanches (iniciam abertos) -->
+  <section class="category open" id="cat-lanches">
+    <div class="category-header" role="button" tabindex="0" aria-expanded="true">
+      <span>Lanches</span>
+      <span class="ind">-</span>
+    </div>
     <div class="category-items">
-      <div class="menu-card">
-        <img src="https://images.unsplash.com/photo-1550547660-d9450f859349?w=400&h=400&fit=crop" alt="Clássico">
+      <article class="menu-card" data-categoria="lanche">
+        <img src="https://images.unsplash.com/photo-1550547660-d9450f859349?w=800&q=60" alt="Hambúrguer clássico com brioche e maionese">
         <div class="menu-info">
           <h3>hambúrguer classico</h3>
           <p>Pão brioche, hambúrguer 140G, alface, tomate, maionese</p>
-          <span class="price">R$22,00</span>
-          <button class="add-cardapio" data-item="Clássico" data-preco="22" data-categoria="lanche">Adicionar</button>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span class="price">R$22,00</span>
+            <button class="add-cardapio" data-item="Clássico" data-preco="22" data-categoria="lanche">Adicionar</button>
+          </div>
         </div>
-      </div>
-      <div class="menu-card">
-        <img src="https://tudodelicious.com/wp-content/uploads/2025/06/Hamburguer-com-Bacon-na-Grelha-1-1024x1024.png" alt="Cheddar Bacon">
+      </article>
+
+      <article class="menu-card" data-categoria="lanche">
+        <img src="https://tudodelicious.com/wp-content/uploads/2025/06/Hamburguer-com-Bacon-na-Grelha-1-1024x1024.png" alt="Hambúrguer cheddar bacon">
         <div class="menu-info">
           <h3>hambúrguer Cheddar Bacon</h3>
           <p>Brioche, hambúrguer 140g, cheddar, bacon crocante</p>
-          <span class="price">R$28,00</span>
-          <button class="add-cardapio" data-item="Cheddar Bacon" data-preco="28" data-categoria="lanche">Adicionar</button>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span class="price">R$28,00</span>
+            <button class="add-cardapio" data-item="Cheddar Bacon" data-preco="28" data-categoria="lanche">Adicionar</button>
+          </div>
         </div>
-      </div>
-      <div class="menu-card">
-        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQBHTVVoQDwk7zk6vRpUpMfWejpDyDraEUuyA&s" alt="Combo Clássico (card inside lanches example)">
+      </article>
+
+      <article class="menu-card" data-categoria="lanche">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQBHTVVoQDwk7zk6vRpUpMfWejpDyDraEUuyA&s" alt="Trio Especial com batata e refrigerante">
         <div class="menu-info">
           <h3>Trio Especial</h3>
-          <p>Hambúrguer Clássico (Pão brioche, hambúrguer 140g, alface, tomate, maionese)+ batata  180g + Coca cola Lata</p>
-          <span class="price">R$35,00</span>
-          <button class="add-cardapio" data-item="Trio Especial" data-preco="35" data-categoria="lanche">Adicionar</button>
+          <p>Hambúrguer Clássico + batata 180g + Coca cola lata</p>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span class="price">R$32,00</span>
+            <button class="add-cardapio" data-item="Trio Especial" data-preco="32" data-categoria="lanche">Adicionar</button>
+          </div>
         </div>
-      </div>
+      </article>
     </div>
-  </div>
+  </section>
 
-  <div class="category">
-    <div class="category-header">Bebidas <span>+</span></div>
+  <!-- Bebidas -->
+  <section class="category open" id="cat-bebidas">
+    <div class="category-header" role="button" tabindex="0" aria-expanded="true">
+      <span>Bebidas</span>
+      <span class="ind">-</span>
+    </div>
     <div class="category-items">
-      <div class="menu-card">
-        <img src="https://thumbs.dreamstime.com/b/lata-de-coca-num-espelho-preto-com-gotas-%C3%A1gua-reino-unido-fevereiro-210382677.jpg" alt="Refrigerante">
+      <article class="menu-card" data-categoria="bebida">
+        <img src="https://thumbs.dreamstime.com/b/lata-de-coca-num-espelho-preto-com-gotas-%C3%A1gua-reino-unido-fevereiro-210382677.jpg" alt="Coca-Cola lata">
         <div class="menu-info">
           <h3>Coca cola lata</h3>
-          <p></p>
-          <span class="price">R$5,00</span>
-          <button class="add-cardapio" data-item="Refrigerante 350ml" data-preco="5" data-categoria="bebida">Adicionar</button>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span class="price">R$5,00</span>
+            <button class="add-cardapio" data-item="Coca cola lata" data-preco="5" data-categoria="bebida">Adicionar</button>
+          </div>
         </div>
-      </div>
-      <div class="menu-card">
-        <img src="https://demo11.webbvendas.com.br/_core/_uploads/148/2024/03/1156310324if58icfghg.jpg" alt="Suco">
-        <div class="menu-info">
-          <h3>Coca cola 2L </h3>
-          <p></p>
-          <span class="price">R$14,00</span>
-          <button class="add-cardapio" data-item="Coca cola 2L " data-preco="14" data-categoria="bebida">Adicionar</button>
-        </div>
-      </div>
-    </div>
-  </div>
+      </article>
 
-  <div class="category">
-    <div class="category-header">Combos <span>+</span></div>
+      <article class="menu-card" data-categoria="bebida">
+        <img src="https://demo11.webbvendas.com.br/_core/_uploads/148/2024/03/1156310324if58icfghg.jpg" alt="Coca-Cola 2 litros">
+        <div class="menu-info">
+          <h3>Coca cola 2L</h3>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span class="price">R$14,00</span>
+            <button class="add-cardapio" data-item="Coca cola 2L" data-preco="14" data-categoria="bebida">Adicionar</button>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- Combos -->
+  <section class="category open" id="cat-combos">
+    <div class="category-header" role="button" tabindex="0" aria-expanded="true">
+      <span>Combos</span>
+      <span class="ind">-</span>
+    </div>
     <div class="category-items">
-      <div class="menu-card">
-        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS7Oo_BfGvHusu4zeGrOtszdx1Xxh_sP9td1q_D0HdpubTP88BqTLIwWujDohs2ig68-QY&usqp=CAU" alt="Combo Clássico">
+      <article class="menu-card" data-categoria="combo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS7Oo_BfGvHusu4zeGrOtszdx1Xxh_sP9td1q_D0HdpubTP88BqTLIwWujDohs2ig68-QY&usqp=CAU" alt="Combo clássico">
         <div class="menu-info">
           <h3>Combo Clássico</h3>
           <p>2 hambúrguer classico + Coca cola 2 Litros</p>
-          <span class="price">R$55,00</span>
-          <button class="add-cardapio" data-item="Combo Clássico" data-preco="55" data-categoria="combo">Adicionar</button>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span class="price">R$55,00</span>
+            <button class="add-cardapio" data-item="Combo Clássico" data-preco="55" data-categoria="combo">Adicionar</button>
+          </div>
         </div>
-      </div>
+      </article>
     </div>
-  </div>
+  </section>
 
-  <div class="category">
-    <div class="category-header">Promoções <span>+</span></div>
+  <!-- Promoções -->
+  <section class="category open" id="cat-promos">
+    <div class="category-header" role="button" tabindex="0" aria-expanded="true">
+      <span>Promoções</span>
+      <span class="ind">-</span>
+    </div>
     <div class="category-items">
-      <div class="menu-card">
-        <img src="https://mrburguer.polipedidos.app/_core/_uploads/125/2023/08/2153250823bcjhjh0ig4.jpg" alt="Promo">
+      <article class="menu-card" data-categoria="promo">
+        <img src="https://mrburguer.polipedidos.app/_core/_uploads/125/2023/08/2153250823bcjhjh0ig4.jpg" alt="Promo Burger">
         <div class="menu-info">
           <h3>Promo Burger</h3>
           <p>2 hambúrguer classico + 2 coca lata</p>
-          <span class="price">R$52,00</span>
-          <button class="add-cardapio" data-item="Promo Burger" data-preco="52" data-categoria="promo">Adicionar</button>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span class="price">R$52,00</span>
+            <button class="add-cardapio" data-item="Promo Burger" data-preco="52" data-categoria="promo">Adicionar</button>
+          </div>
         </div>
-      </div>
+      </article>
     </div>
-  </div>
+  </section>
 </main>
 
+<!-- CARRINHO LATERAL -->
 <div id="cart-container" aria-hidden="true">
-  <div id="cart-header">
-    Carrinho <span id="close-cart" style="cursor:pointer;">✖</span>
+  <div id="cart-header" class="cart-header">
+    Carrinho <button id="close-cart" aria-label="Fechar carrinho" style="background:transparent;border:none;color:#fff;font-size:18px;cursor:pointer">✖</button>
   </div>
-  <div id="cart-items"></div>
-  <div class="cart-subtotal">Subtotal: R$0,00</div>
-  <div class="cart-delivery">Taxa: R$0,00</div>
-  <div class="cart-total">Total: R$0,00</div>
-  <div class="cart-form">
-    <label for="nome">Nome:</label>
-    <input type="text" id="nome" placeholder="Seu nome">
-    <label for="endereco">Endereço:</label>
-    <input type="text" id="endereco" placeholder="Rua, nº, Bairro">
-    <label for="retirada">Retirada:</label>
-    <select id="retirada">
-      <option value="entrega">Entrega</option>
-      <option value="balcao">Balcão</option>
-    </select>
-    <label for="pagamento">Pagamento:</label>
-    <select id="pagamento">
-      <option value="dinheiro">Dinheiro</option>
-      <option value="pix">PIX</option>
-      <!--<value="cartao">Cartão</option>  -->
-    </select>
-    <button id="checkout-btn">🍔 Pedir Agora</button>
+
+  <div id="cart-items" aria-live="polite"></div>
+
+  <div class="cart-summary" role="region" aria-label="Resumo do pedido">
+    <div class="cart-subtotal">Subtotal: R$0,00</div>
+    <div class="cart-delivery">Taxa: R$0,00</div>
+    <div class="cart-total">Total: R$0,00</div>
+
+    <div style="padding:8px;">
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <input id="nome" placeholder="Nome" style="flex:1;padding:8px;border-radius:8px;border:1px solid #ddd">
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <input id="endereco" placeholder="Endereço (se entrega)" style="flex:1;padding:8px;border-radius:8px;border:1px solid #ddd">
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <select id="retirada" style="padding:8px;border-radius:8px;border:1px solid #ddd">
+          <option value="entrega">Entrega</option>
+          <option value="balcao">Balcão</option>
+        </select>
+        <select id="pagamento" style="padding:8px;border-radius:8px;border:1px solid #ddd">
+          <option value="dinheiro">Dinheiro</option>
+          <option value="pix">PIX</option>
+          <option value="cartao">Cartão</option>
+        </select>
+      </div>
+
+      <button id="checkout-btn">🍔 Pedir Agora</button>
+      <button id="clear-cart" style="margin-top:8px;background:#ddd;color:#333;padding:8px;border-radius:8px;border:none;width:100%;">🧹 Limpar Carrinho</button>
+    </div>
   </div>
 </div>
 
+<!-- area toast -->
+<div id="toast-root" aria-hidden="true"></div>
+
 <script>
-// Acordeão categorias (preserva comportamento original)
-document.querySelectorAll('.category-header').forEach(header=>{
-  header.addEventListener('click',()=>{
-    const items=header.nextElementSibling;
-    items.style.display=(items.style.display==='flex')?'none':'flex';
-    header.querySelector('span').textContent=(items.style.display==='flex')?'-':'+';
-  });
-});
+/* =========================
+   VARIÁVEIS E INICIALIZAÇÃO
+   ========================= */
+const WHATSAPP = '5546999241298'; // mantenha seu número
+let cart = []; // objetos: {nome, preco, categoria, qtd, obs}
+const storageKey = 'aquarius_cart_v2';
 
-// Carrinho com todas as funcionalidades originais + melhorias visuais
-let cart=[];
-const cartContainer=document.getElementById('cart-container');
-const cartCount=document.getElementById('cart-count');
-const cartItemsContainer=document.getElementById('cart-items');
-const subtotalEl=document.querySelector('.cart-subtotal');
-const deliveryEl=document.querySelector('.cart-delivery');
-const totalEl=document.querySelector('.cart-total');
-const totalMini=document.getElementById('cart-total-mini');
-const floatingCart=document.getElementById('floating-cart');
+const cartCountEl = document.getElementById('cart-count');
+const cartTotalMiniEl = document.getElementById('cart-total-mini');
+const floatingCart = document.getElementById('floating-cart');
+const cartContainer = document.getElementById('cart-container');
+const cartItemsEl = document.getElementById('cart-items');
+const subtotalEl = document.querySelector('.cart-subtotal');
+const deliveryEl = document.querySelector('.cart-delivery');
+const totalEl = document.querySelector('.cart-total');
+const checkoutBtn = document.getElementById('checkout-btn');
+const clearCartBtn = document.getElementById('clear-cart');
+const closeCartBtn = document.getElementById('close-cart');
 
-// abrir carrinho ao clicar (mantém comportamento original: abrir ao clicar)
-floatingCart.addEventListener('click',()=>{ cartContainer.classList.add('open'); cartContainer.setAttribute('aria-hidden','false'); });
+/* Load saved cart */
+function loadCart(){
+  try{
+    const raw = localStorage.getItem(storageKey);
+    if(raw) cart = JSON.parse(raw);
+  }catch(e){ cart = []; }
+  updateCartUI();
+}
+loadCart();
 
-// fechar
-document.getElementById('close-cart').addEventListener('click',()=>{ cartContainer.classList.remove('open'); cartContainer.setAttribute('aria-hidden','true'); });
+/* =========================
+   TOAST
+   ========================= */
+function showToast(text){
+  const root = document.getElementById('toast-root');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = text;
+  root.appendChild(t);
+  setTimeout(()=> t.remove(), 1800);
+}
 
-// adicionar itens
+/* =========================
+   ADD ITEM
+   ========================= */
 document.querySelectorAll('.add-cardapio').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    const item={nome:btn.dataset.item,preco:parseFloat(btn.dataset.preco),categoria:btn.dataset.categoria,qtd:1,obs:''};
-    // se já existe, incrementa qtd (mantendo UX razoável)
-    const existingIndex = cart.findIndex(i=>i.nome===item.nome && i.categoria===item.categoria);
-    if(existingIndex>-1){
-      cart[existingIndex].qtd += 1;
+  btn.addEventListener('click', ()=> {
+    const nome = btn.dataset.item;
+    const preco = parseFloat(btn.dataset.preco);
+    const categoria = btn.dataset.categoria || 'outro';
+    // procura mesmo item (mesmo nome e categoria) e incrementa qtd
+    const idx = cart.findIndex(i => i.nome === nome && i.categoria === categoria);
+    if(idx >= 0){
+      cart[idx].qtd += 1;
     } else {
-      cart.push(item);
+      cart.push({ nome, preco, categoria, qtd: 1, obs: '' });
     }
-    updateCart();
+    saveCart();
+    updateCartUI();
+    showToast(`${nome} adicionado ao carrinho`);
   });
 });
 
-function updateCart(){
-  cartItemsContainer.innerHTML='';
-  cart.forEach((item,i)=>{
-    const div=document.createElement('div');
-    div.className=`cart-item ${item.categoria}`;
-    // escape simples para evitar problemas com aspas ao inserir no value
-    const safeObs = (item.obs||'').replace(/"/g,'&quot;').replace(/'/g,"&#39;");
-    div.innerHTML=`
-      <div class="cart-item-header">${item.nome} - R$${item.preco.toFixed(2)}</div>
-      <div class="cart-qtd">
-        <button onclick="changeQty(${i},-1)">-</button>
-        <span style="font-weight:700; padding:0 6px;">${item.qtd}</span>
-        <button onclick="changeQty(${i},1)">+</button>
+/* =========================
+   ATUALIZAÇÃO DO CARRINHO (UI + cálculos)
+   ========================= */
+function updateCartUI(){
+  cartItemsEl.innerHTML = '';
+  const frag = document.createDocumentFragment();
+  let subtotal = 0;
+  cart.forEach((item, i) => {
+    subtotal += item.preco * item.qtd;
+    const div = document.createElement('div');
+    div.className = 'cart-item ' + (item.categoria ? `cart-${item.categoria}` : '');
+    div.innerHTML = `
+      <div class="cart-item-header">${escapeHTML(item.nome)} - R$${(item.preco).toFixed(2)}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px">
+        <div class="cart-qtd" style="display:flex;align-items:center;gap:6px">
+          <button onclick="changeQty(${i},-1)" aria-label="Diminuir">-</button>
+          <strong>${item.qtd}</strong>
+          <button onclick="changeQty(${i},1)" aria-label="Aumentar">+</button>
+        </div>
+        <div style="text-align:right">R$${(item.preco*item.qtd).toFixed(2)}</div>
       </div>
-      <div class="cart-observacao">
-        <input placeholder="Observações" value="${safeObs}" onchange="updateObs(${i},this.value)">
+      <div style="margin-top:8px">
+        <input placeholder="Observação (ex: sem cebola)" value="${(item.obs||'').replace(/"/g,'&quot;')}" onchange="updateObs(${i},this.value)" style="width:100%;padding:8px;border-radius:8px;border:1px solid #eee">
       </div>
       <button class="remove-item" onclick="removeItem(${i})">Remover</button>
-    `;
-    cartItemsContainer.appendChild(div);
+      `;
+    frag.appendChild(div);
   });
-  // atualiza badge com soma das quantidades (melhoria: mostra total de itens)
-  const totalQty = cart.reduce((s,it)=>s+it.qtd,0);
-  cartCount.textContent = totalQty;
-  calculateTotal();
-}
+  cartItemsEl.appendChild(frag);
 
-function changeQty(index,delta){
-  cart[index].qtd += delta;
-  if(cart[index].qtd < 1) cart[index].qtd = 1;
-  updateCart();
-}
-function removeItem(index){ cart.splice(index,1); updateCart(); }
-function updateObs(index,val){ cart[index].obs = val; }
-
-function calculateTotal(){
-  let subtotal = 0;
-  cart.forEach(i=>subtotal += i.preco * i.qtd);
+  // cálculo taxa: mantém regra original (entrega R$10 se subtotal < 35 e tipo entrega)
+  const tipo = document.getElementById('retirada') ? document.getElementById('retirada').value : 'entrega';
   let delivery = 0;
-  const tipo = document.getElementById('retirada').value;
   if(tipo === 'entrega' && subtotal > 0 && subtotal < 35) delivery = 10;
+
   subtotalEl.textContent = `Subtotal: R$${subtotal.toFixed(2)}`;
-  deliveryEl.textContent = `Taxa: R$${(tipo==='balcao'?0:delivery).toFixed(2)}`;
-  const total = (subtotal + (tipo==='balcao'?0:delivery));
+  deliveryEl.textContent = `Taxa: R$${(tipo === 'balcao' ? 0 : delivery).toFixed(2)}`;
+  const total = subtotal + (tipo === 'balcao' ? 0 : delivery);
   totalEl.textContent = `Total: R$${total.toFixed(2)}`;
 
-  // mostra valor total também no botão flutuante (melhoria solicitada)
-  totalMini.textContent = `R$${total.toFixed(2)}`;
+  // badge e mini total
+  const totalQty = cart.reduce((s,i)=>s+i.qtd,0);
+  cartCountEl.textContent = totalQty;
+  cartTotalMiniEl.textContent = `R$${total.toFixed(2)}`;
 
-  // acessibilidade: atualizar aria-label no botão flutuante
-  floatingCart.setAttribute('aria-label', `Abrir carrinho. ${cart.length} tipos, ${cart.reduce((s,i)=>s+i.qtd,0)} itens. Total R$${total.toFixed(2)}`);
+  // aria
+  floatingCart.setAttribute('aria-label', `Abrir carrinho. ${cart.length} tipos, ${totalQty} itens. Total R$${total.toFixed(2)}`);
+
+  saveCart();
 }
-document.getElementById('retirada').addEventListener('change',calculateTotal);
 
-// checkout via WhatsApp (preserva seu fluxo original)
-document.getElementById('checkout-btn').addEventListener('click',()=>{
-  if(cart.length === 0){ alert('Carrinho vazio!'); return; }
+/* helpers */
+function saveCart(){
+  try{ localStorage.setItem(storageKey, JSON.stringify(cart)); }catch(e){}
+}
+function escapeHTML(str){ return String(str).replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
+
+/* =========================
+   CONTROLES DO CARRINHO
+   ========================= */
+function changeQty(index, delta){
+  if(!cart[index]) return;
+  cart[index].qtd += delta;
+  if(cart[index].qtd < 1) cart[index].qtd = 1;
+  updateCartUI();
+}
+function removeItem(index){
+  cart.splice(index,1);
+  updateCartUI();
+  showToast('Item removido');
+}
+function updateObs(index, value){
+  if(!cart[index]) return;
+  cart[index].obs = value;
+  saveCart();
+}
+
+/* abrir/fechar carrinho com bloqueio de scroll */
+floatingCart.addEventListener('click', ()=> {
+  cartContainer.classList.add('open');
+  cartContainer.setAttribute('aria-hidden','false');
+  document.body.style.overflow = 'hidden';
+});
+closeCartBtn.addEventListener('click', ()=> {
+  cartContainer.classList.remove('open');
+  cartContainer.setAttribute('aria-hidden','true');
+  document.body.style.overflow = 'auto';
+});
+
+/* fechar ao clicar fora (em telas maiores) */
+window.addEventListener('keydown', (e)=> { if(e.key === 'Escape'){ cartContainer.classList.remove('open'); document.body.style.overflow='auto'; } });
+
+/* troca retirada -> recalcula total */
+const retiradaSel = document.getElementById('retirada');
+if(retiradaSel){
+  retiradaSel.addEventListener('change', updateCartUI);
+}
+
+/* limpar carrinho */
+clearCartBtn.addEventListener('click', ()=> {
+  if(!confirm('Deseja limpar o carrinho?')) return;
+  cart = [];
+  saveCart();
+  updateCartUI();
+});
+
+/* checkout via WhatsApp */
+checkoutBtn.addEventListener('click', ()=>{
+  if(cart.length === 0){ showToast('Carrinho vazio!'); return; }
   const nome = document.getElementById('nome').value.trim();
   const endereco = document.getElementById('endereco').value.trim();
   const retirada = document.getElementById('retirada').value;
   const pagamento = document.getElementById('pagamento').value;
+
   if(!nome){ alert('Informe seu nome'); return; }
   if(retirada === 'entrega' && !endereco){ alert('Informe o endereço'); return; }
 
+  // montar mensagem formatada
   let msg = `🍔 Pedido Aquarius Burguer:\n\n`;
-  cart.forEach(i => {
-    msg += `• ${i.nome} x${i.qtd} (${i.obs || 'sem obs'}) - R$${(i.preco*i.qtd).toFixed(2)}\n`;
+  cart.forEach(it => {
+    msg += `• ${it.nome} x${it.qtd} (${it.obs || 'sem obs'}) - R$${(it.preco*it.qtd).toFixed(2)}\n`;
   });
 
-  msg += `\n${subtotalEl.textContent}\n${deliveryEl.textContent}\n${totalEl.textContent}\n\n`;
+  // totais
+  const subtotal = cart.reduce((s,i)=>s + i.preco*i.qtd, 0);
+  let delivery = 0;
+  if(retirada === 'entrega' && subtotal > 0 && subtotal < 35) delivery = 10;
+  const total = subtotal + (retirada === 'balcao' ? 0 : delivery);
+
+  msg += `\nSubtotal: R$${subtotal.toFixed(2)}\nTaxa: R$${(retirada==='balcao'?0:delivery).toFixed(2)}\nTotal: R$${total.toFixed(2)}\n\n`;
   msg += `👤 Nome: ${nome}\n📍 Endereço: ${endereco}\n📦 Retirada: ${retirada}\n💳 Pagamento: ${pagamento}`;
 
-  // abre WhatsApp (preserva número original)
-  window.open(`https://wa.me/5546999241298?text=${encodeURIComponent(msg)}`, '_blank');
+  // abrir whatsapp
+  window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`, '_blank');
+
+  // feedback
+  showToast('Pedido enviado para o WhatsApp');
 });
+
+/* =========================
+   ACORDEÃO (categorias) - mantidas abertas por padrão; clicando alterna
+   ========================= */
+document.querySelectorAll('.category').forEach(cat => {
+  // initial estado: open (já setado nas sections com class open)
+  const header = cat.querySelector('.category-header');
+  header.addEventListener('click', ()=>{
+    cat.classList.toggle('collapsed');
+    const ind = header.querySelector('.ind');
+    if(ind) ind.textContent = cat.classList.contains('collapsed') ? '+' : '-';
+  });
+  // acessibilidade por teclado
+  header.addEventListener('keyup', (e) => { if(e.key === 'Enter' || e.key === ' ') header.click(); });
+});
+
+/* =========================
+   Inicial render/update
+   ========================= */
+updateCartUI();
 </script>
 
 </body>
