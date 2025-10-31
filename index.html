@@ -51,8 +51,8 @@ let cart = [];
 let deliveryFee = 10;
 let cartOpen = false;
 let promoMessages = [
-  '🔥 Promoção da Semana: Combo Casal Clássico por R$ 49,90 🔥',
-  '🥤 Frete grátis para pedidos acima de R$ 35,00 no perimetro urbano',
+  '🔥 Promoção da Semana: Combo Casal Clássico por R$ 46,00 🔥',
+  '🥤 4 Hambúrgueres Clássicos + Coca-Cola 2L por apenas R$ 99,99',
  
 ];
 let promoIndex = 0;
@@ -145,8 +145,8 @@ setInterval(cyclePromo, 3000);
         <div>
           <h3 class="text-md font-semibold text-white">hambúrguer classico</h3>
           <p class="text-sm text-[color:var(--secondary)]">Pão brioche, Hambúrguer Clássico 140 gramas Artesanal, alface, tomate, maionese.</p>
-          <p class="text-md font-bold text-[color:var(--accent)] mt-1">R$ 23,00</p>
-          <button class="btn-accent mt-2" onclick="addToCart('hambúrguer classico',23.00)">Adicionar</button>
+          <p class="text-md font-bold text-[color:var(--accent)] mt-1">R$ 24,00</p>
+          <button class="btn-accent mt-2" onclick="addToCart('hambúrguer classico',24.00)">Adicionar</button>
         </div>
       </div>
 
@@ -157,6 +157,16 @@ setInterval(cyclePromo, 3000);
           <p class="text-sm text-[color:var(--secondary)]">Brioche, Hambúrguer Clássico 140 gramas Artesanal, cheddar, bacon crocante.</p>
           <p class="text-md font-bold text-[color:var(--accent)] mt-1">R$ 29,00</p>
           <button class="btn-accent mt-2" onclick="addToCart('hambúrguer Cheddar Bacon',29.00)">Adicionar</button>
+        </div>
+      </div>
+
+            <div class="card">
+        <img src="https://imagens.jotaja.com/produtos/737f725d-3773-4abe-9c61-527b65a5a78b.jpg" alt="hambúrguer Duplo Bacon com cebola caramelizada">
+        <div>
+          <h3 class="text-md font-semibold text-white">hambúrguer Duplo Bacon com cebola caramelizada</h3>
+          <p class="text-sm text-[color:var(--secondary)]">Brioche, 2 Hambúrguer Clássico 140 gramas Artesanal, cebola caramelizada agridoce, bacon crocante.</p>
+          <p class="text-md font-bold text-[color:var(--accent)] mt-1">R$ 38,00</p>
+          <button class="btn-accent mt-2" onclick="addToCart('hambúrguer hambúrguer Duplo Bacon com cebola caramelizada',38.00)">Adicionar</button>
         </div>
       </div>
 
