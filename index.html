@@ -52,7 +52,8 @@ let deliveryFee = 10;
 let cartOpen = false;
 let promoMessages = [
   '🔥 Promoção da Semana: Combo Casal Clássico por R$ 46,00 🔥',
-  '🥤 4 Hambúrgueres Clássicos + Coca-Cola 2L por apenas R$ 99,99',
+  '🥤🍔 Combo Original Barbecue + Coca 350ml por apenas R$ 39,90!
+',
  
 ];
 let promoIndex = 0;
@@ -154,9 +155,9 @@ setInterval(cyclePromo, 3000);
         <img src="https://s2-casaejardim.glbimg.com/X5iB7Xnqg4OIBNyUK_4rW7wtGtI=/0x0:1400x933/924x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_a0b7e59562ef42049f4e191fe476fe7d/internal_photos/bs/2024/l/S/6xYHqvS8SgoaMfs9AarA/receita-hamburguer-costela-bacon-carne-goiabada-queijo-ttburger.jpg" alt="Cheddar Bacon">
         <div>
           <h3 class="text-md font-semibold text-white">hambúrguer Cheddar Bacon</h3>
-          <p class="text-sm text-[color:var(--secondary)]">Brioche, Hambúrguer Clássico 140 gramas Artesanal, cheddar, bacon crocante.</p>
-          <p class="text-md font-bold text-[color:var(--accent)] mt-1">R$ 29,00</p>
-          <button class="btn-accent mt-2" onclick="addToCart('hambúrguer Cheddar Bacon',29.00)">Adicionar</button>
+          <p class="text-sm text-[color:var(--secondary)]">Brioche, Hambúrguer Clássico 140 gramas Artesanal, cheddar, bacon crocante, maionese da casa.</p>
+          <p class="text-md font-bold text-[color:var(--accent)] mt-1">R$ 32,00</p>
+          <button class="btn-accent mt-2" onclick="addToCart('hambúrguer Cheddar Bacon',32.00)">Adicionar</button>
         </div>
       </div>
 
@@ -175,8 +176,8 @@ setInterval(cyclePromo, 3000);
         <div>
           <h3 class="text-md font-semibold text-white">Trio Especial</h3>
           <p class="text-sm text-[color:var(--secondary)]">Hambúrguer Clássico 140 gramas Artesanal + Batata 180g + Coca-Cola Lata.</p>
-          <p class="text-md font-bold text-[color:var(--accent)] mt-1">R$ 37,00</p>
-          <button class="btn-accent mt-2" onclick="addToCart('Trio Especial',37.00)">Adicionar</button>
+          <p class="text-md font-bold text-[color:var(--accent)] mt-1">R$ 38,00</p>
+          <button class="btn-accent mt-2" onclick="addToCart('Trio Especial',38.00)">Adicionar</button>
         </div>
       </div>
     </div>
@@ -219,10 +220,10 @@ setInterval(cyclePromo, 3000);
       <div class="card">
         <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS7Oo_BfGvHusu4zeGrOtszdx1Xxh_sP9td1q_D0HdpubTP88BqTLIwWujDohs2ig68-QY&usqp=CAU&w=400" alt="Combo Clássico">
         <div>
-          <h3 class="text-md font-semibold text-white">Combo Clássico</h3>
-          <p class="text-sm text-[color:var(--secondary)]">2 Hambúrguer Clássico 140 gramas Artesanal + Coca cola 2 Litros.</p>
-          <p class="text-md font-bold text-[color:var(--accent)] mt-1">R$ 56,00</p>
-          <button class="btn-accent mt-2" onclick="addToCart('Combo Clássico',56.00)">Adicionar</button>
+          <h3 class="text-md font-semibold text-white">🍔 Combo Original Barbecue + Coca 350ml por apenas R$ 39,90</h3>
+          <p class="text-sm text-[color:var(--secondary)]">Pão brioche, alface, tomate, hambúrguer artesanal 140g, cebola, maionese da casa e aquele toque defumado de barbecue</p>
+          <p class="text-md font-bold text-[color:var(--accent)] mt-1">R$ 39,00</p>
+          <button class="btn-accent mt-2" onclick="addToCart('Combo Original Barbecue',39.00)">Adicionar</button>
         </div>
       </div>
     </div>
@@ -238,8 +239,8 @@ setInterval(cyclePromo, 3000);
         <img src="https://mrburguer.polipedidos.app/_core/_uploads/125/2023/08/2153250823bcjhjh0ig4.jpg?w=400" alt="Promo Burger">
         <div>
           <h3 class="text-md font-semibold text-white">Promo Burger</h3>
-          <p class="text-sm text-[color:var(--secondary)]">2 Hambúrguer Clássico 140 gramas Artesanal + 1 coca 600ml.</p>
-          <p class="text-md font-bold text-[color:var(--accent)] mt-1">R$ 48,00</p>
+          <p class="text-sm text-[color:var(--secondary)]">2 Hambúrguer Clássico 140 gramas Artesanal +  coca 600 ml.</p>
+          <p class="text-md font-bold text-[color:var(--accent)] mt-1">R$ 46,00</p>
           <button class="btn-accent mt-2" onclick="addToCart('Promo Burger',46.00)">Adicionar</button>
         </div>
       </div>
