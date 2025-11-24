@@ -1,252 +1,216 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Aquarius Burguer - Cardápio</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-:root {
-  --background: #1f1f1f;
-  --card: #2a2a2a;
-  --primary: #b084f5;
-  --secondary: #00f5d4;
-  --accent: #f8a5c2;
-  --border: #555;
-}
-body {
-  background-color: var(--background);
-  color: #fff;
-  font-family: 'Inter', sans-serif;
-  min-height: 100vh;
-  padding-bottom: 80px;
-}
-.category { cursor: pointer; margin-bottom: 0.5rem; }
-.category-items { display:none; margin-top:0.5rem; }
-.card { background-color: var(--card); padding:1rem; border-radius:1rem; border:1px solid var(--border); display:flex; align-items:center; gap:1rem; flex-wrap:wrap; }
-.card img { width:70px; height:70px; border-radius:0.5rem; object-fit:cover; }
-.btn-accent { background-color: var(--accent); padding:0.5rem 1rem; border-radius:0.5rem; font-weight:600; width:100%; margin-top:0.5rem; text-align:center; transition:all 0.2s ease; }
-.btn-accent:hover { background-color:#f8a5c2cc; }
-.cart-icon { position: fixed; bottom:20px; right:20px; width:60px; height:60px; background-color: #fff; color: #000; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-direction:column; z-index:50; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.4); }
-.cart-icon span { font-size: 0.7rem; margin-top:2px; color:#000; }
-.cart-panel { position: fixed; bottom:0; left:0; width:100%; max-height:80%; background-color: var(--card); border-top-left-radius:1rem; border-top-right-radius:1rem; padding:1rem; transform:translateY(100%); transition:transform 0.3s ease; z-index:60; overflow-y:auto; }
-.cart-panel.open { transform:translateY(0); }
-.cart-item { border-bottom:1px solid var(--border); padding:0.5rem 0; display:flex; flex-direction:column; }
-.cart-item span { margin-bottom:0.3rem; }
-.flex-row { display:flex; justify-content:space-between; align-items:center; gap:0.5rem; flex-wrap:wrap; }
-input, select { width:100%; border-radius:0.5rem; border:1px solid var(--border); padding:0.4rem 0.6rem; margin-top:0.3rem; background-color: var(--card); color:#fff; }
-.promo-banner { background: linear-gradient(90deg, var(--primary), var(--accent)); color:white; padding:0.7rem; border-radius:0.75rem; text-align:center; margin-bottom:1rem; font-weight:bold; }
-@media (max-width: 768px) {
-  .card { flex-direction: column; align-items: flex-start; }
-  .card img { width:100%; height:auto; max-height:150px; }
-  h1 { font-size:1.6rem; }
-  h2 { font-size:1rem; }
-  h3 { font-size:0.95rem; }
-  .btn-accent { font-size:0.9rem; padding:0.5rem; }
-  .promo-banner { font-size:0.85rem; padding:0.5rem; }
-}
+:root{--background:#1f1f1f;--card:#2a2a2a;--primary:#b084f5;--secondary:#00f5d4;--accent:#5b21f6;--border:#555}
+body{background:var(--background);color:#fff;font-family:Inter,ui-sans-serif,system-ui,Arial;min-height:100vh;padding-bottom:80px}
+.card{background:var(--card);padding:1rem;border-radius:1rem;border:1px solid var(--border);display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.btn-accent{background:var(--accent);padding:.5rem 1rem;border-radius:.5rem;font-weight:600;width:100%;margin-top:.5rem;text-align:center;transition:all .2s}
+.btn-accent:hover{background:#5b21f6}
+.category{cursor:pointer;margin-bottom:.5rem}
+.category-items{display:none;margin-top:.5rem}
+.cart-icon{position:fixed;bottom:20px;right:20px;width:60px;height:60px;background:#fff;color:#000;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;z-index:50;cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,.4)}
+.cart-icon span{font-size:.7rem;margin-top:2px;color:#000}
+.cart-panel{position:fixed;bottom:0;left:0;width:100%;max-height:80%;background:var(--card);border-top-left-radius:1rem;border-top-right-radius:1rem;padding:1rem;transform:translateY(100%);transition:transform .3s;z-index:60;overflow-y:auto}
+.cart-panel.open{transform:translateY(0)}
+.flex-row{display:flex;justify-content:space-between;align-items:center;gap:.5rem;flex-wrap:wrap}
+input,select{width:100%;border-radius:.5rem;border:1px solid var(--border);padding:.4rem .6rem;margin-top:.3rem;background:var(--card);color:#fff}
+.promo-banner{background:linear-gradient(90deg,var(--primary),var(--accent));color:#fff;padding:.7rem;border-radius:.75rem;text-align:center;margin-bottom:1rem;font-weight:700}
+/* carousel */
+.carousel-container{max-width:900px;margin:0 auto 1rem;position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+.carousel-track{display:flex;transition:transform .5s ease;width:100%}
+.carousel-slide{min-width:100%}
+.carousel-slide img{width:100%;height:220px;object-fit:cover;display:block}
+.carousel-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.45);border:none;color:#fff;padding:8px 10px;border-radius:999px;cursor:pointer;z-index:20}
+.carousel-btn.left{left:12px}
+.carousel-btn.right{right:12px}
+.carousel-dots{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:30}
+.carousel-dot{width:10px;height:10px;border-radius:999px;background:rgba(255,255,255,.6);cursor:pointer;border:1px solid rgba(0,0,0,.15)}
+@media(max-width:768px){.carousel-slide img{height:160px}}
+/* modal adicionais */
+.adicional-modal-backdrop{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:9999}
+.adicional-modal{background:var(--card);color:#fff;padding:20px;width:90%;max-width:380px;border-radius:12px;border:1px solid var(--border)}
+.adicional-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:.9rem}
 </style>
-<script>
-let cart = [];
-let deliveryFee = 10;
-let cartOpen = false;
-let promoMessages = [
- 
-  '🥤 4 Hambúrgueres Clássicos + Coca-Cola 2L por apenas R$ 99,99',
-
-];
-let promoIndex = 0;
-
-function toggleCategory(id){ const elem = document.getElementById(id); elem.style.display = (elem.style.display==='block')?'none':'block'; }
-function addToCart(name, price){ const existing = cart.find(item=>item.name===name); if(existing){ existing.qty++; } else { cart.push({name:name, price:price, qty:1, obs:''}); } renderCart(); alert('✅ '+name+' adicionado ao carrinho!'); }
-function removeFromCart(index){ alert('❌ '+cart[index].name+' removido do carrinho!'); cart.splice(index,1); renderCart(); }
-function changeQty(index, delta){ cart[index].qty += delta; if(cart[index].qty<=0) removeFromCart(index); renderCart(); }
-function updateObs(index, el){ cart[index].obs = el.value; }
-
-function renderCart(){ 
-  let subtotal = 0;
-  cart.forEach(item => subtotal += item.price * item.qty);
-  let fee = (subtotal > 0 && subtotal < 35) ? deliveryFee : 0;
-
-  document.getElementById('cart-subtotal').innerText = `R$ ${(subtotal + fee).toFixed(2)}`;
-
-  const container = document.getElementById('cart-items');
-  container.innerHTML = '';
-  cart.forEach((item,i)=>{
-    const div = document.createElement('div');
-    div.className='cart-item';
-    div.innerHTML = `
-      <span>${item.name} x${item.qty}</span>
-      <input type='text' placeholder='Observação' value='${item.obs}' oninput='updateObs(${i},this)'>
-      <div class='flex-row'>
-        <span>R$ ${(item.price*item.qty).toFixed(2)}</span>
-        <div class='flex gap-1'>
-          <button onclick='changeQty(${i},1)' class='btn-accent text-sm'>+</button>
-          <button onclick='changeQty(${i},-1)' class='btn-accent text-sm'>-</button>
-          <button onclick='removeFromCart(${i})' class='btn-accent text-sm'>x</button>
-        </div>
-      </div>
-    `;
-    container.appendChild(div);
-  });
-
-  document.getElementById('cart-total').innerText = 'Total: R$ ' + (subtotal+fee).toFixed(2);
-
-  // Atualiza subtotal no ícone do carrinho
-  document.getElementById('floating-subtotal').innerText = `R$ ${(subtotal+fee).toFixed(2)}`;
-}
-
-function toggleCartPanel(){ const panel = document.getElementById('cart-panel'); cartOpen = !cartOpen; panel.classList.toggle('open', cartOpen); }
-function minimizeCart(){ const panel = document.getElementById('cart-panel'); cartOpen = false; panel.classList.remove('open'); }
-
-function sendWhatsApp(){ 
-  if(cart.length===0){ alert('Carrinho vazio!'); return; } 
-  const address = document.getElementById('address-input').value.trim(); 
-  const payment = document.getElementById('payment-select').value; 
-  if(!address){ alert('Informe o endereço!'); return; } 
-  let subtotal = cart.reduce((sum,it)=>sum+it.price*it.qty,0); 
-  let fee = (subtotal>0 && subtotal<35)?deliveryFee:0;
-
-  let msg = `* Pedido Aquarius Burguer*\n\nItens do pedido:`; 
-  cart.forEach(item=>{
-    msg+=`\n• ${item.name} x${item.qty}`;
-    if(item.obs) msg+=` (Obs: ${item.obs})`;
-  });
-  msg+=`\n\nSubtotal: R$ ${subtotal.toFixed(2)}\nTaxa de entrega: R$ ${fee.toFixed(2)}\nTotal: R$ ${(subtotal+fee).toFixed(2)}\n\nEndereço de entrega: ${address}\nForma de pagamento: ${payment}\n\nObrigado pelo seu pedido! 😃\nEm breve entraremos em contato para confirmar.`;
-
-  window.open(`https://wa.me/5546999241298?text=${encodeURIComponent(msg)}`,'_blank');
-  cart = [];
-  renderCart();
-}
-
-function cyclePromo(){ document.getElementById('promo-banner').innerText = promoMessages[promoIndex]; promoIndex = (promoIndex +1)%promoMessages.length; }
-setInterval(cyclePromo, 3000);
-</script>
 </head>
 <body class="px-4 py-6">
-
 <header class="text-center mb-6">
-  <h1 class="text-4xl font-bold text-[color:var(--primary)]"> 🍔 Aquarius Burguer</h1>
-  <p class="text-lg text-[color:var(--secondary)] mt-1">Delivery oficial - Peça agora!</p>
+  <h1 class="text-4xl font-bold" style="color:var(--primary)">🍔 Aquarius Burguer</h1>
+  <p style="color:var(--secondary);margin-top:.25rem">Delivery oficial - Peça agora!</p>
 </header>
 
+<!-- carousel -->
+<div id="promo-carousel" class="carousel-container">
+  <div class="carousel-track">
+    <div class="carousel-slide"><img src="https://github.com/Alanbirsk/Cardapio-online/blob/main/Today%E2%80%99s%20Promotion%20(3).png?raw=true" alt="promo1"></div>
+    <div class="carousel-slide"><img src="https://images.unsplash.com/photo-1550547660-d9450f859349?w=1200" alt="promo2"></div>
+    <div class="carousel-slide"><img src="https://demo11.webbvendas.com.br/_core/_uploads/148/2024/03/1156310324if58icfghg.jpg?w=1200" alt="promo3"></div>
+  </div>
+  <button class="carousel-btn left" aria-label="anterior" onclick="prevCarousel()">‹</button>
+  <button class="carousel-btn right" aria-label="proximo" onclick="nextCarousel()">›</button>
+  <div class="carousel-dots"><div class="carousel-dot"></div><div class="carousel-dot"></div><div class="carousel-dot"></div></div>
+</div>
+
 <div id="promo-banner" class="promo-banner">🔥 Promoção da Semana: Combo Casal Clássico por R$ 49,90 🔥</div>
+<div id="promo-banner" class="promo-banner">🔥 Promoção da Semana: Combo familia por R$ 99,90 🔥</div>
+
 
 <section class="max-w-xl mx-auto space-y-4">
-
   <!-- Lanches -->
   <div>
-    <div class="category card" onclick="toggleCategory('burgers')">
-      <h2 class="text-lg font-semibold text-white">🍔 Lanches</h2>
-    </div>
+    <div class="category card" onclick="toggleCategory('burgers')"><h2 class="text-lg font-semibold">🍔 Lanches</h2></div>
     <div class="category-items" id="burgers">
+
+      <!-- Hambúrguer Clássico Artesanal 160g -->
       <div class="card">
-        <img src="https://images.unsplash.com/photo-1550547660-d9450f859349?w=400" alt="Hambúrguer Clássico">
-        <div>
-          <h3 class="text-md font-semibold text-white">hambúrguer classico</h3>
-          <p class="text-sm text-[color:var(--secondary)]">Pão brioche, Hambúrguer Clássico 160 gramas Artesanal, alface, tomate, maionese.</p>
-          <p class="text-md font-bold text-[color:var(--accent)] mt-1">R$ 26,00</p>
-          <button class="btn-accent mt-2" onclick="addToCart('hambúrguer classico',26.00)">Adicionar</button>
+        <img src="https://minervafoods.com/wp-content/uploads/2023/09/HamburguerAlcatraComBacon_1-scaled.jpg" alt="classico artesanal 160g">
+        <div style="flex:1">
+          <h3 class="font-semibold">Hambúrguer Clássico (Artesanal 160g)</h3>
+          <p style="color:var(--secondary)">Pão brioche, hambúrguer artesanal 160g, alface, tomate, maionese caseira.</p>
+          <p style="color:var(--accent);font-weight:700;margin-top:.25rem">R$ 26,00</p>
+          <button class="btn-accent mt-2" onclick="openAdicionalModal('Hambúrguer Clássico (Artesanal 160g)',26.00)">Adicionar</button>
         </div>
       </div>
 
+      <!-- Smash Clássico -->
       <div class="card">
-        <img src="https://tudodelicious.com/wp-content/uploads/2025/06/Hamburguer-com-Bacon-na-Grelha-1-1024x1024.png?w=400" alt="Cheddar Bacon">
-        <img src="https://s2-casaejardim.glbimg.com/X5iB7Xnqg4OIBNyUK_4rW7wtGtI=/0x0:1400x933/924x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_a0b7e59562ef42049f4e191fe476fe7d/internal_photos/bs/2024/l/S/6xYHqvS8SgoaMfs9AarA/receita-hamburguer-costela-bacon-carne-goiabada-queijo-ttburger.jpg" alt="Cheddar Bacon">
-        <div>
-          <h3 class="text-md font-semibold text-white">hambúrguer Cheddar Bacon</h3>
-          <p class="text-sm text-[color:var(--secondary)]">Brioche, Hambúrguer Clássico 160 gramas Artesanal, cheddar, bacon crocante.</p>
-          <p class="text-md font-bold text-[color:var(--accent)] mt-1">R$ 32,00</p>
-          <button class="btn-accent mt-2" onclick="addToCart('hambúrguer Cheddar Bacon',32.00)">Adicionar</button>
+        <img src="https://www.thedailymeal.com/img/gallery/the-science-is-there-you-should-be-smashing-your-burgers/smash-burgers-allow-for-a-greater-maillard-reaction-1681832552.jpg" alt="smash classico">
+        <div style="flex:1">
+          <h3 class="font-semibold">Smash Clássico</h3>
+          <p style="color:var(--secondary)">Pão brioche, carne smash 58g, queijo, maionese.</p>
+          <p style="color:var(--accent);font-weight:700;margin-top:.25rem">R$ 19,00</p>
+          <button class="btn-accent mt-2" onclick="openAdicionalModal('Smash Clássico',19.00)">Adicionar</button>
         </div>
       </div>
 
-            <div class="card">
-        <img src="https://imagens.jotaja.com/produtos/737f725d-3773-4abe-9c61-527b65a5a78b.jpg" alt="hambúrguer Duplo Bacon com cebola caramelizada">
-        <div>
-          <h3 class="text-md font-semibold text-white">hambúrguer Duplo Bacon com cebola caramelizada</h3>
-          <p class="text-sm text-[color:var(--secondary)]">Brioche, 2 Hambúrguer Clássico 160 gramas Artesanal, cebola caramelizada agridoce, bacon crocante.</p>
-          <p class="text-md font-bold text-[color:var(--accent)] mt-1">R$ 39,00</p>
-          <button class="btn-accent mt-2" onclick="addToCart('hambúrguer hambúrguer Duplo Bacon com cebola caramelizada',39.00)">Adicionar</button>
+      <!-- Smash Duplo -->
+      <div class="card">
+        <img src="https://ogimg.infoglobo.com.br/rioshow/25033674-ea4-3ac/FT1086A/smash-burger.jpg" alt="smash duplo">
+        <div style="flex:1">
+          <h3 class="font-semibold">Smash Duplo</h3>
+          <p style="color:var(--secondary)">2 carnes smash 58g, queijo duplo, maionese.</p>
+          <p style="color:var(--accent);font-weight:700;margin-top:.25rem">R$ 24,00</p>
+          <button class="btn-accent mt-2" onclick="openAdicionalModal('Smash Duplo',24.00)">Adicionar</button>
         </div>
       </div>
 
+      <!-- Smash Triplo -->
       <div class="card">
-        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQBHTVVoQDwk7zk6vRpUpMfWejpDyDraEUuyA&s" alt="Trio Especial">
-        <div>
-          <h3 class="text-md font-semibold text-white">Trio Especial</h3>
-          <p class="text-sm text-[color:var(--secondary)]">Hambúrguer Clássico 140 gramas Artesanal + Batata 180g + Coca-Cola Lata.</p>
-          <p class="text-md font-bold text-[color:var(--accent)] mt-1">R$ 39,00</p>
-          <button class="btn-accent mt-2" onclick="addToCart('Trio Especial',39.00)">Adicionar</button>
+        <img src="https://www.mashed.com/img/gallery/14-mistakes-everyone-makes-when-cooking-smash-burgers/intro-1705268781.jpg" alt="smash triplo">
+        <div style="flex:1">
+          <h3 class="font-semibold">Smash Triplo</h3>
+          <p style="color:var(--secondary)">3 carnes smash 58g, muito queijo, maionese.</p>
+          <p style="color:var(--accent);font-weight:700;margin-top:.25rem">R$ 31,00</p>
+          <button class="btn-accent mt-2" onclick="openAdicionalModal('Smash Triplo',31.00)">Adicionar</button>
         </div>
       </div>
-    </div>
-  </div>
+	  
+	   <!-- Hambúrguer Cheder bacon 160g -->
+      <div class="card">
+        <img src="https://bsfoodstorage.blob.core.windows.net/products/fad8d557-e9de-4677-b257-feef364ba6ba" alt="classico artesanal 160g">
+        <div style="flex:1">
+          <h3 class="font-semibold">Hambúrguer Cheddar Bacon com cebola caramelizada</h3>
+          <p style="color:var(--secondary)">Pão brioche, hambúrguer artesanal 160g, alface, tomate, maionese caseira, cebola caramelizada.</p>
+          <p style="color:var(--accent);font-weight:700;margin-top:.25rem">R$ 39,00</p>
+          <button class="btn-accent mt-2" onclick="openAdicionalModal('Hambúrguer Clássico (Artesanal 160g)',39.00)">Adicionar</button>
+        </div>
+      </div>
+	  <!-- Hambúrguer Cheder bacon 160g -->
+      <div class="card">
+        <img src="https://photos.tryotter.com/cdn-cgi/image/fit=crop,width=492,height=267,quality=60,format=auto/menu-photos/d952f5ac-2597-4748-8974-6d0e835978bc.png" alt="classico artesanal 160g">
+        <div style="flex:1">
+          <h3 class="font-semibold">Duplo Cheddar Bacon com cebola caramelizada</h3>
+          <p style="color:var(--secondary)">Pão brioche, 2 hambúrguer artesanal 160g, alface, tomate, maionese caseira, cebola caramelizada.</p>
+          <p style="color:var(--accent);font-weight:700;margin-top:.25rem">R$ 42,00</p>
+          <button class="btn-accent mt-2" onclick="openAdicionalModal('Hambúrguer Clássico (Artesanal 160g)',42.00)">Adicionar</button>
+        </div>
+      </div>
 
-  <!-- Bebidas -->
-  <div>
-    <div class="category card" onclick="toggleCategory('bebidas')">
-      <h2 class="text-lg font-semibold text-white">🥤 Bebidas</h2>
-    </div>
-    <div class="category-items" id="bebidas">
-      <div class="card">
-        <img src="https://thumbs.dreamstime.com/b/lata-de-coca-num-espelho-preto-com-gotas-%C3%A1gua-reino-unido-fevereiro-210382677.jpg?w=400" alt="Refrigerante 350ml">
-        <div>
-          <h3 class="text-md font-semibold text-white">Refrigerante 350ml (lata)</h3>
-          <p class="text-sm text-[color:var(--secondary)]">Coca-Cola</p>
-          <p class="text-md font-bold text-[color:var(--accent)] mt-1">R$ 5,00</p>
-          <button class="btn-accent mt-2" onclick="addToCart('Refrigerante 350ml',5.00)">Adicionar</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <img src="https://demo11.webbvendas.com.br/_core/_uploads/148/2024/03/1156310324if58icfghg.jpg?w=400" alt="Coca cola 2L">
-        <div>
-          <h3 class="text-md font-semibold text-white">Coca cola 2L</h3>
-          <p class="text-sm text-[color:var(--secondary)]"> 2 litros.</p>
-          <p class="text-md font-bold text-[color:var(--accent)] mt-1">R$ 14,00</p>
-          <button class="btn-accent mt-2" onclick="addToCart('Coca cola 2L',14.00)">Adicionar</button>
-        </div>
-      </div>
     </div>
   </div>
 
   <!-- Combos -->
   <div>
-    <div class="category card" onclick="toggleCategory('combos')">
-      <h2 class="text-lg font-semibold text-white">🍟 Combos</h2>
-    </div>
+    <div class="category card" onclick="toggleCategory('combos')"><h2 class="text-lg font-semibold">🍟 Combos</h2></div>
     <div class="category-items" id="combos">
+
+      <!-- Combo Família -->
       <div class="card">
-        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS7Oo_BfGvHusu4zeGrOtszdx1Xxh_sP9td1q_D0HdpubTP88BqTLIwWujDohs2ig68-QY&usqp=CAU&w=400" alt="Combo Clássico">
-        <div>
-          <h3 class="text-md font-semibold text-white">Combo Clássico</h3>
-          <p class="text-sm text-[color:var(--secondary)]">2 Hambúrguer Clássico 160 gramas Artesanal + Coca cola 2 Litros.</p>
-          <p class="text-md font-bold text-[color:var(--accent)] mt-1">R$ 59,90</p>
-          <button class="btn-accent mt-2" onclick="addToCart('Combo Clássico',59.90)">Adicionar</button>
+        <img src="https://github.com/Alanbirsk/Cardapio-online/blob/main/WhatsApp%20Image%202025-11-24%20at%2011.57.36%20(1).jpeg?raw=true" alt="combo familia">
+        <div style="flex:1">
+          <h3 class="font-semibold">Combo Família</h3>
+          <p style="color:var(--secondary)">Ideal para a família — 4 hamburguer classico artesanal 160g + refri 2L.</p>
+          <p style="color:var(--accent);font-weight:700;margin-top:.25rem">R$ 99,90</p>
+          <button class="btn-accent mt-2" onclick="openAdicionalModal('Combo Família',99.90)">Adicionar</button>
         </div>
       </div>
+
+      <!-- Combo Trio -->
+      <div class="card">
+        <img src="https://alloydeliveryimages.s3.sa-east-1.amazonaws.com/item_images/11144/6699988053fa9n5n3n.webp" alt="combo trio">
+        <div style="flex:1">
+          <h3 class="font-semibold">Combo Trio</h3>
+          <p style="color:var(--secondary)">1 hamburguer classico 160g + batata frita 180g + refri 600ml.</p>
+          <p style="color:var(--accent);font-weight:700;margin-top:.25rem">R$ 39,90</p>
+          <button class="btn-accent mt-2" onclick="openAdicionalModal('Combo Trio',39.90)">Adicionar</button>
+        </div>
+      </div>
+
+      <!-- Combo Casal -->
+      <div class="card">
+        <img src="https://github.com/Alanbirsk/Cardapio-online/blob/main/Today%E2%80%99s%20Promotion%20(3).png?raw=true" alt="combo casal">
+        <div style="flex:1">
+          <h3 class="font-semibold">Combo Casal</h3>
+          <p style="color:var(--secondary)">2 hamburguer classico + refri 600ml.</p>
+          <p style="color:var(--accent);font-weight:700;margin-top:.25rem">R$ 49,90</p>
+          <button class="btn-accent mt-2" onclick="openAdicionalModal('Combo Casal',49.90)">Adicionar</button>
+        </div>
+      </div>
+
     </div>
   </div>
 
-  <!-- Promoções -->
+  <!-- Bebidas -->
   <div>
-    <div class="category card" onclick="toggleCategory('promos')">
-      <h2 class="text-lg font-semibold text-white">🔥 Promoção da semana</h2>
-    </div>
-    <div class="category-items" id="promos">
+    <div class="category card" onclick="toggleCategory('bebidas')"><h2 class="text-lg font-semibold">🥤 Bebidas</h2></div>
+    <div class="category-items" id="bebidas">
+
       <div class="card">
-        <img src="https://mrburguer.polipedidos.app/_core/_uploads/125/2023/08/2153250823bcjhjh0ig4.jpg?w=400" alt="Promo Burger">
-        <div>
-          <h3 class="text-md font-semibold text-white">Promo Burger</h3>
-          <p class="text-sm text-[color:var(--secondary)]">2 Hambúrguer Clássico 160 gramas Artesanal + 1 coca 600ml.</p>
-          <p class="text-md font-bold text-[color:var(--accent)] mt-1">R$ 49,90</p>
-          <button class="btn-accent mt-2" onclick="addToCart('Promo Burger',49.90)">Adicionar</button>
+        <img src="https://demo11.webbvendas.com.br/_core/_uploads/148/2024/03/1156310324if58icfghg.jpg?w=400" alt="coca 2l">
+        <div style="flex:1">
+          <h3 class="font-semibold">Coca-Cola 2L</h3>
+          <p style="color:var(--secondary)">Refrigerante 2 litros.</p>
+          <p style="color:var(--accent);font-weight:700;margin-top:.25rem">R$ 14,00</p>
+          <button class="btn-accent mt-2" onclick="openAdicionalModal('Coca-Cola 2L',14.00)">Adicionar</button>
         </div>
       </div>
+
+      <div class="card">
+        <img src="https://www.shutterstock.com/image-photo/full-size-cocacola-plastic-bottle-600nw-2642734713.jpg" alt="coca 600ml">
+        <div style="flex:1">
+          <h3 class="font-semibold">Coca-Cola 600ml</h3>
+          <p style="color:var(--secondary)">pet 600ml.</p>
+          <p style="color:var(--accent);font-weight:700;margin-top:.25rem">R$ 7,00</p>
+          <button class="btn-accent mt-2" onclick="openAdicionalModal('Coca-Cola 600ml',7.00)">Adicionar</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <img src="https://thumbs.dreamstime.com/b/lata-de-coca-num-espelho-preto-com-gotas-%C3%A1gua-reino-unido-fevereiro-210382677.jpg?w=400" alt="refrigerante 350ml">
+        <div style="flex:1">
+          <h3 class="font-semibold">Refrigerante 350ml (lata)</h3>
+          <p style="color:var(--secondary)">Coca-Cola</p>
+          <p style="color:var(--accent);font-weight:700;margin-top:.25rem">R$ 5,00</p>
+          <button class="btn-accent mt-2" onclick="openAdicionalModal('Refrigerante 350ml',5.00)">Adicionar</button>
+        </div>
+      </div>
+
     </div>
   </div>
-
 </section>
 
 <div class="cart-icon" onclick="toggleCartPanel()">🛒<span id="floating-subtotal">R$ 0,00</span></div>
@@ -254,25 +218,201 @@ setInterval(cyclePromo, 3000);
 <div class="cart-panel" id="cart-panel">
   <div class="flex justify-between items-center mb-2">
     <h2 class="text-lg font-bold">Seu Pedido</h2>
-    <button onclick="minimizeCart()" class="text-[color:var(--accent)] font-semibold">Minimizar ✖️</button>
+    <button onclick="minimizeCart()" style="color:var(--accent);font-weight:600;background:none;border:none;">Minimizar ✖️</button>
   </div>
   <div id="cart-items"></div>
-  <div class="mt-2">
+  <div style="margin-top:8px">
     <label class="font-semibold">Endereço</label>
     <input type="text" id="address-input" placeholder="Informe seu endereço">
   </div>
-  <div class="mt-2">
+  <div style="margin-top:8px">
     <label class="font-semibold">Forma de pagamento</label>
-    <select id="payment-select">
-      <option>Dinheiro</option>
-      <option>Cartão</option>
-      <option>Pix</option>
-    </select>
+    <select id="payment-select"><option>Dinheiro</option><option>Cartão</option><option>Pix</option></select>
   </div>
   <div class="cart-total mt-3 font-bold" id="cart-total">Total: R$ 0,00</div>
-  <div style="margin-top:8px; font-weight:600;" id="cart-subtotal">R$ 0,00</div>
+  <div style="margin-top:8px;font-weight:600;" id="cart-subtotal">R$ 0,00</div>
   <button class="btn-accent mt-2" onclick="sendWhatsApp()">Enviar Pedido WhatsApp</button>
 </div>
 
+<!-- SCRIPTS -->
+<script>
+// single cart variable and functions
+let cart = [];
+let deliveryFee = 10;
+let carouselIndex = 0;
+let carouselInterval = null;
+
+function uid(){ return 'id'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+
+function toggleCategory(id){ const el=document.getElementById(id); if(!el) return; el.style.display = (el.style.display==='block') ? 'none' : 'block'; }
+
+const adicionais = [{nome:'Maionese extra',valor:3},{nome:'Bacon',valor:3},{nome:'Cheddar',valor:3},{nome:'+ Hambúrguer 140g',valor:9}];
+
+function openAdicionalModal(name, price){
+  const backdrop = document.createElement('div');
+  backdrop.className = 'adicional-modal-backdrop';
+
+  backdrop.innerHTML = `
+    <div class="adicional-modal">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <strong>Adicionais — ${name}</strong>
+        <button id="closeAdicionalBtn" style="background:none;border:none;color:var(--accent);font-weight:700;cursor:pointer;">✖</button>
+      </div>
+      <div id="adicionalOptions"></div>
+      <div style="display:flex;gap:8px;margin-top:12px;">
+        <button id="confirmAdicionalBtn" class="btn-accent" style="flex:1">Adicionar ao carrinho</button>
+        <button id="cancelAdicionalBtn" class="btn-accent" style="flex:1;background:#444">Cancelar</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(backdrop);
+  const options = backdrop.querySelector('#adicionalOptions');
+  adicionais.forEach((a,i)=>{
+    const row = document.createElement('label');
+    row.className = 'adicional-row';
+    row.innerHTML = `<span>${a.nome}</span><div style="display:flex;align-items:center;gap:8px;"><span style="color:var(--accent)">+R$ ${a.valor.toFixed(2)}</span><input type="checkbox" data-index="${i}" /></div>`;
+    options.appendChild(row);
+  });
+
+  backdrop.querySelector('#closeAdicionalBtn').onclick = () => backdrop.remove();
+  backdrop.querySelector('#cancelAdicionalBtn').onclick = () => backdrop.remove();
+  backdrop.querySelector('#confirmAdicionalBtn').onclick = () => {
+    const selected = [];
+    backdrop.querySelectorAll('input[type="checkbox"]:checked').forEach(ch => {
+      const idx = parseInt(ch.dataset.index, 10);
+      selected.push(adicionais[idx]);
+    });
+    const item = { id: uid(), baseName: name, basePrice: parseFloat(price), additions: selected, qty: 1, obs: '' };
+    cart.push(item);
+    renderCart();
+    backdrop.remove();
+  };
+}
+
+function renderCart(){
+  const container = document.getElementById('cart-items');
+  if(!container) return;
+  container.innerHTML = '';
+  let subtotal = 0;
+
+  cart.forEach((item, i) => {
+    const additionsTotal = (item.additions || []).reduce((s,a)=>s + (a.valor || 0), 0);
+    const itemPrice = (parseFloat(item.basePrice) || 0) + additionsTotal;
+    subtotal += itemPrice * (item.qty || 1);
+
+    const div = document.createElement('div');
+    div.className = 'cart-item';
+
+    const titleRow = document.createElement('div');
+    titleRow.style.display = 'flex';
+    titleRow.style.justifyContent = 'space-between';
+    titleRow.style.alignItems = 'center';
+    titleRow.innerHTML = `<strong>${item.baseName}</strong><button class="btn-accent" style="padding:6px 8px;font-size:.85rem;">Remover</button>`;
+    // attach remove handler
+    titleRow.querySelector('button').addEventListener('click', ()=>{ removeFromCart(i); });
+    div.appendChild(titleRow);
+
+    if(item.additions && item.additions.length){
+      const addsWrap = document.createElement('div');
+      addsWrap.style.marginTop = '8px';
+      item.additions.forEach((a, ai) => {
+        const addRow = document.createElement('div');
+        addRow.style.display = 'flex';
+        addRow.style.justifyContent = 'space-between';
+        addRow.style.alignItems = 'center';
+        addRow.style.fontSize = '.92rem';
+        addRow.style.padding = '2px 0';
+        addRow.innerHTML = `<span style="opacity:.95">+ ${a.nome}</span><div style="display:flex;align-items:center;gap:8px;"><span style="color:var(--accent)">R$ ${Number(a.valor).toFixed(2)}</span><button class="remove-add-btn">✖</button></div>`;
+        addRow.querySelector('button').addEventListener('click', ()=>{ removeAddition(item.id, ai); });
+        addsWrap.appendChild(addRow);
+      });
+      div.appendChild(addsWrap);
+    }
+
+    const obsInput = document.createElement('input');
+    obsInput.type = 'text';
+    obsInput.placeholder = 'Observação';
+    obsInput.value = item.obs || '';
+    obsInput.style.marginTop = '8px';
+    obsInput.addEventListener('input', ()=>{ item.obs = obsInput.value; });
+    div.appendChild(obsInput);
+
+    const flex = document.createElement('div');
+    flex.className = 'flex-row';
+    flex.style.marginTop = '8px';
+    flex.innerHTML = `<span>R$ ${(itemPrice * (item.qty || 1)).toFixed(2)}</span>`;
+
+    const qtyWrap = document.createElement('div');
+    qtyWrap.style.display = 'flex';
+    qtyWrap.style.gap = '8px';
+
+    const inc = document.createElement('button'); inc.className='btn-accent'; inc.textContent='+'; inc.addEventListener('click', ()=>{ changeQty(i,1); });
+    const dec = document.createElement('button'); dec.className='btn-accent'; dec.textContent='-'; dec.addEventListener('click', ()=>{ changeQty(i,-1); });
+    qtyWrap.appendChild(inc); qtyWrap.appendChild(dec);
+    flex.appendChild(qtyWrap);
+    div.appendChild(flex);
+
+    container.appendChild(div);
+  });
+
+  const fee = (subtotal > 0 && subtotal < 35) ? deliveryFee : 0;
+  const total = subtotal + fee;
+  const cartTotalEl = document.getElementById('cart-total');
+  const cartSubtotalEl = document.getElementById('cart-subtotal');
+  const floatingEl = document.getElementById('floating-subtotal');
+  if(cartTotalEl) cartTotalEl.innerText = 'Total: R$ ' + total.toFixed(2);
+  if(cartSubtotalEl) cartSubtotalEl.innerText = 'R$ ' + total.toFixed(2);
+  if(floatingEl) floatingEl.innerText = 'R$ ' + total.toFixed(2);
+}
+
+function removeFromCart(i){ if(!cart[i]) return; cart.splice(i,1); renderCart(); }
+function removeAddition(itemId, ai){ const it = cart.find(x=>x.id===itemId); if(!it) return; it.additions.splice(ai,1); renderCart(); }
+function changeQty(i, delta){ if(!cart[i]) return; cart[i].qty = (cart[i].qty || 1) + delta; if(cart[i].qty <= 0) cart.splice(i,1); renderCart(); }
+
+function toggleCartPanel(){ const panel = document.getElementById('cart-panel'); panel.classList.toggle('open'); }
+function minimizeCart(){ document.getElementById('cart-panel').classList.remove('open'); }
+
+function sendWhatsApp(){
+  if(cart.length === 0){ alert('Carrinho vazio!'); return; }
+  const address = document.getElementById('address-input').value.trim();
+  if(!address){ alert('Informe o endereço!'); return; }
+  const payment = document.getElementById('payment-select').value;
+
+  let subtotal = 0;
+  let msg = `* Pedido Aquarius Burguer *\n\nItens do pedido:`;
+
+  cart.forEach(item =>{
+    const additionsText = (item.additions && item.additions.length) ? ` (+ ${item.additions.map(a=>a.nome).join(', ')})` : '';
+    const itemTotal = (parseFloat(item.basePrice) || 0) + (item.additions || []).reduce((s,a)=>s + (a.valor||0),0);
+    subtotal += itemTotal * (item.qty || 1);
+    msg += `\n• ${item.baseName}${additionsText} x${item.qty || 1}`;
+    if(item.obs) msg += ` (Obs: ${item.obs})`;
+  });
+
+  const fee = (subtotal > 0 && subtotal < 35) ? deliveryFee : 0;
+  msg += `\n\nSubtotal: R$ ${subtotal.toFixed(2)}\nTaxa de entrega: R$ ${fee.toFixed(2)}\nTotal: R$ ${(subtotal + fee).toFixed(2)}\n\nEndereço: ${address}\nForma de pagamento: ${payment}\n\nObrigado pelo seu pedido! 😃`;
+
+  window.open(`https://wa.me/5546999241298?text=${encodeURIComponent(msg)}`, '_blank');
+  cart = [];
+  renderCart();
+}
+
+// CARROSSEL
+function showCarousel(i){ const track = document.querySelector('#promo-carousel .carousel-track'); if(!track) return; const dots = document.querySelectorAll('#promo-carousel .carousel-dot'); const total = track.children.length; if(total === 0) return; if(i < 0) i = total - 1; if(i >= total) i = 0; carouselIndex = i; track.style.transform = `translateX(-${i*100}%)`; if(dots) dots.forEach((d,idx)=> d.style.opacity = idx===i? '1':'0.6'); }
+function nextCarousel(){ showCarousel(carouselIndex + 1); }
+function prevCarousel(){ showCarousel(carouselIndex - 1); }
+function startCarousel(){ if(carouselInterval) clearInterval(carouselInterval); carouselInterval = setInterval(nextCarousel, 3000); }
+function stopCarousel(){ if(carouselInterval) clearInterval(carouselInterval); }
+
+window.addEventListener('load', ()=>{
+  startCarousel();
+  const dots = document.querySelectorAll('#promo-carousel .carousel-dot');
+  dots.forEach((dot, idx)=>{ dot.addEventListener('click', ()=>{ showCarousel(idx); startCarousel(); }); });
+  const carouselEl = document.getElementById('promo-carousel');
+  if(carouselEl){ carouselEl.addEventListener('mouseenter', stopCarousel); carouselEl.addEventListener('mouseleave', startCarousel); }
+  showCarousel(0);
+});
+</script>
 </body>
 </html>
