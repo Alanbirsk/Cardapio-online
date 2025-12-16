@@ -390,7 +390,7 @@ function sendWhatsApp(){
     if(item.obs) msg += ` (Obs: ${item.obs})`;
   });
 
-  const fee = (subtotal > 0 && subtotal < 35) ? deliveryFee : 0;
+  const fee = (subtotal > 0 && subtotal < 60) ? deliveryFee : 0;
   msg += `\n\nSubtotal: R$ ${subtotal.toFixed(2)}\nTaxa de entrega: R$ ${fee.toFixed(2)}\nTotal: R$ ${(subtotal + fee).toFixed(2)}\n\nEndereço: ${address}\nForma de pagamento: ${payment}\n\nObrigado pelo seu pedido! 😃`;
 
   window.open(`https://wa.me/5546999241298?text=${encodeURIComponent(msg)}`, '_blank');
