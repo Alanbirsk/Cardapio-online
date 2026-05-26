@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="theme-color" content="#09090b">
+    <title>Aquarius Burguer - Cardápio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root{--verde:#22c55e;--verde-dark:#16a34a;--bg-dark:#09090b;--card-bg:rgba(24,24,27,0.75);--border-glass:rgba(255,255,255,0.08);--text-muted:#a1a1aa;--radius-xl:28px;--radius-md:14px}
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+        body{background:var(--bg-dark);color:#fff;min-height:100vh;padding-bottom:90px}
+        
+        .hero{position:relative;padding:30px 20px;background:radial-gradient(circle at top right,rgba(22,163,74,0.2) 0%,rgba(15,23,42,0) 60%),#0d0d11;border-bottom:1px solid var(--border-glass);text-align:center}
+        
+        .status-bar{display:flex;justify-content:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+        .status-badge{padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:6px}
+        .status-badge.online{background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);color:#22c55e}
+        .status-badge.offline{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#ef4444}
+        .status-dot{width:7px;height:7px;border-radius:50%}
+        .status-dot.online{background:#22c55e;animation:pulse 2s infinite}
+        .status-dot.offline{background:#ef4444}
+        @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.5)}}
+        
+        .logo{width:80px;height:80px;border-radius:26px;background:#fff;padding:8px;box-shadow:0 20px 40px rgba(0,0,0,0.5);object-fit:contain;margin-bottom:10px}
+        .brand h1{font-size:clamp(24px,6vw,34px);font-weight:900;background:linear-gradient(135deg,#fff 60%,var(--verde));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .brand p{margin-top:6px;font-size:14px;color:var(--text-muted)}
+        
+        .controls-container{max-width:1200px;margin:20px auto 0;padding:0 20px}
+        .search-box{position:relative}
+        .search-box input{width:100%;padding:14px 20px;padding-right:44px;border:1px solid var(--border-glass);border-radius:18px;background:rgba(255,255,255,0.04);backdrop-filter:blur(12px);color:#fff;font-size:15px;outline:none}
+        .search-box input:focus{border-color:var(--verde)}
+        .search-clear{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px}
+        
+        .nav-categories{display:flex;gap:10px;overflow-x:auto;padding:14px 0 8px}
+        .nav-categories::-webkit-scrollbar{display:none}
+        .cat-btn{padding:8px 18px;background:rgba(255,255,255,0.03);border:1px solid var(--border-glass);border-radius:30px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:.25s}
+        .cat-btn.active,.cat-btn:hover{background:var(--verde);border-color:var(--verde)}
+        
+        .container{max-width:1200px;margin:auto;padding:20px}
+        .products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}
+        @media(max-width:640px){.products-grid{grid-template-columns:1fr}}
+        
+        .product-card{background:var(--card-bg);border:1px solid var(--border-glass);border-radius:var(--radius-xl);overflow:hidden;backdrop-filter:blur(16px);transition:.3s;display:flex;flex-direction:column}
+        .product-card:hover{transform:translateY(-6px);border-color:rgba(34,197,94,0.4)}
+        .img-container{position:relative;height:200px;overflow:hidden}
+        .product-card img{width:100%;height:100%;object-fit:cover}
+        .card-badge{position:absolute;top:12px;left:12px;background:linear-gradient(135deg,var(--verde-dark),var(--verde));padding:4px 12px;border-radius:20px;font-size:11px;font-weight:800}
+        .card-content{padding:18px;flex:1;display:flex;flex-direction:column}
+        .card-title{font-size:20px;font-weight:800;margin-bottom:8px}
+        .card-desc{font-size:13px;color:var(--text-muted);line-height:1.5;flex:1;margin-bottom:16px}
+        .card-footer{display:flex;justify-content:space-between;align-items:center}
+        .price-tag{font-size:26px;font-weight:900;color:#4ade80}
+        .add-btn{padding:10px 20px;border:none;border-radius:var(--radius-md);background:linear-gradient(135deg,var(--verde-dark),var(--verde));color:#fff;font-weight:800;cursor:pointer;font-size:13px;transition:.2s}
+        .add-btn:hover{transform:scale(1.05)}
+        
+        .cart-float{position:fixed;right:20px;bottom:20px;background:linear-gradient(135deg,var(--verde-dark),var(--verde));padding:14px 24px;border-radius:40px;font-weight:900;cursor:pointer;z-index:9999;box-shadow:0 20px 40px rgba(34,197,94,0.3);display:flex;align-items:center;gap:10px;font-size:14px}
+        .cart-count{background:#ef4444;padding:2px 8px;border-radius:20px;font-size:12px}
+        
+        .sidebar-panel{position:fixed;top:0;right:-100%;width:min(440px,100vw);height:100vh;height:100dvh;background:#0e0e11;border-left:1px solid var(--border-glass);z-index:10000;padding:20px;overflow-y:auto;transition:right .4s}
+        .sidebar-panel.open{right:0}
+        .panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border-glass)}
+        .panel-close{background:none;border:none;color:#fff;font-size:20px;cursor:pointer}
+        .cart-item{background:rgba(255,255,255,0.02);border:1px solid var(--border-glass);border-radius:16px;padding:14px;margin-bottom:10px}
+        .qty-controls{display:flex;gap:6px;margin:10px 0;align-items:center}
+        .qty-btn{width:28px;height:28px;border:none;background:#27272a;color:#fff;border-radius:8px;cursor:pointer;font-weight:bold}
+        .remove-btn{background:rgba(239,68,68,0.15);color:#ef4444;border:none;padding:6px 12px;border-radius:8px;cursor:pointer;font-weight:700;font-size:12px}
+        .coupon-box{background:rgba(34,197,94,0.05);border:1px solid rgba(34,197,94,0.2);border-radius:12px;padding:12px;margin:14px 0}
+        .coupon-row{display:flex;gap:6px}
+        .coupon-row input{flex:1;margin-top:0!important;padding:8px!important;font-size:12px!important}
+        .coupon-row button{padding:8px 14px;background:var(--verde);border:none;border-radius:8px;color:#fff;font-weight:700;cursor:pointer}
+        .sidebar-panel input,.sidebar-panel select{width:100%;margin-top:10px;padding:12px;border-radius:12px;background:#1c1c1f;color:#fff;border:1px solid var(--border-glass);font-size:13px;outline:none}
+        .sidebar-panel select{appearance:none;cursor:pointer}
+        
+        .alert-box{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:12px;margin:14px 0;text-align:center;display:none}
+        .alert-box.show{display:block}
+        .alert-box p{font-size:12px;color:#ef4444;margin-bottom:8px}
+        
+        .toast{position:fixed;bottom:90px;right:20px;background:var(--verde);padding:12px 22px;border-radius:var(--radius-md);font-weight:800;font-size:13px;display:none;z-index:10001}
+        .toast.error{background:#ef4444}
+        
+        .confirm-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:30000;justify-content:center;align-items:center;padding:20px}
+        .confirm-modal.show{display:flex}
+        .confirm-content{background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid var(--verde);border-radius:var(--radius-xl);padding:40px 30px;text-align:center;max-width:450px;width:100%}
+        .confirm-icon{font-size:60px;margin-bottom:16px}
+        .confirm-title{font-size:24px;font-weight:900;margin-bottom:10px}
+        .confirm-number{font-size:42px;font-weight:900;color:var(--verde);margin-bottom:20px}
+        .confirm-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--verde-dark),var(--verde));color:#fff;border:none;border-radius:var(--radius-md);font-size:15px;font-weight:800;cursor:pointer}
+        
+        .footer-links{text-align:center;margin-top:50px;padding:20px;display:flex;justify-content:center;gap:30px;flex-wrap:wrap}
+        .footer-link{opacity:0.3;font-size:12px;cursor:pointer;transition:.3s}
+        .footer-link:hover{opacity:0.8}
+    </style>
+</head>
+<body>
+
+<header class="hero">
+    <div class="status-bar">
+        <div class="status-badge online" id="cozinhaStatus">
+            <span class="status-dot online" id="cozinhaDot"></span>
+            <span id="cozinhaLabel">Verificando cozinha...</span>
+        </div>
+    </div>
+    
+    <img src="1000001934.jpg" class="logo" alt="Logo" loading="lazy">
+    <div class="brand">
+        <h1>Aquarius Burguer</h1>
+        <p>Gourmet Burger • Fast Delivery 🍔</p>
+    </div>
+    <div class="controls-container">
+        <div class="search-box">
+            <input type="text" placeholder="Buscar item no cardápio..." id="searchInput" oninput="renderMenu()" autocomplete="off">
+            <button class="search-clear" onclick="document.getElementById('searchInput').value='';renderMenu();">✕</button>
+        </div>
+        <div class="nav-categories" id="navCategories"></div>
+    </div>
+</header>
+
+<div class="container"><div class="products-grid" id="productsGrid"></div></div>
+
+<div class="cart-float" onclick="toggleCart()">🛒 Ver Carrinho <span class="cart-count" id="cartCount">0</span></div>
+
+<div class="sidebar-panel" id="cartPanel">
+    <div class="panel-header"><h2>Seu Pedido</h2><button class="panel-close" onclick="toggleCart()">✕</button></div>
+    <div id="cartItems"></div>
+    
+    <div class="alert-box" id="offlineAlert">
+        <p>🔴 A cozinha está offline no momento. Você pode montar seu carrinho, mas não será possível finalizar o pedido até que a cozinha volte a ficar online.</p>
+    </div>
+    
+    <div class="coupon-box">
+        <div style="font-size:12px;font-weight:700;margin-bottom:6px;">🎫 Cupom de Desconto</div>
+        <div class="coupon-row"><input type="text" id="couponInput" placeholder="Digite o código"><button onclick="applyCoupon()">Aplicar</button></div>
+        <div id="couponMsg" style="font-size:11px;margin-top:6px;font-weight:700;"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:12px;color:var(--text-muted);font-size:13px;"><span>Subtotal</span><span>R$ <span id="subtotal">0.00</span></span></div>
+    <div style="display:flex;justify-content:space-between;margin-top:4px;color:var(--text-muted);font-size:13px;"><span>Desconto</span><span style="color:#4ade80;">-R$ <span id="desconto">0.00</span></span></div>
+    <div style="display:flex;justify-content:space-between;margin-top:4px;color:var(--text-muted);font-size:13px;padding-bottom:10px;border-bottom:1px solid var(--border-glass);"><span>Taxa de Entrega</span><span>R$ <span id="taxa">0.00</span></span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:14px 0;"><span style="font-size:16px;font-weight:800;">Total:</span><span style="font-size:26px;font-weight:900;color:#4ade80;" id="total">R$ 0.00</span></div>
+    <input id="nome" placeholder="Seu nome completo" autocomplete="name">
+    <input id="telefone" placeholder="WhatsApp (Ex: 46999924129)" type="tel" autocomplete="tel">
+    <select id="tipoEntrega" onchange="updateCart()"><option value="retirada">Retirar no Balcão</option><option value="entrega">Delivery (Entrega em Casa)</option></select>
+    <input id="endereco" placeholder="Endereço Completo" style="display:none" autocomplete="street-address">
+    <select id="pagamento" onchange="toggleTroco()"><option value="Pix">Pix</option><option value="Cartão">Cartão</option><option value="Dinheiro">Dinheiro</option></select>
+    <input id="troco" placeholder="Troco para quanto?" style="display:none">
+    <button class="add-btn" id="btnFinalizar" style="width:100%;margin-top:16px;padding:14px;font-size:15px;" onclick="sendOrder()">Finalizar Pedido 🚀</button>
+</div>
+
+<div class="confirm-modal" id="confirmModal">
+    <div class="confirm-content">
+        <div class="confirm-icon">🍔</div>
+        <div class="confirm-title">Pedido Enviado!</div>
+        <div style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">Número do pedido:</div>
+        <div class="confirm-number" id="confirmNumber">#0000</div>
+        <button class="confirm-btn" onclick="document.getElementById('confirmModal').classList.remove('show');window.scrollTo({top:0,behavior:'smooth'});">✓ Voltar ao Cardápio</button>
+    </div>
+</div>
+
+<div class="toast" id="toast">Mensagem</div>
+
+<div class="footer-links">
+    <span class="footer-link" onclick="window.open('admin.html','_blank')">⚙️ Painel de Gestão</span>
+    <span class="footer-link" onclick="openKitchen()">👨‍🍳 Painel da Cozinha</span>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    const fc={apiKey:"AIzaSyABe9h5dM1FHrsYOI9vPiEvHsozqb-9PYI",authDomain:"aquarius-burguer.firebaseapp.com",projectId:"aquarius-burguer",storageBucket:"aquarius-burguer.firebasestorage.app",messagingSenderId:"1014795439621",appId:"1:1014795439621:web:1aef68c277c1e2f8aa966c"};
+    const app=initializeApp(fc);
+    const db=getFirestore(app);
+    window.db=db;
+    window.fsCollection=collection;
+    window.fsAdd=addDoc;
+    window.fsSnapshot=onSnapshot;
+    window.fsDoc=doc;
+</script>
+
+<script>
+    let cart=[],products=[],categories=[],currentCat='',couponActive=null;
+    let cozinhaOnline=true;
+    const DELIVERY_FEE=10;
+    const coupons={'BEMVINDO10':{type:'percent',value:10,desc:'10% OFF'},'FRETE50':{type:'fixed',value:5,desc:'R$ 5 OFF'},'AQUARIUS15':{type:'percent',value:15,desc:'15% OFF'},'BURGER20':{type:'percent',value:20,desc:'20% OFF'}};
+
+    function updateCozinhaStatus(online){
+        cozinhaOnline=online;
+        const badge=document.getElementById('cozinhaStatus');
+        const dot=document.getElementById('cozinhaDot');
+        const label=document.getElementById('cozinhaLabel');
+        const alert=document.getElementById('offlineAlert');
+        const btn=document.getElementById('btnFinalizar');
+        
+        console.log('🔄 Atualizando status cozinha:', online?'ONLINE':'OFFLINE');
+        
+        if(online){
+            badge.className='status-badge online';
+            dot.className='status-dot online';
+            label.textContent='Cozinha Online - Aceitando Pedidos';
+            alert.classList.remove('show');
+            btn.disabled=false;
+            btn.textContent='Finalizar Pedido 🚀';
+            btn.style.opacity='1';
+            btn.style.cursor='pointer';
+        }else{
+            badge.className='status-badge offline';
+            dot.className='status-dot offline';
+            label.textContent='Cozinha Offline - Pedidos Pausados';
+            alert.classList.add('show');
+            btn.disabled=true;
+            btn.textContent='🔴 Cozinha Offline';
+            btn.style.opacity='0.5';
+            btn.style.cursor='not-allowed';
+        }
+        
+        updateCart();
+    }
+
+    function showToast(m,t){const el=document.getElementById('toast');el.textContent=m;el.className='toast'+(t?' '+t:'');el.style.display='block';setTimeout(()=>el.style.display='none',2000)}
+    function toggleCart(){document.getElementById('cartPanel').classList.toggle('open')}
+    
+    function addItem(n,p){
+        const it=cart.find(i=>i.name===n);
+        it?it.qty++:cart.push({name:n,price:p,qty:1,obs:''});
+        updateCart();
+        showToast(n+' adicionado!');
+    }
+    
+    function changeQty(i,a){cart[i].qty+=a;if(cart[i].qty<=0)cart.splice(i,1);updateCart()}
+    function updateObs(i,v){cart[i].obs=v}
+    function toggleTroco(){document.getElementById('troco').style.display=document.getElementById('pagamento').value==='Dinheiro'?'block':'none'}
+    
+    function applyCoupon(){
+        const c=document.getElementById('couponInput').value.toUpperCase().trim();
+        const m=document.getElementById('couponMsg');
+        if(!c){m.textContent='Digite um código';m.style.color='#f59e0b';return}
+        const cp=coupons[c];
+        if(!cp){m.textContent='❌ Inválido!';m.style.color='#ef4444';couponActive=null;updateCart();return}
+        couponActive=cp;
+        m.textContent='✅ '+cp.desc;
+        m.style.color='#22c55e';
+        showToast('🎫 Cupom aplicado!');
+        updateCart();
+    }
+    
+    function updateCart(){
+        let h='',s=0,ct=0;
+        cart.forEach((it,i)=>{
+            const sb=it.price*it.qty;s+=sb;ct+=it.qty;
+            h+=`<div class="cart-item"><div style="display:flex;justify-content:space-between;font-weight:700;font-size:14px"><span>${it.name}</span><span>R$ ${sb.toFixed(2)}</span></div><div class="qty-controls"><button class="qty-btn" onclick="changeQty(${i},-1)">-</button><span>${it.qty}</span><button class="qty-btn" onclick="changeQty(${i},1)">+</button><button class="remove-btn" onclick="changeQty(${i},-${it.qty})">Remover</button></div><textarea placeholder="Observações..." oninput="updateObs(${i},this.value)" style="width:100%;padding:8px;border-radius:8px;background:#1c1c1f;color:#fff;border:1px solid var(--border-glass);font-size:11px;resize:vertical;min-height:36px;">${it.obs}</textarea></div>`;
+        });
+        const tp=document.getElementById('tipoEntrega').value,tx=tp==='entrega'?DELIVERY_FEE:0;
+        let d=0;
+        if(couponActive)d=couponActive.type==='percent'?s*(couponActive.value/100):Math.min(couponActive.value,tx);
+        const tt=s+tx-d;
+        document.getElementById('cartItems').innerHTML=h||'<p style="text-align:center;color:var(--text-muted);padding:20px 0;">Carrinho vazio.</p>';
+        document.getElementById('subtotal').textContent=s.toFixed(2);
+        document.getElementById('taxa').textContent=tx.toFixed(2);
+        document.getElementById('desconto').textContent=d.toFixed(2);
+        document.getElementById('total').textContent='R$ '+tt.toFixed(2);
+        document.getElementById('cartCount').textContent=ct;
+        document.getElementById('endereco').style.display=tp==='entrega'?'block':'none';
+        
+        const btn=document.getElementById('btnFinalizar');
+        if(!cozinhaOnline){
+            btn.disabled=true;
+            btn.textContent='🔴 Cozinha Offline';
+            btn.style.opacity='0.5';
+            btn.style.cursor='not-allowed';
+        }else{
+            btn.disabled=false;
+            btn.textContent='Finalizar Pedido 🚀';
+            btn.style.opacity='1';
+            btn.style.cursor='pointer';
+        }
+    }
+
+    async function sendOrder(){
+        if(!cozinhaOnline){
+            showToast('🔴 A cozinha está offline. Aguarde e tente novamente.','error');
+            return;
+        }
+        
+        if(!cart.length)return alert('Carrinho vazio.');
+        
+        const nm=document.getElementById('nome').value.trim();
+        const tl=document.getElementById('telefone').value.trim();
+        const tp=document.getElementById('tipoEntrega').value;
+        const ed=document.getElementById('endereco').value.trim();
+        const pg=document.getElementById('pagamento').value;
+        
+        if(!nm||!tl)return alert('Nome e telefone obrigatórios.');
+        if(tp==='entrega'&&!ed)return alert('Endereço obrigatório.');
+        
+        let s=0;
+        const its=cart.map(it=>{const sb=it.price*it.qty;s+=sb;return{nome:it.name,qtd:it.qty,precoUn:it.price,obs:it.obs}});
+        const tx=tp==='entrega'?DELIVERY_FEE:0;
+        let d=0;
+        if(couponActive)d=couponActive.type==='percent'?s*(couponActive.value/100):Math.min(couponActive.value,tx);
+        const tt=s+tx-d,np=Math.floor(Math.random()*9000)+1000;
+        
+        const dv={
+            cliente:nm,telefone:tl.replace(/\D/g,''),tipoEntrega:tp,
+            endereco:tp==='entrega'?ed:'',formaPagamento:pg,
+            subtotal:s,taxaEntrega:tx,desconto:d,
+            cupomCodigo:couponActive?document.getElementById('couponInput').value.toUpperCase():'',
+            total:tt,dataHora:new Date().toISOString(),itens:its,numeroPedido:np
+        };
+        
+        try{
+            if(window.db){
+                await window.fsAdd(window.fsCollection(window.db,"vendas"),dv);
+                await window.fsAdd(window.fsCollection(window.db,"pedidos_ativos"),{...dv,status:'pendente',ultimaAtualizacao:new Date().toISOString()});
+            }
+        }catch(e){alert('Erro ao salvar.');return}
+        
+        cart=[];
+        couponActive=null;
+        document.getElementById('couponInput').value='';
+        document.getElementById('couponMsg').textContent='';
+        updateCart();
+        toggleCart();
+        document.getElementById('confirmNumber').textContent='#'+np;
+        document.getElementById('confirmModal').classList.add('show');
+    }
+
+    function renderMenu(){
+        let ch='';
+        categories.forEach(c=>{ch+=`<button class="cat-btn ${currentCat===c.nome?'active':''}" onclick="setCat('${c.nome}')">${c.nome}</button>`});
+        document.getElementById('navCategories').innerHTML=ch||'<p style="font-size:12px;color:var(--text-muted);">Cadastre categorias.</p>';
+        
+        let fl=products.filter(p=>p.categoria===currentCat);
+        const sv=document.getElementById('searchInput').value.toLowerCase();
+        if(sv)fl=products.filter(p=>p.nome.toLowerCase().includes(sv)||p.descricao.toLowerCase().includes(sv));
+        
+        let ph='';
+        fl.forEach(p=>{
+            ph+=`<div class="product-card"><div class="img-container"><img src="${p.imagem||'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=600'}" alt="${p.nome}" loading="lazy">${p.tag?`<div class="card-badge">${p.tag}</div>`:''}</div><div class="card-content"><h3 class="card-title">${p.nome}</h3><p class="card-desc">${p.descricao}</p><div class="card-footer"><span class="price-tag">R$ ${parseFloat(p.preco).toFixed(2).replace('.',',')}</span><button class="add-btn" onclick="addItem('${p.nome}',${p.preco})">Adicionar</button></div></div></div>`;
+        });
+        document.getElementById('productsGrid').innerHTML=ph||'<p style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:40px 0;">Nenhum item.</p>';
+    }
+    
+    function setCat(c){currentCat=c;renderMenu()}
+
+    // ==================== INICIALIZAÇÃO DO FIREBASE ====================
+    function initFB(){
+        if(!window.db){setTimeout(initFB,500);return}
+        console.log('🔥 Inicializando Firebase...');
+        
+        // Escutar categorias
+        window.fsSnapshot(window.fsCollection(window.db,"categorias"),snap=>{
+            categories=[];
+            snap.forEach(d=>categories.push({id:d.id,...d.data()}));
+            categories.sort((a,b)=>(a.ordem||0)-(b.ordem||0));
+            if(!currentCat&&categories.length)currentCat=categories[0].nome;
+            renderMenu();
+        });
+        
+        // Escutar produtos
+        window.fsSnapshot(window.fsCollection(window.db,"produtos"),snap=>{
+            products=[];
+            snap.forEach(d=>products.push({id:d.id,...d.data()}));
+            renderMenu();
+        });
+        
+        // *** ESCUTAR STATUS DA COZINHA - CORRIGIDO ***
+        const statusCozinhaRef = window.fsDoc(window.db, "status_cozinha", "online");
+        window.fsSnapshot(statusCozinhaRef, (snap) => {
+            console.log('📡 Snapshot status_cozinha recebido:', snap.data());
+            if(snap.exists()){
+                const data = snap.data();
+                const online = data.online !== false; // Se não existir o campo, considera online
+                console.log('👨‍🍳 Cozinha está:', online?'ONLINE':'OFFLINE');
+                updateCozinhaStatus(online);
+            } else {
+                // Documento não existe, considera online
+                console.log('📄 Documento status_cozinha não encontrado, assumindo ONLINE');
+                updateCozinhaStatus(true);
+            }
+        }, (error) => {
+            console.error('❌ Erro ao escutar status_cozinha:', error);
+            // Em caso de erro, mantém online
+            updateCozinhaStatus(true);
+        });
+    }
+
+    function openKitchen(){
+        const p=prompt('Senha da cozinha:');
+        if(p==='cozinha123'){
+            localStorage.setItem('aquarius_kitchen_auth',JSON.stringify({ts:Date.now()}));
+            window.open('cozinha.html','AquariusCozinha','width=1400,height=900');
+            showToast('👨‍🍳 Cozinha aberta!');
+        }else if(p!==null)alert('Senha incorreta!');
+    }
+
+    // Iniciar
+    console.log('🍔 Aquarius Burguer - Iniciando...');
+    updateCozinhaStatus(true); // Começa como online
+    initFB();
+</script>
+</body>
+</html>
