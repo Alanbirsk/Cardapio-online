@@ -20,19 +20,6 @@
         .kitchen-status-dot.online{background:#22c55e;animation:statusPulse 2s infinite}
         .kitchen-status-dot.offline{background:#ef4444}
         @keyframes statusPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.6)}}
-        .carousel-container{max-width:1100px;margin:0 auto 16px;padding:0 16px;position:relative;overflow:hidden;border-radius:16px}
-        .carousel{display:flex;transition:transform 0.5s ease-in-out}
-        .carousel-slide{min-width:100%;height:200px;position:relative;cursor:pointer;background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center}
-        .carousel-slide img{max-width:100%;max-height:100%;object-fit:contain;padding:10px}
-        .carousel-slide-content{position:absolute;bottom:0;left:0;right:0;padding:20px;background:linear-gradient(transparent,rgba(0,0,0,0.8))}
-        .carousel-slide-title{font-size:20px;font-weight:900}
-        .carousel-slide-badge{position:absolute;top:16px;right:16px;background:var(--danger);color:#fff;padding:4px 12px;border-radius:20px;font-size:10px;font-weight:800;animation:pulse 2s infinite}
-        @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
-        .carousel-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.5);border:none;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;z-index:2}
-        .carousel-btn.prev{left:8px}.carousel-btn.next{right:8px}
-        .carousel-dots{display:flex;justify-content:center;gap:6px;margin-top:8px}
-        .carousel-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.2);cursor:pointer;transition:all .3s}
-        .carousel-dot.active{background:var(--verde);width:20px;border-radius:10px}
         .hero{position:relative;padding:24px 20px;background:radial-gradient(circle at top right,rgba(22,163,74,0.2) 0%,rgba(15,23,42,0) 60%),#0d0d11;border-bottom:1px solid var(--border-glass);text-align:center}
         .theme-toggle{position:absolute;top:15px;right:15px;background:rgba(255,255,255,0.1);border:1px solid var(--border-glass);border-radius:30px;padding:8px 14px;color:#fff;cursor:pointer;font-size:12px}
         .logo{width:70px;height:70px;border-radius:24px;background:#fff;padding:6px;box-shadow:0 20px 40px rgba(0,0,0,0.5);object-fit:contain;margin-bottom:8px}
@@ -126,12 +113,6 @@
     </div>
 </header>
 
-<div class="carousel-container" id="carouselContainer" style="display:none;">
-    <div class="carousel" id="carousel"></div>
-    <button class="carousel-btn prev" onclick="prevSlide()">‹</button><button class="carousel-btn next" onclick="nextSlide()">›</button>
-    <div class="carousel-dots" id="carouselDots"></div>
-</div>
-
 <div class="container"><div class="products-grid" id="productsGrid"></div></div>
 
 <div class="upsell-modal" id="upsellModal">
@@ -188,18 +169,11 @@
 </script>
 
 <script>
-    let cart=[],products=[],categories=[],promocoes=[],currentCat='',couponActive=null,cozinhaOnline=true,lastOrderNumber=0;
+    let cart=[],products=[],categories=[],currentCat='',couponActive=null,cozinhaOnline=true,lastOrderNumber=0;
     const DELIVERY_FEE=8;
     const coupons={'BEMVINDO10':{type:'percent',value:10,desc:'10% OFF'},'FRETE50':{type:'fixed',value:5,desc:'R$ 5 OFF'},'AQUARIUS15':{type:'percent',value:15,desc:'15% OFF'}};
     let adicionaisDisponiveis=[],adicionaisSelecionados=[],kitchenStatusUnsubscribe=null;
-    let upsellProduct=null,pendingOrderData=null,currentSlide=0,upsellOffered=false;
-
-    function initCarousel(){if(promocoes.length===0){document.getElementById('carouselContainer').style.display='none';return}document.getElementById('carouselContainer').style.display='block';renderCarousel();setInterval(nextSlide,4000)}
-    function renderCarousel(){document.getElementById('carousel').innerHTML=promocoes.map((p,i)=>`<div class="carousel-slide" onclick="addItem('${p.nome}',${p.preco})"><img src="${p.imagem||''}" alt="${p.nome}"><div class="carousel-slide-content"><div class="carousel-slide-title">${p.nome}</div></div><div class="carousel-slide-badge">🔥 PROMO</div></div>`).join('');document.getElementById('carouselDots').innerHTML=promocoes.map((_,i)=>`<div class="carousel-dot ${i===0?'active':''}" onclick="goToSlide(${i})"></div>`).join('');updateCarousel()}
-    function updateCarousel(){document.getElementById('carousel').style.transform=`translateX(-${currentSlide*100}%)`;document.querySelectorAll('.carousel-dot').forEach((d,i)=>d.classList.toggle('active',i===currentSlide))}
-    function nextSlide(){currentSlide=(currentSlide+1)%promocoes.length;updateCarousel()}
-    function prevSlide(){currentSlide=(currentSlide-1+promocoes.length)%promocoes.length;updateCarousel()}
-    function goToSlide(i){currentSlide=i;updateCarousel()}
+    let upsellProduct=null,pendingOrderData=null,upsellOffered=false;
 
     function updateCozinhaStatus(online){cozinhaOnline=online;document.getElementById('kitchenStatusBadge').className='kitchen-status-badge '+(online?'online':'offline');document.getElementById('kitchenStatusDot').className='kitchen-status-dot '+(online?'online':'offline');document.getElementById('kitchenStatusLabel').textContent=online?'Cozinha Online':'Cozinha Offline';document.getElementById('cartOfflineAlert').classList.toggle('show',!online);const btn=document.getElementById('btnFinalizar');btn.disabled=!online;btn.textContent=online?'Finalizar Pedido 🚀':'🔴 Cozinha Offline';btn.style.opacity=online?'1':'0.5';updateCart()}
     function showToast(m,t){const el=document.getElementById('toast');el.textContent=m;el.className='toast'+(t?' '+t:'');el.style.display='block';setTimeout(()=>el.style.display='none',2000)}
@@ -237,7 +211,6 @@
         const btn=document.getElementById('btnFinalizar');btn.disabled=!cozinhaOnline;btn.textContent=cozinhaOnline?'Finalizar Pedido 🚀':'🔴 Cozinha Offline';btn.style.opacity=cozinhaOnline?'1':'0.5';
     }
 
-    // ==================== CHECKOUT COM UPSELL (APENAS 1 VEZ) ====================
     async function startCheckout(){
         if(!cozinhaOnline){showToast('🔴 Cozinha offline!','error');return}
         if(!cart.length)return alert('Carrinho vazio.');
@@ -252,9 +225,7 @@
     }
 
     function showUpsellModal(p){document.getElementById('upsellName').textContent=p.nome;document.getElementById('upsellPrice').textContent='R$ '+parseFloat(p.preco).toFixed(2).replace('.',',');document.getElementById('upsellImg').src=p.imagem||'';document.getElementById('upsellModal').classList.add('show')}
-    
     function acceptUpsell(){document.getElementById('upsellModal').classList.remove('show');if(upsellProduct){addItem(upsellProduct.nome,upsellProduct.preco);showToast('🍟 '+upsellProduct.nome+' adicionado!')}upsellProduct=null;pendingOrderData=null;toggleCart();document.getElementById('cartPanel').classList.add('open')}
-    
     function declineUpsell(){document.getElementById('upsellModal').classList.remove('show');upsellProduct=null;finalizeOrder()}
     
     async function finalizeOrder(){
@@ -287,7 +258,6 @@
         window.fsSnapshot(window.fsCollection(window.db,"categorias"),snap=>{categories=[];snap.forEach(d=>categories.push({id:d.id,...d.data()}));categories.sort((a,b)=>(a.ordem||0)-(b.ordem||0));if(!currentCat&&categories.length)currentCat=categories[0].nome;renderMenu()});
         window.fsSnapshot(window.fsCollection(window.db,"produtos"),snap=>{products=[];snap.forEach(d=>products.push({id:d.id,...d.data()}));renderMenu()});
         window.fsSnapshot(window.fsCollection(window.db,"adicionais"),snap=>{adicionaisDisponiveis=[];snap.forEach(d=>{if(d.data().ativo!==false)adicionaisDisponiveis.push({id:d.id,...d.data()})})});
-        window.fsSnapshot(window.fsCollection(window.db,"promocoes"),snap=>{promocoes=[];snap.forEach(d=>{if(d.data().ativo!==false)promocoes.push({id:d.id,...d.data()})});initCarousel()});
         if(kitchenStatusUnsubscribe)kitchenStatusUnsubscribe();const statusRef=window.fsDoc(window.db,"status_cozinha","online");kitchenStatusUnsubscribe=window.fsSnapshot(statusRef,snap=>{if(snap.exists())updateCozinhaStatus(snap.data().online!==false);else updateCozinhaStatus(true)},err=>{updateCozinhaStatus(true)});
     }
     
