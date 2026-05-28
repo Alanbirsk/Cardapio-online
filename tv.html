@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aquarius Burguer - TV Promoções</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+        body{
+            background:#0a0a0f;
+            color:#fff;
+            overflow:hidden;
+            height:100vh;
+            width:100vw;
+        }
+        
+        .tv-screen {
+            width:100%;
+            height:100%;
+            position:relative;
+            background: radial-gradient(ellipse at center, #1a1a2e 0%, #0a0a0f 70%);
+            display:flex;
+            flex-direction:column;
+        }
+        
+        /* Barra superior */
+        .top-bar {
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            padding:15px 40px;
+            flex-shrink:0;
+            background:rgba(0,0,0,0.3);
+            border-bottom:1px solid rgba(255,255,255,0.05);
+        }
+        .brand {
+            display:flex;
+            align-items:center;
+            gap:10px;
+        }
+        .brand-logo {
+            width:38px;
+            height:38px;
+            border-radius:8px;
+            object-fit:contain;
+            background:#fff;
+            padding:3px;
+        }
+        .brand-name {
+            font-size:18px;
+            font-weight:700;
+        }
+        .brand-tag {
+            font-size:9px;
+            color:#a1a1aa;
+            letter-spacing:1px;
+        }
+        .time-box {
+            text-align:right;
+        }
+        .tv-clock {
+            font-size:36px;
+            font-weight:700;
+            font-family:'Courier New',monospace;
+            color:#22c55e;
+            letter-spacing:2px;
+        }
+        .tv-date {
+            font-size:12px;
+            color:#a1a1aa;
+        }
+        
+        /* Área principal */
+        .main-area {
+            flex:1;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            position:relative;
+            overflow:hidden;
+        }
+        
+        /* Carrossel */
+        .carousel-viewport {
+            width:90%;
+            max-width:1100px;
+            height:80%;
+            position:relative;
+            overflow:hidden;
+            border-radius:16px;
+        }
+        .carousel-track {
+            display:flex;
+            width:100%;
+            height:100%;
+            transition:transform 0.7s ease-in-out;
+        }
+        
+        /* SLIDE - Layout horizontal */
+        .slide {
+            min-width:100%;
+            height:100%;
+            display:flex;
+            align-items:center;
+            gap:40px;
+            padding:30px 50px;
+        }
+        
+        /* COLUNA ESQUERDA - Imagem */
+        .slide-left {
+            flex:1;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            max-width:55%;
+        }
+        .slide-image {
+            max-width:100%;
+            max-height:70vh;
+            width:auto;
+            height:auto;
+            border-radius:20px;
+            object-fit:contain;
+            box-shadow:0 25px 60px rgba(0,0,0,0.5);
+            border:3px solid rgba(255,255,255,0.08);
+            background:rgba(255,255,255,0.02);
+            padding:8px;
+        }
+        .no-image {
+            font-size:120px;
+            opacity:0.2;
+        }
+        
+        /* COLUNA DIREITA - Preço + informações */
+        .slide-right {
+            flex:1;
+            display:flex;
+            flex-direction:column;
+            align-items:flex-start;
+            justify-content:center;
+            gap:15px;
+        }
+        
+        /* Badge */
+        .offer-badge {
+            display:inline-block;
+            background:linear-gradient(135deg, #f59e0b, #f97316);
+            color:#000;
+            padding:12px 28px;
+            border-radius:30px;
+            font-size:18px;
+            font-weight:800;
+            letter-spacing:1px;
+            animation:badgePulse 2.5s infinite;
+        }
+        @keyframes badgePulse {
+            0%,100%{transform:scale(1)}
+            50%{transform:scale(1.04)}
+        }
+        
+        /* Preço antigo */
+        .price-old {
+            font-size:30px;
+            color:#ff4444;
+            text-decoration:line-through;
+            font-weight:500;
+        }
+        
+        /* Preço atual - GRANDE */
+        .price-current {
+            font-size:100px;
+            font-weight:900;
+            color:#22c55e;
+            text-shadow:0 0 50px rgba(34,197,94,0.4);
+            letter-spacing:-2px;
+            line-height:1;
+        }
+        .price-currency {
+            font-size:45px;
+            font-weight:700;
+            vertical-align:super;
+            margin-right:4px;
+        }
+        .price-cents {
+            font-size:45px;
+            font-weight:700;
+            vertical-align:super;
+        }
+        
+        /* Separador */
+        .price-divider-line {
+            width:80px;
+            height:2px;
+            background:rgba(255,255,255,0.15);
+            margin:5px 0;
+        }
+        
+        /* Nome do produto */
+        .product-name {
+            font-size:40px;
+            font-weight:900;
+            letter-spacing:-0.5px;
+            line-height:1.2;
+        }
+        
+        /* Descrição */
+        .product-desc {
+            font-size:18px;
+            color:#a1a1aa;
+            font-weight:300;
+            line-height:1.4;
+            max-width:400px;
+        }
+        
+        /* Navegação */
+        .nav-dots {
+            position:absolute;
+            bottom:25px;
+            left:50%;
+            transform:translateX(-50%);
+            display:flex;
+            gap:10px;
+            z-index:10;
+        }
+        .dot {
+            width:10px;
+            height:10px;
+            border-radius:50%;
+            background:rgba(255,255,255,0.25);
+            cursor:pointer;
+            transition:all 0.4s;
+        }
+        .dot.active {
+            background:#22c55e;
+            width:30px;
+            border-radius:20px;
+        }
+        .dot:hover {background:rgba(255,255,255,0.5)}
+        
+        /* Estado vazio */
+        .empty-state {
+            display:none;
+            position:absolute;
+            top:50%;
+            left:50%;
+            transform:translate(-50%,-50%);
+            text-align:center;
+            color:#666;
+        }
+        .empty-state.show {display:block}
+        .empty-icon {font-size:100px;margin-bottom:20px;opacity:0.4}
+        .empty-title {font-size:28px;font-weight:700;margin-bottom:10px;color:#888}
+        .empty-sub {font-size:16px;color:#666}
+    </style>
+</head>
+<body>
+
+<div class="tv-screen">
+    <!-- Barra superior -->
+    <div class="top-bar">
+        <div class="brand">
+            <img src="1000001934.jpg" class="brand-logo" alt="Logo" onerror="this.style.display='none'">
+            <div>
+                <div class="brand-name">Aquarius Burguer</div>
+                <div class="brand-tag">GOURMET • DELIVERY</div>
+            </div>
+        </div>
+        <div class="time-box">
+            <div class="tv-clock" id="clock">00:00</div>
+            <div class="tv-date" id="date"></div>
+        </div>
+    </div>
+    
+    <!-- Área principal -->
+    <div class="main-area">
+        <div class="carousel-viewport">
+            <div class="carousel-track" id="carouselTrack"></div>
+        </div>
+        
+        <!-- Navegação -->
+        <div class="nav-dots" id="dots"></div>
+        
+        <!-- Estado vazio -->
+        <div class="empty-state" id="empty">
+            <div class="empty-icon">📺</div>
+            <div class="empty-title">Nenhuma Promoção Ativa</div>
+            <div class="empty-sub">Adicione promoções pelo painel de gestão (admin.html)</div>
+        </div>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyABe9h5dM1FHrsYOI9vPiEvHsozqb-9PYI",
+        authDomain: "aquarius-burguer.firebaseapp.com",
+        projectId: "aquarius-burguer",
+        storageBucket: "aquarius-burguer.firebasestorage.app",
+        messagingSenderId: "1014795439621",
+        appId: "1:1014795439621:web:1aef68c277c1e2f8aa966c"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    
+    let promos = [], currentSlide = 0, slideInterval = null;
+
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('clock').textContent = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        document.getElementById('date').textContent = now.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+    }
+    setInterval(updateClock, 1000); updateClock();
+
+    function renderCarousel() {
+        const ativas = promos.filter(p => p.ativo !== false);
+        
+        if (ativas.length === 0) {
+            document.querySelector('.carousel-viewport').style.display = 'none';
+            document.getElementById('dots').style.display = 'none';
+            document.getElementById('empty').classList.add('show');
+            if (slideInterval) clearInterval(slideInterval);
+            return;
+        }
+        
+        document.querySelector('.carousel-viewport').style.display = 'block';
+        document.getElementById('dots').style.display = 'flex';
+        document.getElementById('empty').classList.remove('show');
+        
+        let slidesHTML = '';
+        ativas.forEach((p) => {
+            const temImg = p.imagem && p.imagem.length > 100;
+            const preco = parseFloat(p.preco || 0).toFixed(2);
+            const [reais, centavos] = preco.split('.');
+            
+            slidesHTML += `
+                <div class="slide">
+                    <!-- ESQUERDA - Imagem -->
+                    <div class="slide-left">
+                        ${temImg ? 
+                            `<img src="${p.imagem}" class="slide-image" alt="${p.nome}" onerror="this.style.display='none'">` : 
+                            '<div class="no-image">📷</div>'
+                        }
+                    </div>
+                    
+                    <!-- DIREITA - Preço + Informações -->
+                    <div class="slide-right">
+                        <div class="offer-badge">🔥 OFERTA ESPECIAL</div>
+                        
+                        ${p.precoOriginal > 0 ? `<div class="price-old">De R$ ${parseFloat(p.precoOriginal).toFixed(2).replace('.', ',')}</div>` : ''}
+                        
+                        <div class="price-current">
+                            <span class="price-currency">R$</span>${reais}<span class="price-cents">,${centavos}</span>
+                        </div>
+                        
+                        <div class="price-divider-line"></div>
+                        
+                        <div class="product-name">${p.nome || 'Promoção'}</div>
+                        
+                        ${p.descricao ? `<div class="product-desc">${p.descricao}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+        
+        document.getElementById('carouselTrack').innerHTML = slidesHTML;
+        
+        let dotsHTML = '';
+        ativas.forEach((_, i) => {
+            dotsHTML += `<div class="dot ${i === 0 ? 'active' : ''}" onclick="goToSlide(${i})"></div>`;
+        });
+        document.getElementById('dots').innerHTML = dotsHTML;
+        
+        currentSlide = 0;
+        updatePosition();
+        
+        if (slideInterval) clearInterval(slideInterval);
+        if (ativas.length > 1) {
+            slideInterval = setInterval(() => {
+                currentSlide = (currentSlide + 1) % ativas.length;
+                updatePosition();
+            }, 6000);
+        }
+    }
+
+    function updatePosition() {
+        document.getElementById('carouselTrack').style.transform = `translateX(-${currentSlide * 100}%)`;
+        document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === currentSlide));
+    }
+    
+    function goToSlide(i) { currentSlide = i; updatePosition(); }
+
+    db.collection("promocoes").onSnapshot((snapshot) => {
+        promos = [];
+        snapshot.forEach((doc) => { promos.push({ id: doc.id, ...doc.data() }); });
+        renderCarousel();
+    }, (error) => {
+        document.getElementById('empty').classList.add('show');
+    });
+</script>
+</body>
+</html>
