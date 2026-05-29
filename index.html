@@ -75,6 +75,8 @@
         .addon-chip .addon-price{font-size:9px;opacity:.7}
         .selected-addons{margin-top:4px;font-size:9px;color:var(--text-muted)}
         .selected-addons span{background:rgba(34,197,94,0.1);padding:1px 6px;border-radius:6px;margin:1px;display:inline-block;font-size:8px;cursor:pointer}
+        .frete-info{background:rgba(34,197,94,0.05);border:1px solid rgba(34,197,94,0.15);border-radius:10px;padding:8px 12px;margin:8px 0;font-size:10px;color:var(--verde);text-align:center;display:none}
+        .frete-info.show{display:block}
         .toast{position:fixed;bottom:80px;right:14px;background:var(--verde);padding:10px 18px;border-radius:10px;font-weight:800;font-size:11px;display:none;z-index:10001}
         .toast.error{background:#ef4444}
         .upsell-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:35000;justify-content:center;align-items:center;padding:20px}
@@ -141,14 +143,19 @@
     <div class="coupon-box"><div style="font-size:11px;font-weight:700;margin-bottom:5px;">🎫 Cupom</div><div class="coupon-input-group"><input type="text" id="couponInput" placeholder="Código"><button onclick="applyCoupon()">Aplicar</button></div><div id="couponMsg" style="font-size:10px;margin-top:4px;font-weight:700;color:var(--verde);"></div></div>
     <div class="cart-offline-alert" id="cartOfflineAlert">🔴 Cozinha offline. Pedidos pausados.</div>
     <div class="addons-section" id="addonsSection" style="display:none;"><div class="addons-title">🍟 Adicionais</div><div class="addons-list" id="addonsList"></div><div class="selected-addons" id="selectedAddons"></div></div>
+    
+    <!-- Alerta de frete grátis -->
+    <div class="frete-info" id="freteInfo">🎉 Frete Grátis! Bairro Fraron tem entrega gratuita.</div>
+    
     <div style="display:flex;justify-content:space-between;margin-top:12px;color:var(--text-muted);font-size:11px;"><span>Subtotal</span><span>R$ <span id="subtotal">0.00</span></span></div>
     <div style="display:flex;justify-content:space-between;margin-top:3px;color:var(--text-muted);font-size:11px;"><span>Desconto</span><span style="color:#4ade80;">-R$ <span id="desconto">0.00</span></span></div>
-    <div style="display:flex;justify-content:space-between;margin-top:3px;color:var(--text-muted);font-size:11px;padding-bottom:6px;border-bottom:1px solid var(--border-glass);"><span>Taxa</span><span>R$ <span id="taxa">0.00</span></span></div>
+    <div style="display:flex;justify-content:space-between;margin-top:3px;color:var(--text-muted);font-size:11px;padding-bottom:6px;border-bottom:1px solid var(--border-glass);"><span>Taxa de Entrega</span><span id="taxaLabel">R$ <span id="taxa">0.00</span></span></div>
     <div id="addonsTotalRow" style="display:none;justify-content:space-between;margin-top:3px;color:#4ade80;font-size:11px;"><span>Adicionais</span><span>+R$ <span id="addonsTotal">0.00</span></span></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin:10px 0;"><span style="font-size:14px;font-weight:800;">Total:</span><span style="font-size:22px;font-weight:900;color:#4ade80;" id="total">R$ 0.00</span></div>
-    <input id="nome" placeholder="Seu nome completo" autocomplete="name"><input id="telefone" placeholder="WhatsApp" type="tel" autocomplete="tel">
-    <select id="tipoEntrega" onchange="updateCart()"><option value="retirada">Retirar no Balcão</option><option value="entrega">Delivery</option></select>
-    <input id="endereco" placeholder="Endereço Completo" style="display:none">
+    <input id="nome" placeholder="Seu nome completo" autocomplete="name">
+    <input id="telefone" placeholder="WhatsApp (Ex: 46999924129)" type="tel" autocomplete="tel">
+    <select id="tipoEntrega" onchange="updateCart()"><option value="retirada">Retirar no Balcão</option><option value="entrega">Delivery (Entrega em Casa)</option></select>
+    <input id="endereco" placeholder="Endereço Completo (Rua, Número, Bairro)" oninput="updateCart()" style="display:none">
     <select id="pagamento" onchange="toggleTroco()"><option value="Pix">Pix</option><option value="Cartão">Cartão</option><option value="Dinheiro">Dinheiro</option></select>
     <input id="troco" placeholder="Troco para quanto?" style="display:none">
     <button class="add-btn" id="btnFinalizar" style="width:100%;margin-top:12px;padding:12px;font-size:13px;" onclick="startCheckout()">Finalizar Pedido 🚀</button>
@@ -174,6 +181,14 @@
     const coupons={'BEMVINDO10':{type:'percent',value:10,desc:'10% OFF'},'FRETE50':{type:'fixed',value:5,desc:'R$ 5 OFF'},'AQUARIUS15':{type:'percent',value:15,desc:'15% OFF'}};
     let adicionaisDisponiveis=[],adicionaisSelecionados=[],kitchenStatusUnsubscribe=null;
     let upsellProduct=null,pendingOrderData=null,upsellOffered=false;
+
+    // ==================== VERIFICAR BAIRRO FRARON ====================
+    function isBairroFraron(endereco){
+        if(!endereco)return false;
+        const endLower=endereco.toLowerCase();
+        // Verifica se contém "fraron" no endereço
+        return endLower.includes('fraron');
+    }
 
     function updateCozinhaStatus(online){cozinhaOnline=online;document.getElementById('kitchenStatusBadge').className='kitchen-status-badge '+(online?'online':'offline');document.getElementById('kitchenStatusDot').className='kitchen-status-dot '+(online?'online':'offline');document.getElementById('kitchenStatusLabel').textContent=online?'Cozinha Online':'Cozinha Offline';document.getElementById('cartOfflineAlert').classList.toggle('show',!online);const btn=document.getElementById('btnFinalizar');btn.disabled=!online;btn.textContent=online?'Finalizar Pedido 🚀':'🔴 Cozinha Offline';btn.style.opacity=online?'1':'0.5';updateCart()}
     function showToast(m,t){const el=document.getElementById('toast');el.textContent=m;el.className='toast'+(t?' '+t:'');el.style.display='block';setTimeout(()=>el.style.display='none',2000)}
@@ -202,11 +217,36 @@
     
     function updateCart(){
         let h='',s=0,ct=0;cart.forEach((it,i)=>{const sb=it.price*it.qty;s+=sb;ct+=it.qty;h+=`<div class="cart-item"><div style="display:flex;justify-content:space-between;font-weight:700;font-size:12px"><span>${it.name}</span><span>R$ ${sb.toFixed(2)}</span></div><div class="qty-controls"><button class="qty-btn" onclick="changeQty(${i},-1)">-</button><span>${it.qty}</span><button class="qty-btn" onclick="changeQty(${i},1)">+</button><button class="remove-btn" onclick="changeQty(${i},-${it.qty})">Remover</button></div><textarea placeholder="Observações..." oninput="updateObs(${i},this.value)" style="width:100%;padding:6px;border-radius:6px;background:#1c1c1f;color:#fff;border:1px solid var(--border-glass);font-size:10px;resize:vertical;min-height:28px;">${it.obs}</textarea></div>`});
-        const tp=document.getElementById('tipoEntrega').value,tx=tp==='entrega'?DELIVERY_FEE:0;let d=0;if(couponActive)d=couponActive.type==='percent'?s*(couponActive.value/100):Math.min(couponActive.value,tx);
+        const tp=document.getElementById('tipoEntrega').value;
+        const endereco=document.getElementById('endereco').value.trim();
+        
+        // Verificar se é bairro Fraron para frete grátis
+        let tx=0;
+        const freteInfo=document.getElementById('freteInfo');
+        const taxaLabel=document.getElementById('taxaLabel');
+        
+        if(tp==='entrega'){
+            if(isBairroFraron(endereco)){
+                tx=0; // FRETE GRÁTIS
+                freteInfo.classList.add('show');
+                taxaLabel.innerHTML='<span style="text-decoration:line-through;color:#666;">R$ 10.00</span> <span style="color:#22c55e;">Grátis (Fraron)</span>';
+            }else{
+                tx=DELIVERY_FEE;
+                freteInfo.classList.remove('show');
+                taxaLabel.innerHTML='R$ <span id="taxa">'+tx.toFixed(2)+'</span>';
+            }
+        }else{
+            tx=0;
+            freteInfo.classList.remove('show');
+            taxaLabel.innerHTML='R$ <span id="taxa">0.00</span>';
+        }
+        
+        let d=0;if(couponActive)d=couponActive.type==='percent'?s*(couponActive.value/100):Math.min(couponActive.value,tx);
         const av=adicionaisSelecionados.reduce((sum,a)=>sum+parseFloat(a.preco),0);const tt=s+tx-d+av;
         document.getElementById('cartItems').innerHTML=h||'<p style="text-align:center;color:var(--text-muted);padding:16px 0;">Carrinho vazio.</p>';
         document.getElementById('subtotal').textContent=s.toFixed(2);document.getElementById('taxa').textContent=tx.toFixed(2);document.getElementById('desconto').textContent=d.toFixed(2);
-        document.getElementById('total').textContent='R$ '+tt.toFixed(2);document.getElementById('cartCount').textContent=ct;document.getElementById('endereco').style.display=tp==='entrega'?'block':'none';
+        document.getElementById('total').textContent='R$ '+tt.toFixed(2);document.getElementById('cartCount').textContent=ct;
+        document.getElementById('endereco').style.display=tp==='entrega'?'block':'none';
         const ar=document.getElementById('addonsTotalRow');if(av>0){ar.style.display='flex';document.getElementById('addonsTotal').textContent=av.toFixed(2)}else{ar.style.display='none'}
         const btn=document.getElementById('btnFinalizar');btn.disabled=!cozinhaOnline;btn.textContent=cozinhaOnline?'Finalizar Pedido 🚀':'🔴 Cozinha Offline';btn.style.opacity=cozinhaOnline?'1':'0.5';
     }
@@ -217,9 +257,11 @@
         const nm=document.getElementById('nome').value.trim(),tl=document.getElementById('telefone').value.trim(),tp=document.getElementById('tipoEntrega').value,ed=document.getElementById('endereco').value.trim(),pg=document.getElementById('pagamento').value;
         if(!nm||!tl)return alert('Nome e telefone obrigatórios.');if(tp==='entrega'&&!ed)return alert('Endereço obrigatório.');
         let s=0;const its=cart.map(it=>{const sb=it.price*it.qty;s+=sb;return{nome:it.name,qtd:it.qty,precoUn:it.price,obs:it.obs}});
-        const tx=tp==='entrega'?DELIVERY_FEE:0;let d=0;if(couponActive)d=couponActive.type==='percent'?s*(couponActive.value/100):Math.min(couponActive.value,tx);
+        // Calcular taxa com verificação do Fraron
+        let tx=0;if(tp==='entrega'){tx=isBairroFraron(ed)?0:DELIVERY_FEE;}
+        let d=0;if(couponActive)d=couponActive.type==='percent'?s*(couponActive.value/100):Math.min(couponActive.value,tx);
         const av=adicionaisSelecionados.reduce((sum,a)=>sum+parseFloat(a.preco),0);const tt=s+tx-d+av,np=Math.floor(Math.random()*9000)+1000;
-        pendingOrderData={cliente:nm,telefone:tl.replace(/\D/g,''),tipoEntrega:tp,endereco:tp==='entrega'?ed:'',formaPagamento:pg,subtotal:s,taxaEntrega:tx,desconto:d,adicionais:JSON.parse(JSON.stringify(adicionaisSelecionados)),total:tt,dataHora:new Date().toISOString(),itens:its,numeroPedido:np};
+        pendingOrderData={cliente:nm,telefone:tl.replace(/\D/g,''),tipoEntrega:tp,endereco:ed,formaPagamento:pg,subtotal:s,taxaEntrega:tx,desconto:d,adicionais:JSON.parse(JSON.stringify(adicionaisSelecionados)),total:tt,dataHora:new Date().toISOString(),itens:its,numeroPedido:np};
         if(!upsellOffered){try{const prods=[...new Set(cart.map(item=>{const p=products.find(pp=>pp.nome===item.name);return p?p.id:null}).filter(Boolean))];if(prods.length>0){const snap=await window.fsGet(window.fsCollection(window.db,"configuracoes"));let found=null;snap.forEach(dd=>{if(dd.id.startsWith('upsell_')&&dd.data().ativo&&prods.includes(dd.data().produtoId)){const up=products.find(p=>p.id===dd.data().upsellProdutoId);if(up&&!found)found=up}});if(found){upsellProduct=found;upsellOffered=true;showUpsellModal(found);return}}}catch(e){}}
         finalizeOrder();
     }
@@ -232,9 +274,10 @@
         if(!pendingOrderData)return;
         const dv=pendingOrderData;
         let s=0;const its=cart.map(it=>{const sb=it.price*it.qty;s+=sb;return{nome:it.name,qtd:it.qty,precoUn:it.price,obs:it.obs}});
-        const tx=dv.tipoEntrega==='entrega'?DELIVERY_FEE:0;let d=0;if(couponActive)d=couponActive.type==='percent'?s*(couponActive.value/100):Math.min(couponActive.value,tx);
+        let tx=0;if(dv.tipoEntrega==='entrega'){tx=isBairroFraron(dv.endereco)?0:DELIVERY_FEE;}
+        let d=0;if(couponActive)d=couponActive.type==='percent'?s*(couponActive.value/100):Math.min(couponActive.value,tx);
         const av=adicionaisSelecionados.reduce((sum,a)=>sum+parseFloat(a.preco),0);const tt=s+tx-d+av;
-        dv.subtotal=s;dv.total=tt;dv.itens=its;dv.desconto=d;dv.adicionais=JSON.parse(JSON.stringify(adicionaisSelecionados));
+        dv.subtotal=s;dv.total=tt;dv.itens=its;dv.desconto=d;dv.taxaEntrega=tx;dv.adicionais=JSON.parse(JSON.stringify(adicionaisSelecionados));
         try{if(window.db){await window.fsAdd(window.fsCollection(window.db,"vendas"),dv);await window.fsAdd(window.fsCollection(window.db,"pedidos_ativos"),{...dv,status:'pendente',ultimaAtualizacao:new Date().toISOString()})}}catch(e){alert('Erro ao salvar.');return}
         lastOrderNumber=dv.numeroPedido;cart=[];couponActive=null;adicionaisSelecionados=[];upsellProduct=null;pendingOrderData=null;upsellOffered=false;
         document.getElementById('couponInput').value='';document.getElementById('couponMsg').textContent='';updateCart();toggleCart();
