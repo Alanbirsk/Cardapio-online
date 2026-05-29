@@ -2,8 +2,8 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aquarius Burguer - TV Promoções</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aquarius Burguer - Promoções</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
@@ -12,10 +12,14 @@
             color:#fff;
             overflow:hidden;
             height:100vh;
+            height:100dvh;
             width:100vw;
+            -webkit-tap-highlight-color:transparent;
+            user-select:none;
+            -webkit-user-select:none;
         }
         
-        .tv-screen {
+        .main-container {
             width:100%;
             height:100%;
             position:relative;
@@ -29,30 +33,30 @@
             display:flex;
             justify-content:space-between;
             align-items:center;
-            padding:15px 40px;
+            padding:12px 16px;
             flex-shrink:0;
-            background:rgba(0,0,0,0.3);
-            border-bottom:1px solid rgba(255,255,255,0.05);
+            background:rgba(0,0,0,0.4);
+            z-index:10;
         }
         .brand {
             display:flex;
             align-items:center;
-            gap:10px;
+            gap:8px;
         }
         .brand-logo {
-            width:38px;
-            height:38px;
+            width:32px;
+            height:32px;
             border-radius:8px;
             object-fit:contain;
             background:#fff;
-            padding:3px;
+            padding:2px;
         }
         .brand-name {
-            font-size:18px;
+            font-size:14px;
             font-weight:700;
         }
         .brand-tag {
-            font-size:9px;
+            font-size:8px;
             color:#a1a1aa;
             letter-spacing:1px;
         }
@@ -60,19 +64,19 @@
             text-align:right;
         }
         .tv-clock {
-            font-size:36px;
+            font-size:24px;
             font-weight:700;
             font-family:'Courier New',monospace;
             color:#22c55e;
-            letter-spacing:2px;
+            letter-spacing:1px;
         }
         .tv-date {
-            font-size:12px;
+            font-size:10px;
             color:#a1a1aa;
         }
         
-        /* Área principal */
-        .main-area {
+        /* Área do carrossel */
+        .carousel-area {
             flex:1;
             display:flex;
             align-items:center;
@@ -81,162 +85,155 @@
             overflow:hidden;
         }
         
-        /* Carrossel */
         .carousel-viewport {
-            width:90%;
-            max-width:1100px;
-            height:80%;
+            width:100%;
+            height:100%;
             position:relative;
             overflow:hidden;
-            border-radius:16px;
         }
         .carousel-track {
             display:flex;
             width:100%;
             height:100%;
-            transition:transform 0.7s ease-in-out;
+            transition:transform 0.6s ease-in-out;
         }
         
-        /* SLIDE - Layout horizontal */
+        /* Slide */
         .slide {
             min-width:100%;
             height:100%;
             display:flex;
+            flex-direction:column;
             align-items:center;
-            gap:40px;
-            padding:30px 50px;
+            justify-content:center;
+            padding:20px;
         }
         
-        /* COLUNA ESQUERDA - Imagem */
-        .slide-left {
+        /* Imagem */
+        .slide-image-container {
+            width:100%;
             flex:1;
             display:flex;
             align-items:center;
             justify-content:center;
-            max-width:55%;
+            min-height:200px;
+            max-height:50vh;
+            margin-bottom:10px;
         }
         .slide-image {
-            max-width:100%;
-            max-height:70vh;
+            max-width:90%;
+            max-height:100%;
             width:auto;
             height:auto;
-            border-radius:20px;
+            border-radius:16px;
             object-fit:contain;
-            box-shadow:0 25px 60px rgba(0,0,0,0.5);
-            border:3px solid rgba(255,255,255,0.08);
+            box-shadow:0 15px 40px rgba(0,0,0,0.5);
+            border:2px solid rgba(255,255,255,0.06);
             background:rgba(255,255,255,0.02);
-            padding:8px;
-        }
-        .no-image {
-            font-size:120px;
-            opacity:0.2;
+            padding:4px;
         }
         
-        /* COLUNA DIREITA - Preço + informações */
-        .slide-right {
-            flex:1;
-            display:flex;
-            flex-direction:column;
-            align-items:flex-start;
-            justify-content:center;
-            gap:15px;
+        /* Informações */
+        .slide-info {
+            text-align:center;
+            width:100%;
+            flex-shrink:0;
+            padding:10px 16px 20px;
         }
         
-        /* Badge */
         .offer-badge {
             display:inline-block;
             background:linear-gradient(135deg, #f59e0b, #f97316);
             color:#000;
-            padding:12px 28px;
-            border-radius:30px;
-            font-size:18px;
+            padding:6px 20px;
+            border-radius:20px;
+            font-size:13px;
             font-weight:800;
             letter-spacing:1px;
+            margin-bottom:8px;
             animation:badgePulse 2.5s infinite;
         }
         @keyframes badgePulse {
             0%,100%{transform:scale(1)}
-            50%{transform:scale(1.04)}
+            50%{transform:scale(1.05)}
         }
         
-        /* Preço antigo */
+        .slide-name {
+            font-size:24px;
+            font-weight:900;
+            margin-bottom:4px;
+            letter-spacing:-0.3px;
+            line-height:1.2;
+        }
+        
+        .slide-desc {
+            font-size:13px;
+            color:#a1a1aa;
+            margin-bottom:8px;
+            font-weight:300;
+            line-height:1.3;
+        }
+        
+        .price-section {
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:10px;
+            background:rgba(255,255,255,0.03);
+            border:1px solid rgba(255,255,255,0.06);
+            border-radius:12px;
+            padding:8px 20px;
+            display:inline-flex;
+        }
         .price-old {
-            font-size:30px;
+            font-size:18px;
             color:#ff4444;
             text-decoration:line-through;
             font-weight:500;
         }
-        
-        /* Preço atual - GRANDE */
-        .price-current {
-            font-size:100px;
-            font-weight:900;
-            color:#22c55e;
-            text-shadow:0 0 50px rgba(34,197,94,0.4);
-            letter-spacing:-2px;
-            line-height:1;
-        }
-        .price-currency {
-            font-size:45px;
-            font-weight:700;
-            vertical-align:super;
-            margin-right:4px;
-        }
-        .price-cents {
-            font-size:45px;
-            font-weight:700;
-            vertical-align:super;
-        }
-        
-        /* Separador */
-        .price-divider-line {
-            width:80px;
-            height:2px;
+        .price-divider {
+            width:1px;
+            height:20px;
             background:rgba(255,255,255,0.15);
-            margin:5px 0;
         }
-        
-        /* Nome do produto */
-        .product-name {
+        .price-current {
             font-size:40px;
             font-weight:900;
-            letter-spacing:-0.5px;
-            line-height:1.2;
+            color:#22c55e;
+            text-shadow:0 0 20px rgba(34,197,94,0.3);
+            letter-spacing:-1px;
         }
-        
-        /* Descrição */
-        .product-desc {
-            font-size:18px;
-            color:#a1a1aa;
-            font-weight:300;
-            line-height:1.4;
-            max-width:400px;
+        .price-currency {
+            font-size:20px;
+            font-weight:700;
+            vertical-align:super;
+            margin-right:2px;
         }
         
         /* Navegação */
         .nav-dots {
             position:absolute;
-            bottom:25px;
+            bottom:12px;
             left:50%;
             transform:translateX(-50%);
             display:flex;
-            gap:10px;
+            gap:8px;
             z-index:10;
+            padding:8px;
         }
         .dot {
-            width:10px;
-            height:10px;
+            width:8px;
+            height:8px;
             border-radius:50%;
-            background:rgba(255,255,255,0.25);
+            background:rgba(255,255,255,0.3);
             cursor:pointer;
-            transition:all 0.4s;
+            transition:all 0.3s;
         }
         .dot.active {
             background:#22c55e;
-            width:30px;
-            border-radius:20px;
+            width:24px;
+            border-radius:10px;
         }
-        .dot:hover {background:rgba(255,255,255,0.5)}
         
         /* Estado vazio */
         .empty-state {
@@ -247,16 +244,76 @@
             transform:translate(-50%,-50%);
             text-align:center;
             color:#666;
+            width:90%;
         }
         .empty-state.show {display:block}
-        .empty-icon {font-size:100px;margin-bottom:20px;opacity:0.4}
-        .empty-title {font-size:28px;font-weight:700;margin-bottom:10px;color:#888}
-        .empty-sub {font-size:16px;color:#666}
+        .empty-icon {font-size:80px;margin-bottom:16px;opacity:0.4}
+        .empty-title {font-size:22px;font-weight:700;margin-bottom:8px;color:#888}
+        .empty-sub {font-size:14px;color:#666;line-height:1.4}
+        
+        /* Swipe indicador */
+        .swipe-hint {
+            position:absolute;
+            bottom:50px;
+            left:50%;
+            transform:translateX(-50%);
+            font-size:10px;
+            color:rgba(255,255,255,0.3);
+            animation:fadeHint 3s infinite;
+        }
+        @keyframes fadeHint {
+            0%,100%{opacity:0.2}
+            50%{opacity:0.6}
+        }
+        
+        /* Landscape (celular deitado) */
+        @media (orientation: landscape) {
+            .slide {
+                flex-direction:row;
+                padding:16px;
+                gap:16px;
+            }
+            .slide-image-container {
+                flex:1;
+                max-height:80vh;
+                min-height:auto;
+                margin-bottom:0;
+            }
+            .slide-info {
+                flex:1;
+                text-align:left;
+                padding:10px;
+            }
+            .slide-name {
+                font-size:22px;
+            }
+            .price-current {
+                font-size:36px;
+            }
+            .price-section {
+                justify-content:flex-start;
+            }
+        }
+        
+        /* Telas muito pequenas */
+        @media (max-width: 360px) {
+            .slide-name {font-size:20px}
+            .price-current {font-size:34px}
+            .offer-badge {font-size:11px;padding:5px 16px}
+        }
+        
+        /* Telas grandes (tablets) */
+        @media (min-width: 768px) {
+            .slide-name {font-size:32px}
+            .price-current {font-size:50px}
+            .offer-badge {font-size:16px;padding:8px 24px}
+            .slide-image {max-width:70%}
+        }
     </style>
 </head>
 <body>
 
-<div class="tv-screen">
+<div class="main-container">
     <!-- Barra superior -->
     <div class="top-bar">
         <div class="brand">
@@ -272,8 +329,8 @@
         </div>
     </div>
     
-    <!-- Área principal -->
-    <div class="main-area">
+    <!-- Carrossel -->
+    <div class="carousel-area">
         <div class="carousel-viewport">
             <div class="carousel-track" id="carouselTrack"></div>
         </div>
@@ -281,15 +338,19 @@
         <!-- Navegação -->
         <div class="nav-dots" id="dots"></div>
         
+        <!-- Indicador de swipe -->
+        <div class="swipe-hint" id="swipeHint">⟵ Deslize ⟶</div>
+        
         <!-- Estado vazio -->
         <div class="empty-state" id="empty">
             <div class="empty-icon">📺</div>
-            <div class="empty-title">Nenhuma Promoção Ativa</div>
-            <div class="empty-sub">Adicione promoções pelo painel de gestão (admin.html)</div>
+            <div class="empty-title">Nenhuma Promoção</div>
+            <div class="empty-sub">Adicione promoções pelo painel de gestão</div>
         </div>
     </div>
 </div>
 
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
@@ -306,6 +367,7 @@
     const db = firebase.firestore();
     
     let promos = [], currentSlide = 0, slideInterval = null;
+    let touchStartX = 0, touchEndX = 0;
 
     function updateClock() {
         const now = new Date();
@@ -314,12 +376,42 @@
     }
     setInterval(updateClock, 1000); updateClock();
 
+    // ==================== SWIPE ====================
+    document.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+    });
+    
+    document.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    });
+    
+    function handleSwipe() {
+        const ativas = promos.filter(p => p.ativo !== false);
+        if (ativas.length <= 1) return;
+        
+        const diff = touchStartX - touchEndX;
+        if (Math.abs(diff) > 50) {
+            if (diff > 0) {
+                // Swipe esquerda - próximo
+                currentSlide = (currentSlide + 1) % ativas.length;
+            } else {
+                // Swipe direita - anterior
+                currentSlide = (currentSlide - 1 + ativas.length) % ativas.length;
+            }
+            updatePosition();
+            resetAutoSlide();
+        }
+    }
+
+    // ==================== RENDER ====================
     function renderCarousel() {
         const ativas = promos.filter(p => p.ativo !== false);
         
         if (ativas.length === 0) {
             document.querySelector('.carousel-viewport').style.display = 'none';
             document.getElementById('dots').style.display = 'none';
+            document.getElementById('swipeHint').style.display = 'none';
             document.getElementById('empty').classList.add('show');
             if (slideInterval) clearInterval(slideInterval);
             return;
@@ -327,6 +419,7 @@
         
         document.querySelector('.carousel-viewport').style.display = 'block';
         document.getElementById('dots').style.display = 'flex';
+        document.getElementById('swipeHint').style.display = ativas.length > 1 ? 'block' : 'none';
         document.getElementById('empty').classList.remove('show');
         
         let slidesHTML = '';
@@ -337,29 +430,19 @@
             
             slidesHTML += `
                 <div class="slide">
-                    <!-- ESQUERDA - Imagem -->
-                    <div class="slide-left">
-                        ${temImg ? 
-                            `<img src="${p.imagem}" class="slide-image" alt="${p.nome}" onerror="this.style.display='none'">` : 
-                            '<div class="no-image">📷</div>'
-                        }
+                    <div class="slide-image-container">
+                        ${temImg ? `<img src="${p.imagem}" class="slide-image" alt="${p.nome}" onerror="this.style.display='none'">` : '<div style="font-size:60px;opacity:0.2;">📷</div>'}
                     </div>
-                    
-                    <!-- DIREITA - Preço + Informações -->
-                    <div class="slide-right">
+                    <div class="slide-info">
                         <div class="offer-badge">🔥 OFERTA ESPECIAL</div>
-                        
-                        ${p.precoOriginal > 0 ? `<div class="price-old">De R$ ${parseFloat(p.precoOriginal).toFixed(2).replace('.', ',')}</div>` : ''}
-                        
-                        <div class="price-current">
-                            <span class="price-currency">R$</span>${reais}<span class="price-cents">,${centavos}</span>
+                        <div class="slide-name">${p.nome || 'Promoção'}</div>
+                        ${p.descricao ? `<div class="slide-desc">${p.descricao}</div>` : ''}
+                        <div class="price-section">
+                            ${p.precoOriginal > 0 ? `<div class="price-old">R$ ${parseFloat(p.precoOriginal).toFixed(2).replace('.', ',')}</div><div class="price-divider"></div>` : ''}
+                            <div class="price-current">
+                                <span class="price-currency">R$</span>${reais},<small>${centavos}</small>
+                            </div>
                         </div>
-                        
-                        <div class="price-divider-line"></div>
-                        
-                        <div class="product-name">${p.nome || 'Promoção'}</div>
-                        
-                        ${p.descricao ? `<div class="product-desc">${p.descricao}</div>` : ''}
                     </div>
                 </div>
             `;
@@ -375,14 +458,7 @@
         
         currentSlide = 0;
         updatePosition();
-        
-        if (slideInterval) clearInterval(slideInterval);
-        if (ativas.length > 1) {
-            slideInterval = setInterval(() => {
-                currentSlide = (currentSlide + 1) % ativas.length;
-                updatePosition();
-            }, 6000);
-        }
+        resetAutoSlide();
     }
 
     function updatePosition() {
@@ -390,8 +466,24 @@
         document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === currentSlide));
     }
     
-    function goToSlide(i) { currentSlide = i; updatePosition(); }
+    function goToSlide(i) {
+        currentSlide = i;
+        updatePosition();
+        resetAutoSlide();
+    }
+    
+    function resetAutoSlide() {
+        if (slideInterval) clearInterval(slideInterval);
+        const ativas = promos.filter(p => p.ativo !== false);
+        if (ativas.length > 1) {
+            slideInterval = setInterval(() => {
+                currentSlide = (currentSlide + 1) % ativas.length;
+                updatePosition();
+            }, 5000);
+        }
+    }
 
+    // ==================== FIREBASE ====================
     db.collection("promocoes").onSnapshot((snapshot) => {
         promos = [];
         snapshot.forEach((doc) => { promos.push({ id: doc.id, ...doc.data() }); });
