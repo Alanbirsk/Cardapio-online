@@ -23,12 +23,15 @@
         .alert{display:none;align-items:center;gap:6px;background:var(--d);color:#fff;padding:8px 16px;border-radius:10px;font-weight:700;font-size:12px;cursor:pointer}
         .alert.show{display:flex;animation:ap 1s infinite}
         @keyframes ap{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
-        .btn{padding:8px 16px;border:none;border-radius:10px;font-weight:700;font-size:12px;cursor:pointer;transition:.2s}.btn:hover{transform:translateY(-2px)}
+        .btn{padding:8px 16px;border:none;border-radius:10px;font-weight:700;font-size:12px;cursor:pointer;transition:.2s}
+        .btn:hover{transform:translateY(-2px)}
         .btn-danger{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3)}
         .btn-sound{background:rgba(255,255,255,.05);color:#fff;border:1px solid var(--bb)}
+        .btn-sound.muted{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3)}
         .btn-online{background:rgba(34,197,94,.2);color:#22c55e;border:1px solid rgba(34,197,94,.4);font-size:13px;padding:10px 20px}
         .btn-offline{background:rgba(239,68,68,.2);color:#ef4444;border:1px solid rgba(239,68,68,.4);font-size:13px;padding:10px 20px}
-        .kc2{display:flex;flex:1;overflow:hidden}@media(max-width:768px){.kc2{flex-direction:column}}
+        .kc2{display:flex;flex:1;overflow:hidden}
+        @media(max-width:768px){.kc2{flex-direction:column}}
         .ks{width:380px;min-width:380px;background:#0c0c14;border-right:1px solid var(--bb);display:flex;flex-direction:column}
         @media(max-width:768px){.ks{width:100%;min-width:100%;max-height:40%}}
         .sr{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--bb)}
@@ -88,7 +91,7 @@
         <div class="kc" id="clock">00:00:00</div>
         <button class="btn btn-online" id="btnOnline" onclick="setOnline(true)" style="display:none;">🟢 Ficar Online</button>
         <button class="btn btn-offline" id="btnOffline" onclick="setOnline(false)">🔴 Ficar Offline</button>
-        <button class="btn btn-sound" onclick="toggleSound()" id="sndBtn">🔊</button>
+        <button class="btn btn-sound" id="sndBtn" onclick="toggleSound()">🔊</button>
         <button class="btn btn-danger" onclick="logout()">🚪 Sair</button>
     </div>
 </div>
@@ -128,22 +131,19 @@
 
     async function setOnline(online){isOnline=online;try{await window.fsSet(window.fsDoc(window.db,"status_cozinha","online"),{online,ultimaAtualizacao:new Date().toISOString()},{merge:true})}catch(e){await window.fsSet(window.fsDoc(window.db,"status_cozinha","online"),{online,ultimaAtualizacao:new Date().toISOString()})}updateOnlineUI();toast(online?'🟢 ONLINE!':'🔴 OFFLINE!')}
     function updateOnlineUI(){const cs=document.getElementById('connectionStatus'),st=document.getElementById('statusText'),btnOn=document.getElementById('btnOnline'),btnOff=document.getElementById('btnOffline');if(isOnline){cs.classList.remove('offline');st.textContent='Online';btnOn.style.display='none';btnOff.style.display='inline-block'}else{cs.classList.add('offline');st.textContent='Offline';btnOn.style.display='inline-block';btnOff.style.display='none'}}
-    function toggleSound(){snd=!snd;document.getElementById('sndBtn').textContent=snd?'🔊':'🔇';if(!snd&&alertInt){clearInterval(alertInt);alertInt=null}}
-    function playBeep(){try{const ac=new(window.AudioContext||window.webkitAudioContext)(),o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.setValueAtTime(880,ac.currentTime);o.frequency.setValueAtTime(660,ac.currentTime+.1);o.type='square';g.gain.setValueAtTime(.15,ac.currentTime);g.gain.exponentialRampToValueAtTime(.01,ac.currentTime+.4);o.start(ac.currentTime);o.stop(ac.currentTime+.4)}catch(e){}}
+    
+    function toggleSound(){snd=!snd;const btn=document.getElementById('sndBtn');if(snd){btn.textContent='🔊';btn.classList.remove('muted');if(newIds.size>0)startAlertInterval();toast('🔊 Som ativado')}else{btn.textContent='🔇';btn.classList.add('muted');stopAlertInterval();toast('🔇 Som desativado')}}
+    
+    function playAlertSound(){if(!snd)return;try{const ctx=new(window.AudioContext||window.webkitAudioContext)();const o1=ctx.createOscillator(),g1=ctx.createGain();o1.connect(g1);g1.connect(ctx.destination);o1.type='square';o1.frequency.setValueAtTime(1000,ctx.currentTime);o1.frequency.setValueAtTime(1200,ctx.currentTime+.08);o1.frequency.setValueAtTime(1000,ctx.currentTime+.16);g1.gain.setValueAtTime(.25,ctx.currentTime);g1.gain.exponentialRampToValueAtTime(.01,ctx.currentTime+.25);o1.start(ctx.currentTime);o1.stop(ctx.currentTime+.25);setTimeout(()=>{try{const ctx2=new(window.AudioContext||window.webkitAudioContext)();const o2=ctx2.createOscillator(),g2=ctx2.createGain();o2.connect(g2);g2.connect(ctx2.destination);o2.type='triangle';o2.frequency.setValueAtTime(500,ctx2.currentTime);g2.gain.setValueAtTime(.2,ctx2.currentTime);g2.gain.exponentialRampToValueAtTime(.01,ctx2.currentTime+.3);o2.start(ctx2.currentTime);o2.stop(ctx2.currentTime+.3)}catch(e){}},150)}catch(e){}}
+    
+    function startAlertInterval(){if(alertInt)return;if(!snd)return;playAlertSound();alertInt=setInterval(()=>{if(newIds.size===0){stopAlertInterval();return}playAlertSound()},2000)}
+    function stopAlertInterval(){if(alertInt){clearInterval(alertInt);alertInt=null}}
+    
     async function logout(){if(confirm('Deseja sair? A cozinha ficará OFFLINE.')){await setOnline(false);localStorage.removeItem('aquarius_kitchen_auth');window.close()}}
 
-    function initKitchen(){
-        if(!window.db){setTimeout(initKitchen,500);return}
-        if(firebaseReady)return;
-        firebaseReady=true;
-        if(unsubscribeOrders)unsubscribeOrders();
-        const oq=window.fsQ(window.fsColl(window.db,"pedidos_ativos"),window.fsOB("dataHora","desc"));
-        unsubscribeOrders=window.fsSnap(oq,(snap)=>{updatePollCounter();const oi=new Set(orders.map(o=>o.id));orders=[];snap.forEach(d=>orders.push({id:d.id,...d.data()}));const nw=orders.filter(o=>!oi.has(o.id)&&o.status==='pendente');nw.forEach(o=>{newIds.add(o.id)});updAlert();renderOrders();if(selId&&!orders.find(o=>o.id===selId)){selId=null;renderDetail()}else if(selId)renderDetail()},(err)=>{firebaseReady=false;setTimeout(initKitchen,3000)});
-        const statusRef=window.fsDoc(window.db,"status_cozinha","online");
-        window.fsSnap(statusRef,(snap)=>{updatePollCounter();if(snap.exists()){isOnline=snap.data().online!==false;updateOnlineUI()}});
-    }
+    function initKitchen(){if(!window.db){setTimeout(initKitchen,500);return}if(firebaseReady)return;firebaseReady=true;if(unsubscribeOrders)unsubscribeOrders();const oq=window.fsQ(window.fsColl(window.db,"pedidos_ativos"),window.fsOB("dataHora","desc"));unsubscribeOrders=window.fsSnap(oq,(snap)=>{updatePollCounter();const oi=new Set(orders.map(o=>o.id));orders=[];snap.forEach(d=>orders.push({id:d.id,...d.data()}));const nw=orders.filter(o=>!oi.has(o.id)&&o.status==='pendente');nw.forEach(o=>{newIds.add(o.id)});updAlert();renderOrders();if(selId&&!orders.find(o=>o.id===selId)){selId=null;renderDetail()}else if(selId)renderDetail()},(err)=>{firebaseReady=false;setTimeout(initKitchen,3000)});const statusRef=window.fsDoc(window.db,"status_cozinha","online");window.fsSnap(statusRef,(snap)=>{updatePollCounter();if(snap.exists()){isOnline=snap.data().online!==false;updateOnlineUI()}})}
 
-    function updAlert(){for(let id of newIds){if(!orders.find(o=>o.id===id&&o.status==='pendente'))newIds.delete(id)}const b=document.getElementById('alertBadge'),c=document.getElementById('newCount'),dot=document.getElementById('pendingDot');c.textContent=newIds.size;if(dot)dot.classList.toggle('show',newIds.size>0);if(newIds.size>0&&isOnline){b.classList.add('show');if(snd&&!alertInt){playBeep();alertInt=setInterval(playBeep,3000)}}else{b.classList.remove('show');if(alertInt){clearInterval(alertInt);alertInt=null}}}
+    function updAlert(){for(let id of newIds){if(!orders.find(o=>o.id===id&&o.status==='pendente'))newIds.delete(id)}const b=document.getElementById('alertBadge'),c=document.getElementById('newCount'),dot=document.getElementById('pendingDot');c.textContent=newIds.size;if(dot)dot.classList.toggle('show',newIds.size>0);if(newIds.size>0&&isOnline){b.classList.add('show');startAlertInterval()}else{b.classList.remove('show');stopAlertInterval()}}
     function focusNew(){fil='pendente';updTabs();renderOrders()}
     function filter(s){fil=s;updTabs();renderOrders()}
     function updTabs(){['P','Pr','R'].forEach(s=>{const t=document.getElementById('tab'+s);if(t)t.classList.toggle('active',fil===(s==='P'?'pendente':s==='Pr'?'preparando':'pronto'))})}
@@ -156,10 +156,38 @@
         const th=steps.map((s,i)=>`<div class="ts${s.completed?' completed':''}${s.active?' active':''}"><div class="ti">${s.icon}</div><div class="tc"><div class="tla">${s.label}</div>${s.time?`<div class="tt">${s.time}</div>`:''}${s.elapsed?`<div class="tel">⏱️ ${s.elapsed}</div>`:''}</div>${i<steps.length-1?'<div class="tco"></div>':''}</div>`).join('');
         const ih=o.itens?o.itens.map(it=>`<div class="ir"><div><div class="ina">${it.qtd}x ${it.nome}</div>${it.obs?`<div class="ino">Obs: ${it.obs}</div>`:''}</div><span class="ipr">R$ ${((it.precoUn||0)*(it.qtd||0)).toFixed(2)}</span></div>`).join(''):'';
         const addonsHtml=o.adicionais&&o.adicionais.length>0?`<div class="addons-kitchen"><div class="addons-kitchen-title">🍟 Adicionais:</div>${o.adicionais.map(a=>`<div class="addons-kitchen-item"><span>• ${a.nome}</span><span>+R$ ${parseFloat(a.preco).toFixed(2)}</span></div>`).join('')}</div>`:'';
-        document.getElementById('detail').innerHTML=`<div class="dh"><div><div class="don">#${o.numeroPedido||o.id.substring(0,6)}</div><div style="font-size:10px;color:var(--tm);margin-top:3px;">⏱️ ${o.dataHora?Math.floor((Date.now()-new Date(o.dataHora))/60000)+'min':'?'}</div></div><span class="ds ${o.status}">${st[o.status]||o.status}</span></div><div class="tl">${th}</div><div class="dg"><div class="dc"><div class="dcl">Cliente</div><div class="dcv">${o.cliente}</div></div><div class="dc"><div class="dcl">Telefone</div><div class="dcv">${o.telefone||'N/A'}</div></div><div class="dc"><div class="dcl">Tipo</div><div class="dcv">${o.tipoEntrega==='entrega'?'🏍️ Delivery':'🏪 Retirada'}</div></div><div class="dc"><div class="dcl">Pagamento</div><div class="dcv">${o.formaPagamento||'N/A'}</div></div></div>${o.tipoEntrega==='entrega'?`<div class="dc" style="margin-bottom:10px;"><div class="dcl">Endereço</div><div class="dcv">${o.endereco||''}</div></div>`:''}${o.cupomCodigo?`<div style="background:rgba(34,197,94,.05);padding:8px 12px;border-radius:8px;margin-bottom:10px;font-size:11px;">🎫 Cupom: <strong>${o.cupomCodigo}</strong> - Desconto: R$ ${parseFloat(o.desconto||0).toFixed(2)}</div>`:''}<div class="il"><h4>📋 Itens do Pedido</h4>${ih}</div>${addonsHtml}<div class="tse"><div class="tro"><span>Subtotal</span><span>R$ ${parseFloat(o.subtotal||0).toFixed(2)}</span></div>${o.desconto>0?`<div class="tro"><span>Desconto</span><span style="color:#4ade80;">-R$ ${parseFloat(o.desconto).toFixed(2)}</span></div>`:''}${o.taxaEntrega>0?`<div class="tro"><span>Taxa</span><span>R$ ${parseFloat(o.taxaEntrega).toFixed(2)}</span></div>`:''}<div class="trf"><span>Total</span><span>R$ ${parseFloat(o.total||0).toFixed(2)}</span></div></div><div class="ac">${o.status==='pendente'?`<button class="ab ab-confirm" onclick="updStatus('${o.id}','confirmado')">✅ Confirmar</button>`:''}${o.status==='confirmado'?`<button class="ab ab-prepare" onclick="updStatus('${o.id}','preparando')">👨‍🍳 Iniciar Preparo</button>`:''}${o.status==='preparando'?`<button class="ab ab-ready" onclick="updStatus('${o.id}','pronto')">🎯 Marcar Pronto</button>`:''}${o.status==='pronto'?`<button class="ab ab-finish" onclick="updStatus('${o.id}','finalizado')">🎉 Finalizar</button>`:''}${o.telefone?`<button class="ab ab-wa" onclick="sendWA('${o.id}')">💬 WhatsApp</button>`:''}<button class="ab ab-cancel" onclick="cancelOrd('${o.id}')">❌ Cancelar</button></div>`}
+        document.getElementById('detail').innerHTML=`
+        <div class="dh"><div><div class="don">#${o.numeroPedido||o.id.substring(0,6)}</div><div style="font-size:10px;color:var(--tm);margin-top:3px;">⏱️ ${o.dataHora?Math.floor((Date.now()-new Date(o.dataHora))/60000)+'min':'?'}</div></div><span class="ds ${o.status}">${st[o.status]||o.status}</span></div>
+        <div class="tl">${th}</div>
+        <div class="dg">
+            <div class="dc"><div class="dcl">👤 Cliente</div><div class="dcv">${o.cliente||'-'}</div></div>
+            <div class="dc"><div class="dcl">📱 Telefone</div><div class="dcv">${o.telefone||'N/A'}</div></div>
+            <div class="dc"><div class="dcl">🚚 Tipo</div><div class="dcv">${o.tipoEntrega==='entrega'?'🏍️ Delivery':'🏪 Retirada'}</div></div>
+            <div class="dc"><div class="dcl">💳 Pagamento</div><div class="dcv">${o.formaPagamento||'N/A'}</div></div>
+        </div>
+        ${o.tipoEntrega==='entrega'?`<div class="dc" style="margin-bottom:12px;"><div class="dcl">📍 Endereço de Entrega</div><div class="dcv">${o.endereco||'Não informado'}</div></div>`:''}
+        ${o.cupomCodigo?`<div style="background:rgba(34,197,94,.05);padding:8px 12px;border-radius:8px;margin-bottom:12px;font-size:11px;">🎫 Cupom: <strong>${o.cupomCodigo}</strong> - Desconto: R$ ${parseFloat(o.desconto||0).toFixed(2)}</div>`:''}
+        ${o.troco?`<div style="background:rgba(245,158,11,.05);padding:8px 12px;border-radius:8px;margin-bottom:12px;font-size:11px;">💵 Troco para: <strong>R$ ${parseFloat(o.troco).toFixed(2)}</strong></div>`:''}
+        <div class="il"><h4>📋 Itens do Pedido</h4>${ih}</div>
+        ${addonsHtml}
+        <div class="tse">
+            <div class="tro"><span>Subtotal</span><span>R$ ${parseFloat(o.subtotal||0).toFixed(2)}</span></div>
+            ${o.desconto>0?`<div class="tro"><span>Desconto</span><span style="color:#4ade80;">-R$ ${parseFloat(o.desconto).toFixed(2)}</span></div>`:''}
+            <div class="tro"><span>Taxa de Entrega</span><span>R$ ${parseFloat(o.taxaEntrega||0).toFixed(2)}</span></div>
+            <div class="trf"><span>💰 Total</span><span>R$ ${parseFloat(o.total||0).toFixed(2)}</span></div>
+        </div>
+        <div class="ac">
+            ${o.status==='pendente'?`<button class="ab ab-confirm" onclick="updStatus('${o.id}','confirmado')">✅ Confirmar</button>`:''}
+            ${o.status==='confirmado'?`<button class="ab ab-prepare" onclick="updStatus('${o.id}','preparando')">👨‍🍳 Iniciar Preparo</button>`:''}
+            ${o.status==='preparando'?`<button class="ab ab-ready" onclick="updStatus('${o.id}','pronto')">🎯 Marcar Pronto</button>`:''}
+            ${o.status==='pronto'?`<button class="ab ab-finish" onclick="updStatus('${o.id}','finalizado')">🎉 Finalizar</button>`:''}
+            ${o.telefone?`<button class="ab ab-wa" onclick="sendWA('${o.id}')">💬 WhatsApp</button>`:''}
+            <button class="ab ab-cancel" onclick="cancelOrd('${o.id}')">❌ Cancelar</button>
+        </div>`;
+    }
 
     async function updStatus(oid,ns){try{const d={status:ns,ultimaAtualizacao:new Date().toISOString()};if(ns==='preparando')d.horaPreparo=new Date().toISOString();else if(ns==='pronto')d.horaPronto=new Date().toISOString();await window.fsUpd(window.fsDoc(window.db,"pedidos_ativos",oid),d);if(ns==='finalizado'){selId=null;renderDetail()}toast('✅ Status atualizado!')}catch(e){alert('Erro: '+e.message)}}
-    function sendWA(oid){const o=orders.find(x=>x.id===oid);if(!o||!o.telefone)return;const sm={pendente:'⏳ Em processamento',confirmado:'✅ Confirmado!',preparando:'👨‍🍳 Em preparo',pronto:'🎯 Pronto! '+(o.tipoEntrega==='entrega'?'Saindo para entrega':'Retire no balcão'),finalizado:'🎉 Finalizado'};let m='🍔 *AQUARIUS BURGUER*\n\nOlá *'+o.cliente+'*! 👋\n\nPedido *#'+(o.numeroPedido||o.id.substring(0,6))+'*\n'+(sm[o.status]||'')+'\n\n📋 *Itens:*\n';if(o.itens)o.itens.forEach(i=>m+='• '+i.qtd+'x '+i.nome+'\n');if(o.adicionais&&o.adicionais.length>0){m+='\n🍟 *Adicionais:*\n';o.adicionais.forEach(a=>m+='• '+a.nome+' +R$ '+parseFloat(a.preco).toFixed(2)+'\n')}m+='\n💰 Total: R$ '+parseFloat(o.total||0).toFixed(2)+'\n💳 '+(o.formaPagamento||'');window.open('https://wa.me/55'+o.telefone.replace(/\D/g,'')+'?text='+encodeURIComponent(m))}
+    function sendWA(oid){const o=orders.find(x=>x.id===oid);if(!o||!o.telefone)return;const sm={pendente:'⏳ Em processamento',confirmado:'✅ Confirmado!',preparando:'👨‍🍳 Em preparo',pronto:'🎯 Pronto! '+(o.tipoEntrega==='entrega'?'Saindo para entrega':'Retire no balcão'),finalizado:'🎉 Finalizado'};let m='🍔 *AQUARIUS BURGUER*\n\nOlá *'+o.cliente+'*! 👋\n\nPedido *#'+(o.numeroPedido||o.id.substring(0,6))+'*\n'+(sm[o.status]||'')+'\n\n📋 *Itens:*\n';if(o.itens)o.itens.forEach(i=>m+='• '+i.qtd+'x '+i.nome+'\n');if(o.adicionais&&o.adicionais.length>0){m+='\n🍟 *Adicionais:*\n';o.adicionais.forEach(a=>m+='• '+a.nome+' +R$ '+parseFloat(a.preco).toFixed(2)+'\n')}m+='\n💰 Total: R$ '+parseFloat(o.total||0).toFixed(2)+'\n💳 '+(o.formaPagamento||'');if(o.endereco)m+='\n📍 Entrega: '+o.endereco;window.open('https://wa.me/55'+o.telefone.replace(/\D/g,'')+'?text='+encodeURIComponent(m))}
     async function cancelOrd(oid){if(!confirm('Cancelar este pedido?'))return;try{await window.fsUpd(window.fsDoc(window.db,"pedidos_ativos",oid),{status:'cancelado',ultimaAtualizacao:new Date().toISOString()});newIds.delete(oid);updAlert();if(selId===oid){selId=null;renderDetail()}toast('❌ Cancelado!')}catch(e){alert('Erro: '+e.message)}}
 
     window.initKitchen=initKitchen;updateOnlineUI();
