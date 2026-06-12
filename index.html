@@ -7,7 +7,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Aquarius Burguer - Cardápio Digital</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <style>
         :root{--verde:#22c55e;--verde-dark:#16a34a;--bg-dark:#09090b;--card-bg:rgba(24,24,27,0.75);--border-glass:rgba(255,255,255,0.08);--text-muted:#a1a1aa;--danger:#ef4444;--warning:#f59e0b;--radius-xl:28px;--radius-md:14px}
         *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
@@ -21,11 +20,12 @@
         .kitchen-status-dot.offline{background:#ef4444}
         @keyframes statusPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.6)}}
         .hero{position:relative;padding:24px 20px;background:radial-gradient(circle at top right,rgba(22,163,74,0.2) 0%,rgba(15,23,42,0) 60%),#0d0d11;border-bottom:1px solid var(--border-glass);text-align:center}
-        .theme-toggle{position:absolute;top:15px;right:15px;background:rgba(255,255,255,0.1);border:1px solid var(--border-glass);border-radius:30px;padding:8px 14px;color:#fff;cursor:pointer;font-size:12px}
+        .theme-toggle{position:absolute;top:15px;right:15px;background:rgba(255,255,255,0.1);border:1px solid var(--border-glass);border-radius:30px;padding:8px 14px;color:#fff;cursor:pointer;font-size:12px;z-index:10}
         .logo{width:70px;height:70px;border-radius:24px;background:#fff;padding:6px;box-shadow:0 20px 40px rgba(0,0,0,0.5);object-fit:contain;margin-bottom:8px}
         .brand h1{font-size:26px;font-weight:900;background:linear-gradient(135deg,#fff 60%,var(--verde));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
         .brand p{margin-top:4px;font-size:12px;color:var(--text-muted)}
         .controls-container{max-width:1100px;margin:16px auto 0;padding:0 16px}
+        .search-box{position:relative}
         .search-box input{width:100%;padding:12px 16px;padding-right:40px;border:1px solid var(--border-glass);border-radius:16px;background:rgba(255,255,255,0.04);color:#fff;font-size:14px;outline:none}
         .search-box input:focus{border-color:var(--verde)}
         .search-clear{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px}
@@ -51,6 +51,7 @@
         .add-btn:hover{transform:scale(1.05)}.add-btn:disabled{opacity:.5;cursor:not-allowed}
         .cart-float{position:fixed;right:14px;bottom:14px;background:linear-gradient(135deg,var(--verde-dark),var(--verde));padding:12px 20px;border-radius:40px;font-weight:900;cursor:pointer;z-index:9999;box-shadow:0 20px 40px rgba(34,197,94,0.3);display:flex;align-items:center;gap:8px;font-size:12px}
         .floating-count{background:#ef4444;padding:2px 7px;border-radius:20px;font-size:10px;animation:pulse 2s infinite}
+        @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
         .sidebar-panel{position:fixed;top:0;right:-100%;width:min(400px,100vw);height:100vh;height:100dvh;background:#0e0e11;border-left:1px solid var(--border-glass);z-index:10000;padding:18px;overflow-y:auto;transition:right .4s}
         .sidebar-panel.open{right:0}
         .panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-glass)}
@@ -75,9 +76,12 @@
         .addon-chip .addon-price{font-size:9px;opacity:.7}
         .selected-addons{margin-top:4px;font-size:9px;color:var(--text-muted)}
         .selected-addons span{background:rgba(34,197,94,0.1);padding:1px 6px;border-radius:6px;margin:1px;display:inline-block;font-size:8px;cursor:pointer}
-        .frete-info{background:rgba(34,197,94,0.05);border:1px solid rgba(34,197,94,0.15);border-radius:10px;padding:8px 12px;margin:8px 0;font-size:10px;color:var(--verde);text-align:center;display:none}
+        
+        .frete-info{background:linear-gradient(135deg,rgba(34,197,94,0.15),rgba(34,197,94,0.05));border:2px solid rgba(34,197,94,0.3);border-radius:12px;padding:10px 14px;margin:10px 0;font-size:12px;color:#22c55e;text-align:center;display:none;font-weight:700;animation:fretePulse 2s infinite}
         .frete-info.show{display:block}
-        .toast{position:fixed;bottom:80px;right:14px;background:var(--verde);padding:10px 18px;border-radius:10px;font-weight:800;font-size:11px;display:none;z-index:10001}
+        @keyframes fretePulse{0%,100%{box-shadow:0 0 10px rgba(34,197,94,0.2)}50%{box-shadow:0 0 20px rgba(34,197,94,0.4)}}
+        
+        .toast{position:fixed;bottom:100px;right:14px;background:var(--verde);padding:10px 18px;border-radius:10px;font-weight:800;font-size:11px;display:none;z-index:50000}
         .toast.error{background:#ef4444}
         .upsell-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:35000;justify-content:center;align-items:center;padding:20px}
         .upsell-modal.show{display:flex}
@@ -89,13 +93,33 @@
         .upsell-buttons{display:flex;gap:6px}
         .upsell-btn{flex:1;padding:11px;border:none;border-radius:var(--radius-md);font-weight:800;font-size:13px;cursor:pointer}
         .upsell-btn-yes{background:var(--verde);color:#fff}.upsell-btn-no{background:rgba(255,255,255,0.1);color:var(--text-muted);border:1px solid var(--border-glass)}
-        .confirm-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:30000;justify-content:center;align-items:center;padding:20px}
-        .confirm-modal.show{display:flex}
-        .confirm-content{background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid var(--verde);border-radius:var(--radius-xl);padding:30px 24px;text-align:center;max-width:380px;width:100%}
-        .confirm-icon{font-size:50px;margin-bottom:12px}.confirm-title{font-size:20px;font-weight:900;margin-bottom:6px}
-        .confirm-number{font-size:34px;font-weight:900;color:var(--verde);margin-bottom:14px}
-        .confirm-btn{width:100%;padding:12px;background:linear-gradient(135deg,var(--verde-dark),var(--verde));color:#fff;border:none;border-radius:var(--radius-md);font-size:13px;font-weight:800;cursor:pointer}
-        .qr-code-container{margin:14px auto;padding:12px;background:#fff;border-radius:8px;display:inline-block}
+        
+        /* MODAL DE CONFIRMAÇÃO */
+        .confirm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:99999;justify-content:center;align-items:center;padding:20px;backdrop-filter:blur(10px)}
+        .confirm-overlay.show{display:flex!important}
+        .confirm-modal{background:linear-gradient(135deg,#0f0f1a,#1a1a2e);border:2px solid var(--verde);border-radius:var(--radius-xl);padding:30px 24px;text-align:center;max-width:420px;width:100%;animation:modalIn 0.4s ease-out;box-shadow:0 0 60px rgba(34,197,94,0.3)}
+        @keyframes modalIn{from{transform:scale(0.8);opacity:0}to{transform:scale(1);opacity:1}}
+        .confirm-icon{font-size:60px;margin-bottom:12px;animation:bounceIn 0.6s ease-out}
+        @keyframes bounceIn{0%{transform:scale(0)}50%{transform:scale(1.2)}100%{transform:scale(1)}}
+        .confirm-title{font-size:22px;font-weight:900;margin-bottom:6px;color:#fff}
+        .confirm-subtitle{color:var(--text-muted);font-size:12px;margin-bottom:15px}
+        .confirm-number{font-size:40px;font-weight:900;color:var(--verde);margin-bottom:10px;text-shadow:0 0 20px rgba(34,197,94,0.5)}
+        
+        .delivery-estimate{background:linear-gradient(135deg,rgba(34,197,94,0.1),rgba(34,197,94,0.05));border:2px solid rgba(34,197,94,0.3);border-radius:16px;padding:15px;margin:15px 0;animation:pulseEstimate 2s infinite}
+        @keyframes pulseEstimate{0%,100%{box-shadow:0 0 15px rgba(34,197,94,0.1)}50%{box-shadow:0 0 30px rgba(34,197,94,0.3)}}
+        .delivery-estimate-icon{font-size:30px;margin-bottom:8px}
+        .delivery-estimate-text{font-size:14px;font-weight:700;color:#22c55e;margin-bottom:4px}
+        .delivery-estimate-time{font-size:24px;font-weight:900;color:#fff;margin:5px 0}
+        .delivery-estimate-note{font-size:10px;color:var(--text-muted)}
+        
+        .confirm-details{background:rgba(255,255,255,0.03);border:1px solid var(--border-glass);border-radius:12px;padding:12px;margin:15px 0;text-align:left;font-size:11px}
+        .confirm-detail-row{display:flex;justify-content:space-between;padding:4px 0;color:var(--text-muted)}
+        .confirm-detail-row span:last-child{color:#fff;font-weight:600}
+        
+        .confirm-actions{display:flex;flex-direction:column;gap:8px;margin-top:15px}
+        .btn-close{width:100%;padding:12px;background:rgba(255,255,255,0.05);color:var(--text-muted);border:1px solid var(--border-glass);border-radius:var(--radius-md);font-size:12px;font-weight:600;cursor:pointer}
+        .btn-close:hover{background:rgba(255,255,255,0.1)}
+        
         .footer-links{text-align:center;margin-top:40px;padding:16px;display:flex;justify-content:center;gap:20px;flex-wrap:wrap}
         .footer-link{opacity:.3;font-size:11px;cursor:pointer;transition:.3s}.footer-link:hover{opacity:.8}
     </style>
@@ -104,33 +128,64 @@
 
 <header class="hero">
     <div class="kitchen-status-bar">
-        <div class="kitchen-status-badge online" id="kitchenStatusBadge"><span class="kitchen-status-dot online" id="kitchenStatusDot"></span><span id="kitchenStatusLabel">Cozinha Online</span></div>
+        <div class="kitchen-status-badge online" id="kitchenStatusBadge">
+            <span class="kitchen-status-dot online" id="kitchenStatusDot"></span>
+            <span id="kitchenStatusLabel">Cozinha Online</span>
+        </div>
     </div>
     <button class="theme-toggle" onclick="toggleTheme()">🌓</button>
     <img src="1000001934.jpg" class="logo" alt="Logo" loading="lazy">
     <div class="brand"><h1>Aquarius Burguer</h1><p>Gourmet Burger • Fast Delivery 🍔</p></div>
     <div class="controls-container">
-        <div class="search-box"><input type="text" placeholder="Buscar item no cardápio..." id="searchInput" oninput="renderMenu()" autocomplete="off"><button class="search-clear" onclick="document.getElementById('searchInput').value='';renderMenu();">✕</button></div>
+        <div class="search-box">
+            <input type="text" placeholder="Buscar item no cardápio..." id="searchInput" oninput="renderMenu()" autocomplete="off">
+            <button class="search-clear" onclick="document.getElementById('searchInput').value='';renderMenu();">✕</button>
+        </div>
         <div class="nav-categories" id="navCategories"></div>
     </div>
 </header>
 
 <div class="container"><div class="products-grid" id="productsGrid"></div></div>
 
+<!-- Modal de Upsell -->
 <div class="upsell-modal" id="upsellModal">
     <div class="upsell-content">
-        <div class="upsell-icon">🍟</div><div class="upsell-title">Que tal adicionar?</div>
-        <div class="upsell-product"><img class="upsell-product-img" id="upsellImg" src="" alt=""><div class="upsell-product-info"><div class="upsell-product-name" id="upsellName"></div><div class="upsell-product-price" id="upsellPrice"></div></div></div>
-        <div class="upsell-buttons"><button class="upsell-btn upsell-btn-yes" onclick="acceptUpsell()">✅ Sim!</button><button class="upsell-btn upsell-btn-no" onclick="declineUpsell()">❌ Não</button></div>
+        <div class="upsell-icon">🍟</div>
+        <div class="upsell-title">Que tal adicionar?</div>
+        <div class="upsell-product">
+            <img class="upsell-product-img" id="upsellImg" src="" alt="">
+            <div class="upsell-product-info">
+                <div class="upsell-product-name" id="upsellName"></div>
+                <div class="upsell-product-price" id="upsellPrice"></div>
+            </div>
+        </div>
+        <div class="upsell-buttons">
+            <button class="upsell-btn upsell-btn-yes" onclick="acceptUpsell()">✅ Sim!</button>
+            <button class="upsell-btn upsell-btn-no" onclick="declineUpsell()">❌ Não</button>
+        </div>
     </div>
 </div>
 
-<div class="confirm-modal" id="confirmModal">
-    <div class="confirm-content">
-        <div class="confirm-icon">🍔</div><div class="confirm-title">Pedido Enviado!</div>
+<!-- MODAL DE CONFIRMAÇÃO SEM BOTÕES EXTRAS -->
+<div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-modal">
+        <div class="confirm-icon">🎉</div>
+        <div class="confirm-title">Pedido Enviado para Cozinha!</div>
+        <div class="confirm-subtitle">Seu pedido foi recebido e está sendo preparado</div>
         <div class="confirm-number" id="confirmNumber">#0000</div>
-        <div class="qr-code-container" id="qrCodeContainer"></div>
-        <button class="confirm-btn" onclick="closeConfirm()">✓ Voltar ao Cardápio</button>
+        
+        <div class="delivery-estimate">
+            <div class="delivery-estimate-icon">🕐</div>
+            <div class="delivery-estimate-text">Previsão de Entrega</div>
+            <div class="delivery-estimate-time">40 a 60 minutos</div>
+            <div class="delivery-estimate-note">ⓘ Tempo estimado a partir da confirmação do pedido</div>
+        </div>
+        
+        <div class="confirm-details" id="confirmDetails"></div>
+        
+        <div class="confirm-actions">
+            <button class="btn-close" onclick="closeConfirm()">✕ Fechar</button>
+        </div>
     </div>
 </div>
 
@@ -138,25 +193,65 @@
 <div class="cart-float" onclick="toggleCart()">🛒 Carrinho <span class="floating-count" id="cartCount">0</span></div>
 
 <div class="sidebar-panel" id="cartPanel">
-    <div class="panel-header"><h2>Seu Pedido</h2><button class="panel-close" onclick="toggleCart()">✕</button></div>
+    <div class="panel-header">
+        <h2>Seu Pedido</h2>
+        <button class="panel-close" onclick="toggleCart()">✕</button>
+    </div>
     <div id="cartItems"></div>
-    <div class="coupon-box"><div style="font-size:11px;font-weight:700;margin-bottom:5px;">🎫 Cupom</div><div class="coupon-input-group"><input type="text" id="couponInput" placeholder="Código"><button onclick="applyCoupon()">Aplicar</button></div><div id="couponMsg" style="font-size:10px;margin-top:4px;font-weight:700;color:var(--verde);"></div></div>
+    <div class="coupon-box">
+        <div style="font-size:11px;font-weight:700;margin-bottom:5px;">🎫 Cupom</div>
+        <div class="coupon-input-group">
+            <input type="text" id="couponInput" placeholder="Código">
+            <button onclick="applyCoupon()">Aplicar</button>
+        </div>
+        <div id="couponMsg" style="font-size:10px;margin-top:4px;font-weight:700;color:var(--verde);"></div>
+    </div>
     <div class="cart-offline-alert" id="cartOfflineAlert">🔴 Cozinha offline. Pedidos pausados.</div>
-    <div class="addons-section" id="addonsSection" style="display:none;"><div class="addons-title">🍟 Adicionais</div><div class="addons-list" id="addonsList"></div><div class="selected-addons" id="selectedAddons"></div></div>
+    <div class="addons-section" id="addonsSection" style="display:none;">
+        <div class="addons-title">🍟 Adicionais</div>
+        <div class="addons-list" id="addonsList"></div>
+        <div class="selected-addons" id="selectedAddons"></div>
+    </div>
     
-    <!-- Alerta de frete grátis -->
-    <div class="frete-info" id="freteInfo">🎉 Frete Grátis! Bairro Fraron tem entrega gratuita.</div>
+    <div class="frete-info" id="freteInfo">
+        🚀 <strong>FRETE GRÁTIS!</strong> Bairro Fraron tem entrega gratuita.
+    </div>
     
-    <div style="display:flex;justify-content:space-between;margin-top:12px;color:var(--text-muted);font-size:11px;"><span>Subtotal</span><span>R$ <span id="subtotal">0.00</span></span></div>
-    <div style="display:flex;justify-content:space-between;margin-top:3px;color:var(--text-muted);font-size:11px;"><span>Desconto</span><span style="color:#4ade80;">-R$ <span id="desconto">0.00</span></span></div>
-    <div style="display:flex;justify-content:space-between;margin-top:3px;color:var(--text-muted);font-size:11px;padding-bottom:6px;border-bottom:1px solid var(--border-glass);"><span>Taxa de Entrega</span><span id="taxaLabel">R$ <span id="taxa">0.00</span></span></div>
-    <div id="addonsTotalRow" style="display:none;justify-content:space-between;margin-top:3px;color:#4ade80;font-size:11px;"><span>Adicionais</span><span>+R$ <span id="addonsTotal">0.00</span></span></div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin:10px 0;"><span style="font-size:14px;font-weight:800;">Total:</span><span style="font-size:22px;font-weight:900;color:#4ade80;" id="total">R$ 0.00</span></div>
+    <div style="display:flex;justify-content:space-between;margin-top:12px;color:var(--text-muted);font-size:11px;">
+        <span>Subtotal</span>
+        <span>R$ <span id="subtotal">0.00</span></span>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:3px;color:var(--text-muted);font-size:11px;">
+        <span>Desconto</span>
+        <span style="color:#4ade80;">-R$ <span id="desconto">0.00</span></span>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:3px;color:var(--text-muted);font-size:11px;padding-bottom:6px;border-bottom:1px solid var(--border-glass);">
+        <span>Taxa de Entrega</span>
+        <span id="taxaContainer">
+            <span id="taxaOriginal" style="text-decoration:line-through;color:#666;display:none;">R$ 10.00</span>
+            <span id="taxaLabel">R$ <span id="taxa">0.00</span></span>
+        </span>
+    </div>
+    <div id="addonsTotalRow" style="display:none;justify-content:space-between;margin-top:3px;color:#4ade80;font-size:11px;">
+        <span>Adicionais</span>
+        <span>+R$ <span id="addonsTotal">0.00</span></span>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:10px 0;">
+        <span style="font-size:14px;font-weight:800;">Total:</span>
+        <span style="font-size:22px;font-weight:900;color:#4ade80;" id="total">R$ 0.00</span>
+    </div>
     <input id="nome" placeholder="Seu nome completo" autocomplete="name">
     <input id="telefone" placeholder="WhatsApp (Ex: 46999924129)" type="tel" autocomplete="tel">
-    <select id="tipoEntrega" onchange="updateCart()"><option value="retirada">Retirar no Balcão</option><option value="entrega">Delivery (Entrega em Casa)</option></select>
+    <select id="tipoEntrega" onchange="updateCart()">
+        <option value="retirada">Retirar no Balcão</option>
+        <option value="entrega">Delivery (Entrega em Casa)</option>
+    </select>
     <input id="endereco" placeholder="Endereço Completo (Rua, Número, Bairro)" oninput="updateCart()" style="display:none">
-    <select id="pagamento" onchange="toggleTroco()"><option value="Pix">Pix</option><option value="Cartão">Cartão</option><option value="Dinheiro">Dinheiro</option></select>
+    <select id="pagamento" onchange="toggleTroco()">
+        <option value="Pix">Pix</option>
+        <option value="Cartão">Cartão</option>
+        <option value="Dinheiro">Dinheiro</option>
+    </select>
     <input id="troco" placeholder="Troco para quanto?" style="display:none">
     <button class="add-btn" id="btnFinalizar" style="width:100%;margin-top:12px;padding:12px;font-size:13px;" onclick="startCheckout()">Finalizar Pedido 🚀</button>
 </div>
@@ -170,143 +265,368 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    const fc={apiKey:"AIzaSyABe9h5dM1FHrsYOI9vPiEvHsozqb-9PYI",authDomain:"aquarius-burguer.firebaseapp.com",projectId:"aquarius-burguer",storageBucket:"aquarius-burguer.firebasestorage.app",messagingSenderId:"1014795439621",appId:"1:1014795439621:web:1aef68c277c1e2f8aa966c"};
-    const app=initializeApp(fc);const db=getFirestore(app);
-    window.db=db;window.fsCollection=collection;window.fsAdd=addDoc;window.fsGet=getDocs;window.fsSnapshot=onSnapshot;window.fsDoc=doc;
+    
+    const fc = {
+        apiKey: "AIzaSyABe9h5dM1FHrsYOI9vPiEvHsozqb-9PYI",
+        authDomain: "aquarius-burguer.firebaseapp.com",
+        projectId: "aquarius-burguer",
+        storageBucket: "aquarius-burguer.firebasestorage.app",
+        messagingSenderId: "1014795439621",
+        appId: "1:1014795439621:web:1aef68c277c1e2f8aa966c"
+    };
+    
+    const app = initializeApp(fc);
+    const db = getFirestore(app);
+    
+    window.db = db;
+    window.fsCollection = collection;
+    window.fsAdd = addDoc;
+    window.fsGet = getDocs;
+    window.fsSnapshot = onSnapshot;
+    window.fsDoc = doc;
+    console.log('Firebase OK');
 </script>
 
 <script>
-    let cart=[],products=[],categories=[],currentCat='',couponActive=null,cozinhaOnline=true,lastOrderNumber=0;
-    const DELIVERY_FEE=10;
-    const coupons={'BEMVINDO10':{type:'percent',value:10,desc:'10% OFF'},'FRETE50':{type:'fixed',value:5,desc:'R$ 5 OFF'},'AQUARIUS15':{type:'percent',value:15,desc:'15% OFF'}};
-    let adicionaisDisponiveis=[],adicionaisSelecionados=[],kitchenStatusUnsubscribe=null;
-    let upsellProduct=null,pendingOrderData=null,upsellOffered=false;
+    let cart = [],
+        products = [],
+        categories = [],
+        currentCat = '',
+        couponActive = null,
+        cozinhaOnline = true,
+        pedidoAtualNumero = 0,
+        pedidoAtualDados = null;
 
-    // ==================== VERIFICAR BAIRRO FRARON ====================
-    function isBairroFraron(endereco){
-        if(!endereco)return false;
-        const endLower=endereco.toLowerCase();
-        // Verifica se contém "fraron" no endereço
-        return endLower.includes('fraron');
+    const DELIVERY_FEE = 10;
+    const coupons = {
+        'BEMVINDO10': { type: 'percent', value: 10, desc: '10% OFF' },
+        'FRETE50': { type: 'fixed', value: 5, desc: 'R$ 5 OFF' },
+        'AQUARIUS15': { type: 'percent', value: 15, desc: '15% OFF' }
+    };
+    
+    let adicionaisDisponiveis = [],
+        adicionaisSelecionados = [],
+        kitchenStatusUnsubscribe = null;
+    let upsellProduct = null,
+        pendingOrderData = null,
+        upsellOffered = false;
+
+    function isBairroFraron(endereco) {
+        if (!endereco) return false;
+        const endLower = endereco.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        return endLower.includes('fraron') || endLower.includes('frarom') || endLower.includes('frarão');
     }
 
-    function updateCozinhaStatus(online){cozinhaOnline=online;document.getElementById('kitchenStatusBadge').className='kitchen-status-badge '+(online?'online':'offline');document.getElementById('kitchenStatusDot').className='kitchen-status-dot '+(online?'online':'offline');document.getElementById('kitchenStatusLabel').textContent=online?'Cozinha Online':'Cozinha Offline';document.getElementById('cartOfflineAlert').classList.toggle('show',!online);const btn=document.getElementById('btnFinalizar');btn.disabled=!online;btn.textContent=online?'Finalizar Pedido 🚀':'🔴 Cozinha Offline';btn.style.opacity=online?'1':'0.5';updateCart()}
-    function showToast(m,t){const el=document.getElementById('toast');el.textContent=m;el.className='toast'+(t?' '+t:'');el.style.display='block';setTimeout(()=>el.style.display='none',2000)}
-    function toggleCart(){document.getElementById('cartPanel').classList.toggle('open');if(document.getElementById('cartPanel').classList.contains('open'))renderAddons()}
-    function toggleTheme(){const ct=document.documentElement.getAttribute('data-theme'),nt=ct==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',nt);localStorage.setItem('aquarius_theme',nt)}
-    const savedTheme=localStorage.getItem('aquarius_theme');if(savedTheme)document.documentElement.setAttribute('data-theme',savedTheme);
-    function addItem(n,p){const it=cart.find(i=>i.name===n);it?it.qty++:cart.push({name:n,price:p,qty:1,obs:''});updateCart();showToast(n+' adicionado!')}
-    function changeQty(i,a){cart[i].qty+=a;if(cart[i].qty<=0)cart.splice(i,1);updateCart()}
-    function updateObs(i,v){cart[i].obs=v}
-    function toggleTroco(){document.getElementById('troco').style.display=document.getElementById('pagamento').value==='Dinheiro'?'block':'none'}
-    function applyCoupon(){const c=document.getElementById('couponInput').value.toUpperCase().trim(),m=document.getElementById('couponMsg');if(!c){m.textContent='Digite um código';m.style.color='#f59e0b';return}const cp=coupons[c];if(!cp){m.textContent='❌ Inválido!';m.style.color='#ef4444';couponActive=null;updateCart();return}couponActive=cp;m.textContent='✅ '+cp.desc;m.style.color='#22c55e';showToast('🎫 Cupom aplicado!');updateCart()}
-    
-    function renderAddons(){
-        const section=document.getElementById('addonsSection'),list=document.getElementById('addonsList'),selected=document.getElementById('selectedAddons');
-        if(cart.length===0||adicionaisDisponiveis.length===0){section.style.display='none';return}
-        const cats=[...new Set(cart.map(item=>{const p=products.find(pp=>pp.nome===item.name);return p?p.categoria:null}).filter(Boolean))];
-        const nomesNoCarrinho=cart.map(item=>item.name.toLowerCase());
-        const filtrados=adicionaisDisponiveis.filter(add=>{return (add.categoria==='todas'||cats.includes(add.categoria))&&!nomesNoCarrinho.includes(add.nome.toLowerCase())});
-        if(filtrados.length===0){section.style.display='none';return}
-        section.style.display='block';
-        list.innerHTML=filtrados.map(add=>`<div class="addon-chip ${adicionaisSelecionados.find(a=>a.id===add.id)?'selected':''}" onclick="toggleAddon('${add.id}','${add.nome}',${add.preco})"><span class="check-icon">✓</span>${add.nome}<span class="addon-price">+R$ ${parseFloat(add.preco).toFixed(2)}</span></div>`).join('');
-        if(adicionaisSelecionados.length>0){selected.innerHTML='<strong>Selecionados:</strong> '+adicionaisSelecionados.map(a=>`<span onclick="removeAddon('${a.id}')">${a.nome} +R$ ${parseFloat(a.preco).toFixed(2)} ✕</span>`).join('')}else{selected.innerHTML=''}
+    function updateCozinhaStatus(online) {
+        cozinhaOnline = online;
+        document.getElementById('kitchenStatusBadge').className = 'kitchen-status-badge ' + (online ? 'online' : 'offline');
+        document.getElementById('kitchenStatusDot').className = 'kitchen-status-dot ' + (online ? 'online' : 'offline');
+        document.getElementById('kitchenStatusLabel').textContent = online ? 'Cozinha Online' : 'Cozinha Offline';
+        document.getElementById('cartOfflineAlert').classList.toggle('show', !online);
+        const btn = document.getElementById('btnFinalizar');
+        btn.disabled = !online;
+        btn.textContent = online ? 'Finalizar Pedido 🚀' : '🔴 Cozinha Offline';
+        btn.style.opacity = online ? '1' : '0.5';
+        updateCart();
     }
-    function toggleAddon(id,nome,preco){const i=adicionaisSelecionados.findIndex(a=>a.id===id);i>-1?adicionaisSelecionados.splice(i,1):adicionaisSelecionados.push({id,nome,preco});renderAddons();updateCart()}
-    function removeAddon(id){adicionaisSelecionados=adicionaisSelecionados.filter(a=>a.id!==id);renderAddons();updateCart()}
-    
-    function updateCart(){
-        let h='',s=0,ct=0;cart.forEach((it,i)=>{const sb=it.price*it.qty;s+=sb;ct+=it.qty;h+=`<div class="cart-item"><div style="display:flex;justify-content:space-between;font-weight:700;font-size:12px"><span>${it.name}</span><span>R$ ${sb.toFixed(2)}</span></div><div class="qty-controls"><button class="qty-btn" onclick="changeQty(${i},-1)">-</button><span>${it.qty}</span><button class="qty-btn" onclick="changeQty(${i},1)">+</button><button class="remove-btn" onclick="changeQty(${i},-${it.qty})">Remover</button></div><textarea placeholder="Observações..." oninput="updateObs(${i},this.value)" style="width:100%;padding:6px;border-radius:6px;background:#1c1c1f;color:#fff;border:1px solid var(--border-glass);font-size:10px;resize:vertical;min-height:28px;">${it.obs}</textarea></div>`});
-        const tp=document.getElementById('tipoEntrega').value;
-        const endereco=document.getElementById('endereco').value.trim();
-        
-        // Verificar se é bairro Fraron para frete grátis
-        let tx=0;
-        const freteInfo=document.getElementById('freteInfo');
-        const taxaLabel=document.getElementById('taxaLabel');
-        
-        if(tp==='entrega'){
-            if(isBairroFraron(endereco)){
-                tx=0; // FRETE GRÁTIS
-                freteInfo.classList.add('show');
-                taxaLabel.innerHTML='<span style="text-decoration:line-through;color:#666;">R$ 10.00</span> <span style="color:#22c55e;">Grátis (Fraron)</span>';
-            }else{
-                tx=DELIVERY_FEE;
-                freteInfo.classList.remove('show');
-                taxaLabel.innerHTML='R$ <span id="taxa">'+tx.toFixed(2)+'</span>';
-            }
-        }else{
-            tx=0;
-            freteInfo.classList.remove('show');
-            taxaLabel.innerHTML='R$ <span id="taxa">0.00</span>';
+
+    function showToast(m, t) {
+        const el = document.getElementById('toast');
+        el.textContent = m;
+        el.className = 'toast' + (t ? ' ' + t : '');
+        el.style.display = 'block';
+        setTimeout(() => el.style.display = 'none', 2000);
+    }
+
+    function toggleCart() {
+        document.getElementById('cartPanel').classList.toggle('open');
+        if (document.getElementById('cartPanel').classList.contains('open')) renderAddons();
+    }
+
+    function closeCart() {
+        document.getElementById('cartPanel').classList.remove('open');
+    }
+
+    function toggleTheme() {
+        const ct = document.documentElement.getAttribute('data-theme'),
+            nt = ct === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', nt);
+        localStorage.setItem('aquarius_theme', nt);
+    }
+
+    const savedTheme = localStorage.getItem('aquarius_theme');
+    if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
+
+    function addItem(n, p) {
+        const it = cart.find(i => i.name === n);
+        it ? it.qty++ : cart.push({ name: n, price: p, qty: 1, obs: '' });
+        updateCart();
+        showToast(n + ' adicionado!');
+    }
+
+    function changeQty(i, a) {
+        cart[i].qty += a;
+        if (cart[i].qty <= 0) cart.splice(i, 1);
+        updateCart();
+    }
+
+    function updateObs(i, v) { cart[i].obs = v; }
+
+    function toggleTroco() {
+        document.getElementById('troco').style.display = document.getElementById('pagamento').value === 'Dinheiro' ? 'block' : 'none';
+    }
+
+    function applyCoupon() {
+        const c = document.getElementById('couponInput').value.toUpperCase().trim(),
+            m = document.getElementById('couponMsg');
+        if (!c) { m.textContent = 'Digite um código'; m.style.color = '#f59e0b'; return; }
+        const cp = coupons[c];
+        if (!cp) { m.textContent = '❌ Inválido!'; m.style.color = '#ef4444'; couponActive = null; updateCart(); return; }
+        couponActive = cp;
+        m.textContent = '✅ ' + cp.desc;
+        m.style.color = '#22c55e';
+        showToast('🎫 Cupom aplicado!');
+        updateCart();
+    }
+
+    function renderAddons() {
+        const section = document.getElementById('addonsSection'),
+            list = document.getElementById('addonsList'),
+            selected = document.getElementById('selectedAddons');
+        if (cart.length === 0 || adicionaisDisponiveis.length === 0) { section.style.display = 'none'; return; }
+        const cats = [...new Set(cart.map(item => { const p = products.find(pp => pp.nome === item.name); return p ? p.categoria : null; }).filter(Boolean))];
+        const nomesNoCarrinho = cart.map(item => item.name.toLowerCase());
+        const filtrados = adicionaisDisponiveis.filter(add => { return (add.categoria === 'todas' || cats.includes(add.categoria)) && !nomesNoCarrinho.includes(add.nome.toLowerCase()); });
+        if (filtrados.length === 0) { section.style.display = 'none'; return; }
+        section.style.display = 'block';
+        list.innerHTML = filtrados.map(add => `<div class="addon-chip ${adicionaisSelecionados.find(a => a.id === add.id) ? 'selected' : ''}" onclick="toggleAddon('${add.id}','${add.nome}',${add.preco})"><span class="check-icon">✓</span>${add.nome}<span class="addon-price">+R$ ${parseFloat(add.preco).toFixed(2)}</span></div>`).join('');
+        if (adicionaisSelecionados.length > 0) {
+            selected.innerHTML = '<strong>Selecionados:</strong> ' + adicionaisSelecionados.map(a => `<span onclick="removeAddon('${a.id}')">${a.nome} +R$ ${parseFloat(a.preco).toFixed(2)} ✕</span>`).join('');
+        } else {
+            selected.innerHTML = '';
         }
+    }
+
+    function toggleAddon(id, nome, preco) {
+        const i = adicionaisSelecionados.findIndex(a => a.id === id);
+        i > -1 ? adicionaisSelecionados.splice(i, 1) : adicionaisSelecionados.push({ id, nome, preco });
+        renderAddons();
+        updateCart();
+    }
+
+    function removeAddon(id) {
+        adicionaisSelecionados = adicionaisSelecionados.filter(a => a.id !== id);
+        renderAddons();
+        updateCart();
+    }
+
+    function updateCart() {
+        let h = '', s = 0, ct = 0;
+        cart.forEach((it, i) => {
+            const sb = it.price * it.qty; s += sb; ct += it.qty;
+            h += `<div class="cart-item"><div style="display:flex;justify-content:space-between;font-weight:700;font-size:12px"><span>${it.name}</span><span>R$ ${sb.toFixed(2)}</span></div><div class="qty-controls"><button class="qty-btn" onclick="changeQty(${i},-1)">-</button><span>${it.qty}</span><button class="qty-btn" onclick="changeQty(${i},1)">+</button><button class="remove-btn" onclick="changeQty(${i},-${it.qty})">Remover</button></div><textarea placeholder="Observações..." oninput="updateObs(${i},this.value)" style="width:100%;padding:6px;border-radius:6px;background:#1c1c1f;color:#fff;border:1px solid var(--border-glass);font-size:10px;resize:vertical;min-height:28px;">${it.obs}</textarea></div>`;
+        });
+
+        const tp = document.getElementById('tipoEntrega').value;
+        const endereco = document.getElementById('endereco').value.trim();
+
+        let tx = 0;
+        let isFraron = false;
+
+        if (tp === 'entrega') {
+            isFraron = isBairroFraron(endereco);
+            tx = isFraron ? 0 : DELIVERY_FEE;
+        } else {
+            tx = 0;
+        }
+
+        const freteInfo = document.getElementById('freteInfo');
+        const taxaOriginal = document.getElementById('taxaOriginal');
+        const taxaLabel = document.getElementById('taxaLabel');
+        const taxaSpan = document.getElementById('taxa');
+
+        if (tp === 'entrega' && isFraron) {
+            freteInfo.classList.add('show');
+            taxaOriginal.style.display = 'inline';
+            taxaSpan.textContent = '0.00';
+            taxaLabel.innerHTML = '<strong style="color:#22c55e;">GRÁTIS (Fraron)</strong>';
+        } else if (tp === 'entrega' && !isFraron) {
+            freteInfo.classList.remove('show');
+            taxaOriginal.style.display = 'none';
+            taxaSpan.textContent = DELIVERY_FEE.toFixed(2);
+            taxaLabel.innerHTML = 'R$ <span id="taxa">' + DELIVERY_FEE.toFixed(2) + '</span>';
+        } else {
+            freteInfo.classList.remove('show');
+            taxaOriginal.style.display = 'none';
+            taxaSpan.textContent = '0.00';
+            taxaLabel.innerHTML = 'R$ <span id="taxa">0.00</span>';
+        }
+
+        let d = 0;
+        if (couponActive) {
+            if (couponActive.type === 'percent') {
+                d = s * (couponActive.value / 100);
+            } else {
+                d = Math.min(couponActive.value, tx);
+            }
+        }
+
+        const av = adicionaisSelecionados.reduce((sum, a) => sum + parseFloat(a.preco), 0);
+        const tt = s + tx - d + av;
+
+        document.getElementById('cartItems').innerHTML = h || '<p style="text-align:center;color:var(--text-muted);padding:16px 0;">Carrinho vazio.</p>';
+        document.getElementById('subtotal').textContent = s.toFixed(2);
+        document.getElementById('desconto').textContent = d.toFixed(2);
+        document.getElementById('total').textContent = 'R$ ' + tt.toFixed(2);
+        document.getElementById('cartCount').textContent = ct;
+        document.getElementById('endereco').style.display = tp === 'entrega' ? 'block' : 'none';
+
+        const ar = document.getElementById('addonsTotalRow');
+        if (av > 0) {
+            ar.style.display = 'flex';
+            document.getElementById('addonsTotal').textContent = av.toFixed(2);
+        } else {
+            ar.style.display = 'none';
+        }
+
+        const btn = document.getElementById('btnFinalizar');
+        btn.disabled = !cozinhaOnline;
+        btn.textContent = cozinhaOnline ? 'Finalizar Pedido 🚀' : '🔴 Cozinha Offline';
+        btn.style.opacity = cozinhaOnline ? '1' : '0.5';
+    }
+
+    async function startCheckout() {
+        if (!cozinhaOnline) { showToast('🔴 Cozinha offline!', 'error'); return; }
+        if (!cart.length) return alert('Carrinho vazio.');
         
-        let d=0;if(couponActive)d=couponActive.type==='percent'?s*(couponActive.value/100):Math.min(couponActive.value,tx);
-        const av=adicionaisSelecionados.reduce((sum,a)=>sum+parseFloat(a.preco),0);const tt=s+tx-d+av;
-        document.getElementById('cartItems').innerHTML=h||'<p style="text-align:center;color:var(--text-muted);padding:16px 0;">Carrinho vazio.</p>';
-        document.getElementById('subtotal').textContent=s.toFixed(2);document.getElementById('taxa').textContent=tx.toFixed(2);document.getElementById('desconto').textContent=d.toFixed(2);
-        document.getElementById('total').textContent='R$ '+tt.toFixed(2);document.getElementById('cartCount').textContent=ct;
-        document.getElementById('endereco').style.display=tp==='entrega'?'block':'none';
-        const ar=document.getElementById('addonsTotalRow');if(av>0){ar.style.display='flex';document.getElementById('addonsTotal').textContent=av.toFixed(2)}else{ar.style.display='none'}
-        const btn=document.getElementById('btnFinalizar');btn.disabled=!cozinhaOnline;btn.textContent=cozinhaOnline?'Finalizar Pedido 🚀':'🔴 Cozinha Offline';btn.style.opacity=cozinhaOnline?'1':'0.5';
+        const nm = document.getElementById('nome').value.trim(),
+            tl = document.getElementById('telefone').value.trim(),
+            tp = document.getElementById('tipoEntrega').value,
+            ed = document.getElementById('endereco').value.trim(),
+            pg = document.getElementById('pagamento').value;
+        
+        if (!nm || !tl) return alert('Nome e telefone obrigatórios.');
+        if (tp === 'entrega' && !ed) return alert('Endereço obrigatório.');
+
+        let s = 0;
+        const its = cart.map(it => { const sb = it.price * it.qty; s += sb; return { nome: it.name, qtd: it.qty, precoUn: it.price, obs: it.obs }; });
+
+        let tx = 0;
+        if (tp === 'entrega') { tx = isBairroFraron(ed) ? 0 : DELIVERY_FEE; }
+
+        let d = 0;
+        if (couponActive) d = couponActive.type === 'percent' ? s * (couponActive.value / 100) : Math.min(couponActive.value, tx);
+
+        const av = adicionaisSelecionados.reduce((sum, a) => sum + parseFloat(a.preco), 0);
+        const total = s + tx - d + av;
+        const np = Math.floor(Math.random() * 9000) + 1000;
+
+        pedidoAtualNumero = np;
+        pedidoAtualDados = {
+            cliente: nm,
+            telefone: tl.replace(/\D/g, ''),
+            tipoEntrega: tp,
+            endereco: ed,
+            formaPagamento: pg,
+            subtotal: s,
+            taxaEntrega: tx,
+            desconto: d,
+            adicionais: JSON.parse(JSON.stringify(adicionaisSelecionados)),
+            total: total,
+            dataHora: new Date().toISOString(),
+            itens: its,
+            numeroPedido: np
+        };
+
+        closeCart();
+        mostrarConfirmacao(np, nm, its, total, ed, tp, pg);
+
+        try {
+            if (window.db) {
+                await window.fsAdd(window.fsCollection(window.db, "vendas"), pedidoAtualDados);
+                await window.fsAdd(window.fsCollection(window.db, "pedidos_ativos"), {
+                    ...pedidoAtualDados,
+                    status: 'pendente',
+                    ultimaAtualizacao: new Date().toISOString()
+                });
+                console.log('Pedido salvo no Firebase:', np);
+            }
+        } catch (e) {
+            console.error('Erro ao salvar no Firebase:', e);
+            const detalhes = document.getElementById('confirmDetails');
+            detalhes.innerHTML += '<p style="color:#f59e0b;margin-top:8px;">⚠️ Servidor momentaneamente indisponível, mas seu pedido foi registrado.</p>';
+        }
+
+        cart = [];
+        couponActive = null;
+        adicionaisSelecionados = [];
+        document.getElementById('couponInput').value = '';
+        document.getElementById('couponMsg').textContent = '';
+        updateCart();
     }
 
-    async function startCheckout(){
-        if(!cozinhaOnline){showToast('🔴 Cozinha offline!','error');return}
-        if(!cart.length)return alert('Carrinho vazio.');
-        const nm=document.getElementById('nome').value.trim(),tl=document.getElementById('telefone').value.trim(),tp=document.getElementById('tipoEntrega').value,ed=document.getElementById('endereco').value.trim(),pg=document.getElementById('pagamento').value;
-        if(!nm||!tl)return alert('Nome e telefone obrigatórios.');if(tp==='entrega'&&!ed)return alert('Endereço obrigatório.');
-        let s=0;const its=cart.map(it=>{const sb=it.price*it.qty;s+=sb;return{nome:it.name,qtd:it.qty,precoUn:it.price,obs:it.obs}});
-        // Calcular taxa com verificação do Fraron
-        let tx=0;if(tp==='entrega'){tx=isBairroFraron(ed)?0:DELIVERY_FEE;}
-        let d=0;if(couponActive)d=couponActive.type==='percent'?s*(couponActive.value/100):Math.min(couponActive.value,tx);
-        const av=adicionaisSelecionados.reduce((sum,a)=>sum+parseFloat(a.preco),0);const tt=s+tx-d+av,np=Math.floor(Math.random()*9000)+1000;
-        pendingOrderData={cliente:nm,telefone:tl.replace(/\D/g,''),tipoEntrega:tp,endereco:ed,formaPagamento:pg,subtotal:s,taxaEntrega:tx,desconto:d,adicionais:JSON.parse(JSON.stringify(adicionaisSelecionados)),total:tt,dataHora:new Date().toISOString(),itens:its,numeroPedido:np};
-        if(!upsellOffered){try{const prods=[...new Set(cart.map(item=>{const p=products.find(pp=>pp.nome===item.name);return p?p.id:null}).filter(Boolean))];if(prods.length>0){const snap=await window.fsGet(window.fsCollection(window.db,"configuracoes"));let found=null;snap.forEach(dd=>{if(dd.id.startsWith('upsell_')&&dd.data().ativo&&prods.includes(dd.data().produtoId)){const up=products.find(p=>p.id===dd.data().upsellProdutoId);if(up&&!found)found=up}});if(found){upsellProduct=found;upsellOffered=true;showUpsellModal(found);return}}}catch(e){}}
-        finalizeOrder();
+    function mostrarConfirmacao(numero, nome, itens, total, endereco, tipoEntrega, pagamento) {
+        console.log('Mostrando confirmação para pedido:', numero);
+        document.getElementById('confirmNumber').textContent = '#' + numero;
+        const detalhes = document.getElementById('confirmDetails');
+        const itensTexto = itens.map(i => `${i.qtd}x ${i.nome}`).join(', ');
+        detalhes.innerHTML = `
+            <div class="confirm-detail-row"><span>👤 Cliente:</span><span>${nome}</span></div>
+            <div class="confirm-detail-row"><span>🍔 Itens:</span><span>${itensTexto}</span></div>
+            <div class="confirm-detail-row"><span>💰 Total:</span><span style="color:#4ade80;font-size:16px;">R$ ${total.toFixed(2)}</span></div>
+            ${tipoEntrega === 'entrega' ? `<div class="confirm-detail-row"><span>📍 Entrega:</span><span>${endereco}</span></div>` : `<div class="confirm-detail-row"><span>🏪 Retirada:</span><span>No balcão</span></div>`}
+            <div class="confirm-detail-row"><span>💳 Pagamento:</span><span>${pagamento}</span></div>
+        `;
+        document.getElementById('confirmOverlay').classList.add('show');
     }
 
-    function showUpsellModal(p){document.getElementById('upsellName').textContent=p.nome;document.getElementById('upsellPrice').textContent='R$ '+parseFloat(p.preco).toFixed(2).replace('.',',');document.getElementById('upsellImg').src=p.imagem||'';document.getElementById('upsellModal').classList.add('show')}
-    function acceptUpsell(){document.getElementById('upsellModal').classList.remove('show');if(upsellProduct){addItem(upsellProduct.nome,upsellProduct.preco);showToast('🍟 '+upsellProduct.nome+' adicionado!')}upsellProduct=null;pendingOrderData=null;toggleCart();document.getElementById('cartPanel').classList.add('open')}
-    function declineUpsell(){document.getElementById('upsellModal').classList.remove('show');upsellProduct=null;finalizeOrder()}
-    
-    async function finalizeOrder(){
-        if(!pendingOrderData)return;
-        const dv=pendingOrderData;
-        let s=0;const its=cart.map(it=>{const sb=it.price*it.qty;s+=sb;return{nome:it.name,qtd:it.qty,precoUn:it.price,obs:it.obs}});
-        let tx=0;if(dv.tipoEntrega==='entrega'){tx=isBairroFraron(dv.endereco)?0:DELIVERY_FEE;}
-        let d=0;if(couponActive)d=couponActive.type==='percent'?s*(couponActive.value/100):Math.min(couponActive.value,tx);
-        const av=adicionaisSelecionados.reduce((sum,a)=>sum+parseFloat(a.preco),0);const tt=s+tx-d+av;
-        dv.subtotal=s;dv.total=tt;dv.itens=its;dv.desconto=d;dv.taxaEntrega=tx;dv.adicionais=JSON.parse(JSON.stringify(adicionaisSelecionados));
-        try{if(window.db){await window.fsAdd(window.fsCollection(window.db,"vendas"),dv);await window.fsAdd(window.fsCollection(window.db,"pedidos_ativos"),{...dv,status:'pendente',ultimaAtualizacao:new Date().toISOString()})}}catch(e){alert('Erro ao salvar.');return}
-        lastOrderNumber=dv.numeroPedido;cart=[];couponActive=null;adicionaisSelecionados=[];upsellProduct=null;pendingOrderData=null;upsellOffered=false;
-        document.getElementById('couponInput').value='';document.getElementById('couponMsg').textContent='';updateCart();toggleCart();
-        document.getElementById('confirmNumber').textContent='#'+lastOrderNumber;document.getElementById('confirmModal').classList.add('show');
-        setTimeout(()=>{const q=document.getElementById('qrCodeContainer');q.innerHTML='';if(typeof QRCode!=='undefined')new QRCode(q,{text:`${location.origin}${location.pathname}?pedido=${lastOrderNumber}`,width:100,height:100,colorDark:'#000',colorLight:'#fff'})},100);
+    function closeConfirm() {
+        document.getElementById('confirmOverlay').classList.remove('show');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    
-    function closeConfirm(){document.getElementById('confirmModal').classList.remove('show');window.scrollTo({top:0,behavior:'smooth'})}
-    
-    function renderMenu(){
-        let ch='';categories.forEach(c=>{const cnt=products.filter(p=>p.categoria===c.nome).length;ch+=`<button class="cat-btn ${currentCat===c.nome?'active':''}" onclick="setCat('${c.nome}')">${c.nome}${cnt>0?`<span class="count-badge">${cnt}</span>`:''}</button>`});
-        document.getElementById('navCategories').innerHTML=ch||'<p style="font-size:11px;color:var(--text-muted);">Cadastre categorias no admin.</p>';
-        let fl=products.filter(p=>p.categoria===currentCat);const sv=document.getElementById('searchInput').value.toLowerCase();if(sv)fl=products.filter(p=>p.nome.toLowerCase().includes(sv)||p.descricao.toLowerCase().includes(sv));
-        let ph='';fl.forEach(p=>{ph+=`<div class="product-card"><div class="img-container"><img src="${p.imagem||''}" alt="${p.nome}" loading="lazy">${p.tag?`<div class="card-badge">${p.tag}</div>`:''}</div><div class="card-content"><h3 class="card-title">${p.nome}</h3><p class="card-desc">${p.descricao}</p><div class="card-footer"><span class="price-tag">R$ ${parseFloat(p.preco).toFixed(2).replace('.',',')}</span><button class="add-btn" onclick="addItem('${p.nome}',${p.preco})">Adicionar</button></div></div></div>`});
-        document.getElementById('productsGrid').innerHTML=ph||'<p style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:40px 0;">Nenhum item.</p>';
+
+    function renderMenu() {
+        let ch = '';
+        categories.forEach(c => {
+            const cnt = products.filter(p => p.categoria === c.nome).length;
+            ch += `<button class="cat-btn ${currentCat === c.nome ? 'active' : ''}" onclick="setCat('${c.nome}')">${c.nome}${cnt > 0 ? `<span class="count-badge">${cnt}</span>` : ''}</button>`;
+        });
+        document.getElementById('navCategories').innerHTML = ch || '<p style="font-size:11px;color:var(--text-muted);">Cadastre categorias no admin.</p>';
+
+        let fl = products.filter(p => p.categoria === currentCat);
+        const sv = document.getElementById('searchInput').value.toLowerCase();
+        if (sv) fl = products.filter(p => p.nome.toLowerCase().includes(sv) || p.descricao.toLowerCase().includes(sv));
+
+        let ph = '';
+        fl.forEach(p => {
+            ph += `<div class="product-card"><div class="img-container"><img src="${p.imagem || ''}" alt="${p.nome}" loading="lazy">${p.tag ? `<div class="card-badge">${p.tag}</div>` : ''}</div><div class="card-content"><h3 class="card-title">${p.nome}</h3><p class="card-desc">${p.descricao}</p><div class="card-footer"><span class="price-tag">R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}</span><button class="add-btn" onclick="addItem('${p.nome}',${p.preco})">Adicionar</button></div></div></div>`;
+        });
+        document.getElementById('productsGrid').innerHTML = ph || '<p style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:40px 0;">Nenhum item.</p>';
     }
-    function setCat(c){currentCat=c;renderMenu()}
-    
-    function initFB(){
-        if(!window.db){setTimeout(initFB,500);return}
-        window.fsSnapshot(window.fsCollection(window.db,"categorias"),snap=>{categories=[];snap.forEach(d=>categories.push({id:d.id,...d.data()}));categories.sort((a,b)=>(a.ordem||0)-(b.ordem||0));if(!currentCat&&categories.length)currentCat=categories[0].nome;renderMenu()});
-        window.fsSnapshot(window.fsCollection(window.db,"produtos"),snap=>{products=[];snap.forEach(d=>products.push({id:d.id,...d.data()}));renderMenu()});
-        window.fsSnapshot(window.fsCollection(window.db,"adicionais"),snap=>{adicionaisDisponiveis=[];snap.forEach(d=>{if(d.data().ativo!==false)adicionaisDisponiveis.push({id:d.id,...d.data()})})});
-        if(kitchenStatusUnsubscribe)kitchenStatusUnsubscribe();const statusRef=window.fsDoc(window.db,"status_cozinha","online");kitchenStatusUnsubscribe=window.fsSnapshot(statusRef,snap=>{if(snap.exists())updateCozinhaStatus(snap.data().online!==false);else updateCozinhaStatus(true)},err=>{updateCozinhaStatus(true)});
+
+    function setCat(c) { currentCat = c; renderMenu(); }
+
+    function initFB() {
+        if (!window.db) { setTimeout(initFB, 500); return; }
+        window.fsSnapshot(window.fsCollection(window.db, "categorias"), snap => { categories = []; snap.forEach(d => categories.push({ id: d.id, ...d.data() })); categories.sort((a, b) => (a.ordem || 0) - (b.ordem || 0)); if (!currentCat && categories.length) currentCat = categories[0].nome; renderMenu(); });
+        window.fsSnapshot(window.fsCollection(window.db, "produtos"), snap => { products = []; snap.forEach(d => products.push({ id: d.id, ...d.data() })); renderMenu(); });
+        window.fsSnapshot(window.fsCollection(window.db, "adicionais"), snap => { adicionaisDisponiveis = []; snap.forEach(d => { if (d.data().ativo !== false) adicionaisDisponiveis.push({ id: d.id, ...d.data() }); }); });
+        if (kitchenStatusUnsubscribe) kitchenStatusUnsubscribe();
+        const statusRef = window.fsDoc(window.db, "status_cozinha", "online");
+        kitchenStatusUnsubscribe = window.fsSnapshot(statusRef, snap => { if (snap.exists()) updateCozinhaStatus(snap.data().online !== false); else updateCozinhaStatus(true); }, err => { updateCozinhaStatus(true); });
     }
-    
-    function openKitchen(){const p=prompt('Senha da cozinha:');if(p==='cozinha123'){localStorage.setItem('aquarius_kitchen_auth',JSON.stringify({ts:Date.now()}));window.open('cozinha.html','AquariusCozinha','width=1400,height=900');showToast('👨‍🍳 Cozinha aberta!')}else if(p!==null)alert('Senha incorreta!')}
-    
-    updateCozinhaStatus(true);initFB();
+
+    function openKitchen() {
+        const p = prompt('Senha da cozinha:');
+        if (p === 'cozinha123') {
+            localStorage.setItem('aquarius_kitchen_auth', JSON.stringify({ ts: Date.now() }));
+            window.open('cozinha.html', 'AquariusCozinha', 'width=1400,height=900');
+            showToast('👨‍🍳 Cozinha aberta!');
+        } else if (p !== null) alert('Senha incorreta!');
+    }
+
+    updateCozinhaStatus(true);
+    initFB();
 </script>
 </body>
 </html>
