@@ -66,6 +66,7 @@
         <button class="tab" onclick="switchTab('upsell')">🎯 Upsell</button>
         <button class="tab" onclick="switchTab('promocoes')">🔥 Promoções TV</button>
         <button class="tab" onclick="switchTab('relatorios')">📊 Relatórios</button>
+        <button class="tab" onclick="switchTab('financeiro')">💰 Financeiro</button>
         <button class="tab" onclick="switchTab('expediente')">🕐 Expediente</button>
     </div>
 
@@ -124,8 +125,8 @@
         <div class="indicator-row">
             <div class="indicator-card"><div class="indicator-value green" id="rFaturamento">R$ 0,00</div><div class="indicator-label">💰 Faturamento Bruto</div></div>
             <div class="indicator-card"><div class="indicator-value red" id="rCustoTotal">R$ 0,00</div><div class="indicator-label">📦 Custo Total (CMV)</div></div>
-            <div class="indicator-card"><div class="indicator-value green" id="rLucro">R$ 0,00</div><div class="indicator-label">📈 Lucro Líquido</div></div>
-            <div class="indicator-card"><div class="indicator-value yellow" id="rMargem">0%</div><div class="indicator-label">📊 Margem de Lucro</div></div>
+            <div class="indicator-card"><div class="indicator-value green" id="rLucroBruto">R$ 0,00</div><div class="indicator-label">📈 Lucro Bruto</div></div>
+            <div class="indicator-card"><div class="indicator-value yellow" id="rMargemBruta">0%</div><div class="indicator-label">📊 Margem Bruta</div></div>
             <div class="indicator-card"><div class="indicator-value white" id="rPedidos">0</div><div class="indicator-label">🛒 Total de Pedidos</div></div>
             <div class="indicator-card"><div class="indicator-value blue" id="rTicket">R$ 0,00</div><div class="indicator-label">🎫 Ticket Médio</div></div>
             <div class="indicator-card"><div class="indicator-value red" id="rDesconto">R$ 0,00</div><div class="indicator-label">🏷️ Total Descontos</div></div>
@@ -134,12 +135,48 @@
             <div class="indicator-card"><div class="indicator-value white" id="rRetirada">0</div><div class="indicator-label">🏪 Retiradas</div></div>
         </div>
         
+        <!-- RANKING DE MAIS VENDIDOS -->
+        <div class="card" style="margin-bottom:16px;">
+            <h3>🏆 Ranking de Produtos Mais Vendidos</h3>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead><tr><th>#</th><th>Produto</th><th style="text-align:center">Qtd Vendida</th><th style="text-align:right">Receita</th><th style="text-align:right">Custo</th><th style="text-align:right">Lucro</th><th style="text-align:right">Margem</th></tr></thead>
+                    <tbody id="rankingTableBody"><tr><td colspan="7" style="text-align:center;color:var(--tm);padding:20px;">Selecione um período</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+        
         <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
             <button class="btn btn-v" onclick="exportCSV()">📥 Exportar CSV</button>
             <button class="btn btn-o" onclick="exportJSON()">📥 Exportar JSON</button>
         </div>
         <h3 style="margin-bottom:8px;">📋 Pedidos no Período (clique para ver detalhes)</h3>
         <div id="salesList" style="max-height:400px;overflow-y:auto;"></div>
+    </div>
+
+    <!-- FINANCEIRO (DESPESAS + RESUMO) -->
+    <div class="sec" id="sec-financeiro">
+        <div class="card">
+            <h3>➕ Lançar Despesa</h3>
+            <input id="despesaDesc" placeholder="Descrição (ex: Gás, Aluguel, Ingredientes)">
+            <div class="g2">
+                <input id="despesaValor" type="number" step="0.01" placeholder="Valor (R$)">
+                <input id="despesaData" type="date">
+            </div>
+            <button class="btn btn-v" onclick="saveDespesa()">💾 Lançar</button>
+        </div>
+        <h3 style="margin-bottom:8px;">📋 Despesas Lançadas</h3>
+        <div id="despesasList" style="margin-bottom:16px;"></div>
+        <div class="card" style="background:rgba(34,197,94,0.03);border-color:rgba(34,197,94,0.2);">
+            <h3>💰 Resumo Financeiro Geral</h3>
+            <div class="g2" style="margin-bottom:12px;">
+                <div><span style="font-size:10px;color:var(--tm);">Receita Total (Vendas)</span><div style="font-size:20px;font-weight:900;color:#4ade80;" id="finReceita">R$ 0,00</div></div>
+                <div><span style="font-size:10px;color:var(--tm);">Custo dos Produtos</span><div style="font-size:20px;font-weight:900;color:#ef4444;" id="finCusto">R$ 0,00</div></div>
+                <div><span style="font-size:10px;color:var(--tm);">Total Despesas</span><div style="font-size:20px;font-weight:900;color:#f59e0b;" id="finDespesas">R$ 0,00</div></div>
+                <div><span style="font-size:10px;color:var(--tm);">Lucro Líquido</span><div style="font-size:20px;font-weight:900;color:#22c55e;" id="finLucro">R$ 0,00</div></div>
+            </div>
+            <div><span style="font-size:10px;color:var(--tm);">Margem Líquida</span><div style="font-size:24px;font-weight:900;color:#3b82f6;" id="finMargem">0%</div></div>
+        </div>
     </div>
 
     <!-- EXPEDIENTE -->
@@ -162,10 +199,10 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc, onSnapshot, setDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     const fc={apiKey:"AIzaSyABe9h5dM1FHrsYOI9vPiEvHsozqb-9PYI",authDomain:"aquarius-burguer.firebaseapp.com",projectId:"aquarius-burguer",storageBucket:"aquarius-burguer.firebasestorage.app",messagingSenderId:"1014795439621",appId:"1:1014795439621:web:1aef68c277c1e2f8aa966c"};
     const app=initializeApp(fc);const db=getFirestore(app);
-    window.db=db;window.fsColl=collection;window.fsAdd=addDoc;window.fsGet=getDocs;window.fsDoc=doc;window.fsDel=deleteDoc;window.fsUpd=updateDoc;window.fsSnap=onSnapshot;window.fsSet=setDoc;
+    window.db=db;window.fsColl=collection;window.fsAdd=addDoc;window.fsGet=getDocs;window.fsDoc=doc;window.fsDel=deleteDoc;window.fsUpd=updateDoc;window.fsSnap=onSnapshot;window.fsSet=setDoc;window.fsQ=query;window.fsOB=orderBy;window.fsLim=limit;
 </script>
 
 <script>
@@ -177,18 +214,20 @@
         document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
         document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
         const sec=document.getElementById('sec-'+t);if(sec)sec.classList.add('active');
-        event.target.classList.add('active');
+        const tabs=document.querySelectorAll('.tab');
+        tabs.forEach(tab=>{if(tab.textContent.toLowerCase().includes(t.toLowerCase()))tab.classList.add('active')});
         if(t==='relatorios'){handlePeriodChange();generateReport();}
         if(t==='expediente')loadHorarios();
         if(t==='adicionais')updateAddonCatSelect();
         if(t==='produtos')updateCatSelect();
         if(t==='upsell'){updateUpsellSelects();renderUpsellTable();clearUpsellForm();}
         if(t==='promocoes'){renderPromoTable();}
+        if(t==='financeiro'){loadDespesas();updateResumoFinanceiro();}
     }
 
-    let products=[],categories=[],coupons=[],adicionais=[],promocoes=[],sales=[],cropper=null,finalImage='',promoImage='';
+    let products=[],categories=[],coupons=[],adicionais=[],promocoes=[],sales=[],despesas=[],cropper=null,finalImage='',promoImage='';
 
-    // ==================== PRODUTOS ====================
+    // ==================== PRODUTOS (mantido igual, com custo) ====================
     function updateCatSelect(){document.getElementById('prodCategoria').innerHTML='<option value="">Categoria...</option>'+categories.map(c=>`<option value="${c.nome}">${c.nome}</option>`).join('')}
     function handleProductImage(input){const file=input.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){if(cropper)cropper.destroy();document.getElementById('cropBox').style.display='block';document.getElementById('cropImg').src=e.target.result;cropper=new Cropper(document.getElementById('cropImg'),{aspectRatio:1.33,viewMode:1,autoCropArea:0.9});document.getElementById('uploadLabel').textContent='📱 Ajuste'};reader.readAsDataURL(file)}
     function confirmCrop(){if(!cropper)return;const canvas=cropper.getCroppedCanvas({width:640,height:480});finalImage=canvas.toDataURL('image/jpeg',0.85);document.getElementById('cropBox').style.display='none';document.getElementById('uploadLabel').textContent='✅ Pronto!';toast('Imagem ajustada!')}
@@ -197,7 +236,7 @@
     function editProduct(id){const p=products.find(x=>x.id===id);if(!p)return;document.getElementById('prodId').value=p.id;document.getElementById('prodNome').value=p.nome;document.getElementById('prodDesc').value=p.descricao;document.getElementById('prodPreco').value=p.preco;document.getElementById('prodCusto').value=p.custo||0;document.getElementById('prodCategoria').value=p.categoria;document.getElementById('prodTag').value=p.tag||'';finalImage=p.imagem||'';document.getElementById('formTitle').textContent='✏️ Editar';document.getElementById('btnCancelProduct').style.display='inline-block';window.scrollTo({top:0,behavior:'smooth'})}
     async function deleteProduct(id){if(confirm('Excluir?')){await window.fsDel(window.fsDoc(window.db,"produtos",id));toast('🗑️ Excluído!')}}
     function clearProductForm(){['prodId','prodNome','prodDesc','prodPreco','prodCusto','prodTag'].forEach(id=>document.getElementById(id).value='');document.getElementById('prodFile').value='';if(cropper){cropper.destroy();cropper=null}finalImage='';document.getElementById('cropBox').style.display='none';document.getElementById('uploadLabel').textContent='📸 Clique para foto';document.getElementById('formTitle').textContent='➕ Adicionar';document.getElementById('btnCancelProduct').style.display='none'}
-    function renderProducts(){let h='';products.forEach(p=>{h+=`<div class="li"><div><strong>${p.nome}</strong><br><span style="color:#4ade80;">R$ ${parseFloat(p.preco).toFixed(2)}</span> | ${p.categoria}</div><div style="display:flex;gap:4px;"><button class="btn btn-a" style="padding:4px 8px;font-size:10px;" onclick="editProduct('${p.id}')">✏️</button><button class="btn btn-d" style="padding:4px 8px;font-size:10px;" onclick="deleteProduct('${p.id}')">🗑️</button></div></div>`});document.getElementById('productsList').innerHTML=h||'<p style="color:var(--tm);text-align:center;">Nenhum.</p>'}
+    function renderProducts(){let h='';products.forEach(p=>{h+=`<div class="li"><div><strong>${p.nome}</strong><br><span style="color:#4ade80;">R$ ${parseFloat(p.preco).toFixed(2)}</span> | Custo: R$ ${(p.custo||0).toFixed(2)}</div><div style="display:flex;gap:4px;"><button class="btn btn-a" style="padding:4px 8px;font-size:10px;" onclick="editProduct('${p.id}')">✏️</button><button class="btn btn-d" style="padding:4px 8px;font-size:10px;" onclick="deleteProduct('${p.id}')">🗑️</button></div></div>`});document.getElementById('productsList').innerHTML=h||'<p style="color:var(--tm);text-align:center;">Nenhum.</p>'}
 
     // ==================== CATEGORIAS ====================
     async function saveCategory(){const n=document.getElementById('catNome').value.trim();if(!n)return;await window.fsAdd(window.fsColl(window.db,"categorias"),{nome:n,ordem:categories.length});document.getElementById('catNome').value='';toast('✅ Criada!')}
@@ -240,31 +279,194 @@
     function clearPromoForm(){document.getElementById('promoId').value='';document.getElementById('promoNome').value='';document.getElementById('promoDesc').value='';document.getElementById('promoPreco').value='';document.getElementById('promoPrecoOriginal').value='';document.getElementById('promoAtivo').checked=true;document.getElementById('promoFile').value='';promoImage='';document.getElementById('promoImgPreview').style.display='none';document.getElementById('promoUploadLabel').textContent='📸 Clique para imagem';document.getElementById('promoFormTitle').textContent='🔥 Adicionar Promoção para TV';document.getElementById('btnCancelPromo').style.display='none'}
     function renderPromoTable(){const tbody=document.getElementById('promoTableBody');if(!tbody)return;if(promocoes.length===0){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--tm);padding:20px;">Nenhuma.</td></tr>';return}let rows='';promocoes.forEach(p=>{const temImg=p.imagem&&p.imagem.length>100;rows+=`<tr><td style="text-align:center;">${temImg?`<img src="${p.imagem}" style="width:45px;height:45px;border-radius:6px;object-fit:cover;">`:'📷'}</td><td><strong>${p.nome||'-'}</strong>${p.descricao?`<br><span style="font-size:10px;color:var(--tm);">${p.descricao}</span>`:''}</td><td style="color:#4ade80;">${p.precoOriginal>0?`<span style="text-decoration:line-through;color:#666;font-size:10px;">R$ ${parseFloat(p.precoOriginal).toFixed(2)}</span><br>`:''}R$ ${parseFloat(p.preco||0).toFixed(2)}</td><td><span class="badge ${p.ativo!==false?'badge-v':'badge-r'}">${p.ativo!==false?'✅ Ativo':'⏸️ Pausado'}</span></td><td style="text-align:center;"><button class="btn btn-a" style="padding:4px 8px;font-size:9px;" onclick="editPromo('${p.id}')">✏️</button><button class="btn ${p.ativo!==false?'btn-d':'btn-v'}" style="padding:4px 8px;font-size:9px;" onclick="togglePromo('${p.id}',${p.ativo===false})">${p.ativo!==false?'⏸️':'▶️'}</button><button class="btn btn-d" style="padding:4px 8px;font-size:9px;" onclick="deletePromo('${p.id}')">🗑️</button></td></tr>`});tbody.innerHTML=rows}
 
-    // ==================== RELATÓRIOS (CORRIGIDO) ====================
-    function handlePeriodChange(){const filter=document.getElementById('reportFilter').value;const dateFields=document.getElementById('customDateFields');if(filter==='custom'){dateFields.style.display='flex';const hoje=new Date();const seteDiasAtras=new Date(hoje.getTime()-7*24*60*60*1000);document.getElementById('customEndDate').value=hoje.toISOString().split('T')[0];document.getElementById('customStartDate').value=seteDiasAtras.toISOString().split('T')[0]}else{dateFields.style.display='none'}generateReport()}
-    
-    function generateReport(){const filter=document.getElementById('reportFilter').value;const now=new Date();const todayStart=new Date(now.getFullYear(),now.getMonth(),now.getDate());const tomorrowStart=new Date(todayStart.getTime()+24*60*60*1000);const yesterdayStart=new Date(todayStart.getTime()-24*60*60*1000);let startDate,endDate;
-    switch(filter){case'today':startDate=todayStart;endDate=tomorrowStart;break;case'yesterday':startDate=yesterdayStart;endDate=todayStart;break;case'7days':startDate=new Date(todayStart.getTime()-7*24*60*60*1000);endDate=tomorrowStart;break;case'30days':startDate=new Date(todayStart.getTime()-30*24*60*60*1000);endDate=tomorrowStart;break;case'month':startDate=new Date(now.getFullYear(),now.getMonth(),1);endDate=tomorrowStart;break;case'lastmonth':startDate=new Date(now.getFullYear(),now.getMonth()-1,1);endDate=new Date(now.getFullYear(),now.getMonth(),1);break;case'custom':const sv=document.getElementById('customStartDate').value,ev=document.getElementById('customEndDate').value;startDate=sv?new Date(sv+'T00:00:00'):new Date(todayStart.getTime()-7*24*60*60*1000);endDate=ev?new Date(ev+'T23:59:59'):tomorrowStart;break;default:startDate=new Date(2000,0,1);endDate=new Date(2099,11,31)}
-    
-    let filtered=sales.filter(v=>{const d=new Date(v.dataHora);return d>=startDate&&d<endDate});
-    let fat=0,custo=0,desc=0,itensTotal=0,delivery=0,retirada=0;
-    filtered.forEach(v=>{fat+=parseFloat(v.total)||0;desc+=parseFloat(v.desconto)||0;if(v.itens)v.itens.forEach(i=>{const q=parseInt(i.qtd)||0,c=parseFloat(i.custoUn)||0;custo+=c*q;itensTotal+=q});if(v.tipoEntrega==='entrega')delivery++;else retirada++});
-    const lucro=fat-custo,margem=fat>0?(lucro/fat)*100:0,ticket=filtered.length>0?fat/filtered.length:0;
-    document.getElementById('rFaturamento').textContent='R$ '+fat.toFixed(2);document.getElementById('rCustoTotal').textContent='R$ '+custo.toFixed(2);document.getElementById('rLucro').textContent='R$ '+lucro.toFixed(2);document.getElementById('rMargem').textContent=margem.toFixed(1)+'%';document.getElementById('rPedidos').textContent=filtered.length;document.getElementById('rTicket').textContent='R$ '+ticket.toFixed(2);document.getElementById('rDesconto').textContent='R$ '+desc.toFixed(2);document.getElementById('rItens').textContent=itensTotal;document.getElementById('rDelivery').textContent=delivery;document.getElementById('rRetirada').textContent=retirada;
-    filtered.sort((a,b)=>new Date(b.dataHora)-new Date(a.dataHora));
-    let h='';filtered.slice(0,100).forEach(v=>{const d=new Date(v.dataHora),ic=v.itens?v.itens.reduce((s,i)=>s+(parseInt(i.qtd)||0),0):0,cv=v.itens?v.itens.reduce((s,i)=>s+(parseFloat(i.custoUn)||0)*(parseInt(i.qtd)||0),0):0,lv=parseFloat(v.total||0)-cv;h+=`<div class="li" onclick="showSaleDetail('${v.id}')"><div style="flex:1;"><div style="display:flex;justify-content:space-between;"><strong>${v.cliente}</strong><span style="color:#4ade80;">R$ ${parseFloat(v.total).toFixed(2)}</span></div><div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;align-items:center;"><span style="font-size:10px;color:var(--tm);">#${v.numeroPedido||v.id.substring(0,6)}</span><span class="badge badge-i">${ic} itens</span><span class="badge ${v.tipoEntrega==='entrega'?'badge-w':'badge-v'}">${v.tipoEntrega==='entrega'?'🛵':'🏪'}</span><span class="badge" style="background:rgba(255,255,255,.05);">${v.formaPagamento}</span><span style="font-size:10px;color:var(--tm);">${d.toLocaleDateString('pt-BR')} ${d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span><span style="font-size:9px;color:${lv>=0?'#22c55e':'#ef4444'};">Lucro: R$ ${lv.toFixed(2)}</span></div></div><div style="display:flex;gap:4px;margin-left:10px;"><button class="btn btn-i" style="padding:4px 10px;font-size:10px;" onclick="event.stopPropagation();showSaleDetail('${v.id}')">👁️</button><button class="btn btn-d" style="padding:4px 10px;font-size:10px;" onclick="event.stopPropagation();deleteSale('${v.id}')">🗑️</button></div></div>`});
-    document.getElementById('salesList').innerHTML=h||'<p style="color:var(--tm);text-align:center;padding:20px;">Nenhuma venda neste período.</p>'}
+    // ==================== RELATÓRIOS (COM MARGEM) ====================
+    window.handlePeriodChange = function(){
+        const filter=document.getElementById('reportFilter').value;
+        const dateFields=document.getElementById('customDateFields');
+        if(filter==='custom'){
+            dateFields.style.display='flex';
+            const hoje=new Date();
+            const seteDiasAtras=new Date(hoje.getTime()-7*24*60*60*1000);
+            document.getElementById('customEndDate').value=hoje.toISOString().split('T')[0];
+            document.getElementById('customStartDate').value=seteDiasAtras.toISOString().split('T')[0];
+        }else{dateFields.style.display='none'}
+        generateReport();
+    };
+
+    window.generateReport = function(){
+        const filter=document.getElementById('reportFilter').value;
+        const now=new Date();
+        const todayStart=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+        const tomorrowStart=new Date(todayStart.getTime()+24*60*60*1000);
+        const yesterdayStart=new Date(todayStart.getTime()-24*60*60*1000);
+        let startDate,endDate;
+        switch(filter){
+            case'today':startDate=todayStart;endDate=tomorrowStart;break;
+            case'yesterday':startDate=yesterdayStart;endDate=todayStart;break;
+            case'7days':startDate=new Date(todayStart.getTime()-7*24*60*60*1000);endDate=tomorrowStart;break;
+            case'30days':startDate=new Date(todayStart.getTime()-30*24*60*60*1000);endDate=tomorrowStart;break;
+            case'month':startDate=new Date(now.getFullYear(),now.getMonth(),1);endDate=tomorrowStart;break;
+            case'lastmonth':startDate=new Date(now.getFullYear(),now.getMonth()-1,1);endDate=new Date(now.getFullYear(),now.getMonth(),1);break;
+            case'custom': const sv=document.getElementById('customStartDate').value,ev=document.getElementById('customEndDate').value; startDate=sv?new Date(sv+'T00:00:00'):new Date(todayStart.getTime()-7*24*60*60*1000); endDate=ev?new Date(ev+'T23:59:59'):tomorrowStart; break;
+            default:startDate=new Date(2000,0,1);endDate=new Date(2099,11,31);
+        }
+        let filtered=sales.filter(v=>{const d=new Date(v.dataHora);return d>=startDate&&d<endDate;});
+        let fat=0,custo=0,desc=0,itensTotal=0,delivery=0,retirada=0;
+        const productRank={};
+        filtered.forEach(v=>{
+            fat+=parseFloat(v.total)||0;
+            desc+=parseFloat(v.desconto)||0;
+            if(v.itens)v.itens.forEach(i=>{
+                const q=parseInt(i.qtd)||0;
+                const pu=parseFloat(i.precoUn)||0;
+                // Buscar custo do cadastro de produtos se não houver custoUn no item
+                let cu=parseFloat(i.custoUn)||0;
+                if(cu===0){
+                    const prod=products.find(p=>p.nome===i.nome);
+                    if(prod)cu=parseFloat(prod.custo)||0;
+                }
+                const receita=pu*q;
+                const custoItem=cu*q;
+                custo+=custoItem;
+                itensTotal+=q;
+                if(!productRank[i.nome])productRank[i.nome]={qtd:0,receita:0,custo:0};
+                productRank[i.nome].qtd+=q;
+                productRank[i.nome].receita+=receita;
+                productRank[i.nome].custo+=custoItem;
+            });
+            if(v.tipoEntrega==='entrega')delivery++;else retirada++;
+        });
+        const lucroBruto=fat-custo;
+        const margemBruta=fat>0?(lucroBruto/fat)*100:0;
+        const ticket=filtered.length>0?fat/filtered.length:0;
+        document.getElementById('rFaturamento').textContent='R$ '+fat.toFixed(2);
+        document.getElementById('rCustoTotal').textContent='R$ '+custo.toFixed(2);
+        document.getElementById('rLucroBruto').textContent='R$ '+lucroBruto.toFixed(2);
+        document.getElementById('rMargemBruta').textContent=margemBruta.toFixed(1)+'%';
+        document.getElementById('rPedidos').textContent=filtered.length;
+        document.getElementById('rTicket').textContent='R$ '+ticket.toFixed(2);
+        document.getElementById('rDesconto').textContent='R$ '+desc.toFixed(2);
+        document.getElementById('rItens').textContent=itensTotal;
+        document.getElementById('rDelivery').textContent=delivery;
+        document.getElementById('rRetirada').textContent=retirada;
+        // Ranking
+        const sorted=Object.entries(productRank).sort((a,b)=>b[1].qtd-a[1].qtd);
+        let rankHtml='';
+        sorted.forEach(([nome,data],index)=>{
+            const lucroItem=data.receita-data.custo;
+            const margemItem=data.receita>0?(lucroItem/data.receita)*100:0;
+            rankHtml+=`<tr><td>${index+1}º</td><td><strong>${nome}</strong></td><td style="text-align:center">${data.qtd}</td><td style="text-align:right">R$ ${data.receita.toFixed(2)}</td><td style="text-align:right">R$ ${data.custo.toFixed(2)}</td><td style="text-align:right">R$ ${lucroItem.toFixed(2)}</td><td style="text-align:right">${margemItem.toFixed(1)}%</td></tr>`;
+        });
+        document.getElementById('rankingTableBody').innerHTML=rankHtml||'<tr><td colspan="7" style="text-align:center;color:var(--tm);padding:20px;">Nenhum item vendido</td></tr>';
+        // Lista de pedidos
+        filtered.sort((a,b)=>new Date(b.dataHora)-new Date(a.dataHora));
+        let h='';
+        filtered.slice(0,100).forEach(v=>{
+            const d=new Date(v.dataHora);
+            const ic=v.itens?v.itens.reduce((s,i)=>s+(parseInt(i.qtd)||0),0):0;
+            const cv=v.itens?v.itens.reduce((s,i)=>{const cu=parseFloat(i.custoUn)||0;return s+(cu===0?((products.find(p=>p.nome===i.nome)?.custo)||0):cu)*(parseInt(i.qtd)||0);},0):0;
+            const lv=parseFloat(v.total||0)-cv;
+            h+=`<div class="li" onclick="showSaleDetail('${v.id}')"><div style="flex:1;"><div style="display:flex;justify-content:space-between;"><strong>${v.cliente}</strong><span style="color:#4ade80;">R$ ${parseFloat(v.total).toFixed(2)}</span></div><div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;align-items:center;"><span style="font-size:10px;color:var(--tm);">#${v.numeroPedido||v.id.substring(0,6)}</span><span class="badge badge-i">${ic} itens</span><span class="badge ${v.tipoEntrega==='entrega'?'badge-w':'badge-v'}">${v.tipoEntrega==='entrega'?'🛵':'🏪'}</span><span class="badge" style="background:rgba(255,255,255,.05);">${v.formaPagamento}</span><span style="font-size:10px;color:var(--tm);">${d.toLocaleDateString('pt-BR')} ${d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span><span style="font-size:9px;color:${lv>=0?'#22c55e':'#ef4444'};">Lucro: R$ ${lv.toFixed(2)}</span></div></div><div style="display:flex;gap:4px;margin-left:10px;"><button class="btn btn-i" style="padding:4px 10px;font-size:10px;" onclick="event.stopPropagation();showSaleDetail('${v.id}')">👁️</button><button class="btn btn-d" style="padding:4px 10px;font-size:10px;" onclick="event.stopPropagation();deleteSale('${v.id}')">🗑️</button></div></div>`;
+        });
+        document.getElementById('salesList').innerHTML=h||'<p style="color:var(--tm);text-align:center;padding:20px;">Nenhuma venda.</p>';
+        // Atualizar resumo financeiro geral
+        updateResumoFinanceiro();
+    };
 
     // ==================== MODAL DE DETALHES ====================
-    function showSaleDetail(id){const v=sales.find(x=>x.id===id);if(!v)return;document.getElementById('modalPedidoNum').textContent='#'+(v.numeroPedido||v.id.substring(0,6));const d=new Date(v.dataHora);document.getElementById('modalGrid').innerHTML=`<div class="modal-card"><div class="modal-card-label">Cliente</div><div class="modal-card-value">${v.cliente}</div></div><div class="modal-card"><div class="modal-card-label">Telefone</div><div class="modal-card-value">${v.telefone||'N/A'}</div></div><div class="modal-card"><div class="modal-card-label">Data/Hora</div><div class="modal-card-value">${d.toLocaleDateString('pt-BR')} ${d.toLocaleTimeString('pt-BR')}</div></div><div class="modal-card"><div class="modal-card-label">Tipo</div><div class="modal-card-value">${v.tipoEntrega==='entrega'?'🛵 Delivery':'🏪 Retirada'}</div></div><div class="modal-card"><div class="modal-card-label">Pagamento</div><div class="modal-card-value">${v.formaPagamento}</div></div>${v.tipoEntrega==='entrega'?`<div class="modal-card"><div class="modal-card-label">Endereço</div><div class="modal-card-value">${v.endereco||'N/A'}</div></div>`:'<div class="modal-card"><div class="modal-card-label">Retirada</div><div class="modal-card-value">Balcão</div></div>'}${v.cupomCodigo?`<div class="modal-card"><div class="modal-card-label">Cupom</div><div class="modal-card-value">${v.cupomCodigo} (-R$ ${parseFloat(v.desconto||0).toFixed(2)})</div></div>`:''}`;
-    let ih='';if(v.itens)v.itens.forEach(i=>{const cu=parseFloat(i.custoUn)||0,pu=parseFloat(i.precoUn)||0,q=parseInt(i.qtd)||0,li=(pu-cu)*q;ih+=`<div class="modal-item"><div><strong>${q}x</strong> ${i.nome}${i.obs?` <span style="color:#f59e0b;font-size:10px;">(${i.obs})</span>`:''}</div><div style="text-align:right;">R$ ${(pu*q).toFixed(2)} <span style="color:var(--tm);font-size:10px;">| Custo: R$ ${(cu*q).toFixed(2)} | Lucro: R$ ${li.toFixed(2)}</span></div></div>`});document.getElementById('modalItems').innerHTML=ih||'<p style="color:var(--tm);">Nenhum item.</p>';
-    let ah='';if(v.adicionais&&v.adicionais.length>0){ah='<h4 style="font-size:12px;margin-bottom:6px;">🍟 Adicionais</h4>';v.adicionais.forEach(a=>{ah+=`<div class="modal-item"><span>• ${a.nome}</span><span style="color:#4ade80;">+R$ ${parseFloat(a.preco).toFixed(2)}</span></div>`})}document.getElementById('modalAdicionais').innerHTML=ah;
-    const ct=v.itens?v.itens.reduce((s,i)=>s+(parseFloat(i.custoUn)||0)*(parseInt(i.qtd)||0),0):0,lt=parseFloat(v.total||0)-ct;document.getElementById('modalTotal').innerHTML=`<span>Total: R$ ${parseFloat(v.total).toFixed(2)}</span><span style="font-size:12px;">Custo: R$ ${ct.toFixed(2)} | Lucro: R$ ${lt.toFixed(2)}</span>`;document.getElementById('saleDetailModal').classList.add('show')}
-    function closeSaleDetail(){document.getElementById('saleDetailModal').classList.remove('show')}
-    async function deleteSale(id){if(confirm('Excluir esta venda?')){await window.fsDel(window.fsDoc(window.db,"vendas",id));toast('Venda removida!')}}
+    window.showSaleDetail = function(id){
+        const v=sales.find(x=>x.id===id);if(!v)return;
+        document.getElementById('modalPedidoNum').textContent='#'+(v.numeroPedido||v.id.substring(0,6));
+        const d=new Date(v.dataHora);
+        document.getElementById('modalGrid').innerHTML=`
+            <div class="modal-card"><div class="modal-card-label">Cliente</div><div class="modal-card-value">${v.cliente}</div></div>
+            <div class="modal-card"><div class="modal-card-label">Telefone</div><div class="modal-card-value">${v.telefone||'N/A'}</div></div>
+            <div class="modal-card"><div class="modal-card-label">Data/Hora</div><div class="modal-card-value">${d.toLocaleDateString('pt-BR')} ${d.toLocaleTimeString('pt-BR')}</div></div>
+            <div class="modal-card"><div class="modal-card-label">Tipo</div><div class="modal-card-value">${v.tipoEntrega==='entrega'?'🛵 Delivery':'🏪 Retirada'}</div></div>
+            <div class="modal-card"><div class="modal-card-label">Pagamento</div><div class="modal-card-value">${v.formaPagamento}</div></div>
+            ${v.tipoEntrega==='entrega'?`<div class="modal-card"><div class="modal-card-label">Endereço</div><div class="modal-card-value">${v.endereco||'N/A'}</div></div>`:'<div class="modal-card"><div class="modal-card-label">Retirada</div><div class="modal-card-value">Balcão</div></div>'}
+            ${v.cupomCodigo?`<div class="modal-card"><div class="modal-card-label">Cupom</div><div class="modal-card-value">${v.cupomCodigo} (-R$ ${parseFloat(v.desconto||0).toFixed(2)})</div></div>`:''}
+        `;
+        let ih='';if(v.itens)v.itens.forEach(i=>{const cu=parseFloat(i.custoUn)||(products.find(p=>p.nome===i.nome)?.custo)||0;const pu=parseFloat(i.precoUn)||0,q=parseInt(i.qtd)||0,li=(pu-cu)*q;ih+=`<div class="modal-item"><div><strong>${q}x</strong> ${i.nome}${i.obs?` <span style="color:#f59e0b;font-size:10px;">(${i.obs})</span>`:''}</div><div style="text-align:right;">R$ ${(pu*q).toFixed(2)} <span style="color:var(--tm);font-size:10px;">| Custo: R$ ${(cu*q).toFixed(2)} | Lucro: R$ ${li.toFixed(2)}</span></div></div>`});document.getElementById('modalItems').innerHTML=ih||'<p style="color:var(--tm);">Nenhum item.</p>';
+        let ah='';if(v.adicionais&&v.adicionais.length>0){ah='<h4 style="font-size:12px;margin-bottom:6px;">🍟 Adicionais</h4>';v.adicionais.forEach(a=>{ah+=`<div class="modal-item"><span>• ${a.nome}</span><span style="color:#4ade80;">+R$ ${parseFloat(a.preco).toFixed(2)}</span></div>`})}document.getElementById('modalAdicionais').innerHTML=ah;
+        const ct=v.itens?v.itens.reduce((s,i)=>{const cu=parseFloat(i.custoUn)||(products.find(p=>p.nome===i.nome)?.custo)||0;return s+cu*(parseInt(i.qtd)||0);},0):0,lt=parseFloat(v.total||0)-ct;
+        document.getElementById('modalTotal').innerHTML=`<span>Total: R$ ${parseFloat(v.total).toFixed(2)}</span><span style="font-size:12px;">Custo: R$ ${ct.toFixed(2)} | Lucro: R$ ${lt.toFixed(2)}</span>`;
+        document.getElementById('saleDetailModal').classList.add('show');
+    };
+    window.closeSaleDetail = function(){document.getElementById('saleDetailModal').classList.remove('show');};
+    window.deleteSale = async function(id){if(confirm('Excluir esta venda?')){await window.fsDel(window.fsDoc(window.db,"vendas",id));toast('Venda removida!')}};
 
-    function exportCSV(){let csv='Data,Cliente,Telefone,Total,Custo,Lucro,Pagamento,Tipo,Endereço,Itens\n';sales.forEach(v=>{const itens=v.itens?v.itens.map(i=>i.qtd+'x '+i.nome).join('; '):'',custo=v.itens?v.itens.reduce((s,i)=>s+(parseFloat(i.custoUn)||0)*(parseInt(i.qtd)||0),0):0;csv+=`"${new Date(v.dataHora).toLocaleString('pt-BR')}","${v.cliente}","${v.telefone||''}","${v.total}","${custo.toFixed(2)}","${(parseFloat(v.total)-custo).toFixed(2)}","${v.formaPagamento}","${v.tipoEntrega||''}","${v.endereco||''}","${itens}"\n`});const b=new Blob(['\ufeff'+csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='relatorio.csv';a.click();toast('✅ CSV!')}
-    function exportJSON(){const b=new Blob([JSON.stringify(sales,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='relatorio.json';a.click();toast('✅ JSON!')}
+    window.exportCSV = function(){
+        let csv='Data,Cliente,Telefone,Total,Custo,Lucro,Pagamento,Tipo,Endereço,Itens\n';
+        sales.forEach(v=>{
+            const itens=v.itens?v.itens.map(i=>i.qtd+'x '+i.nome).join('; '):'';
+            const custo=v.itens?v.itens.reduce((s,i)=>{const cu=parseFloat(i.custoUn)||(products.find(p=>p.nome===i.nome)?.custo)||0;return s+cu*(parseInt(i.qtd)||0);},0):0;
+            const total=parseFloat(v.total)||0;
+            csv+=`"${new Date(v.dataHora).toLocaleString('pt-BR')}","${v.cliente}","${v.telefone||''}","${total.toFixed(2)}","${custo.toFixed(2)}","${(total-custo).toFixed(2)}","${v.formaPagamento}","${v.tipoEntrega||''}","${v.endereco||''}","${itens}"\n`;
+        });
+        const b=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
+        const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='relatorio.csv';a.click();toast('✅ CSV!');
+    };
+    window.exportJSON = function(){
+        const b=new Blob([JSON.stringify(sales,null,2)],{type:'application/json'});
+        const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='relatorio.json';a.click();toast('✅ JSON!');
+    };
+
+    // ==================== FINANCEIRO (DESPESAS + RESUMO) ====================
+    async function saveDespesa(){
+        const desc=document.getElementById('despesaDesc').value.trim();
+        const valor=parseFloat(document.getElementById('despesaValor').value);
+        const data=document.getElementById('despesaData').value;
+        if(!desc||isNaN(valor)||!data)return alert('Preencha todos os campos.');
+        try{
+            await window.fsAdd(window.fsColl(window.db,"despesas"),{descricao:desc,valor,data});
+            document.getElementById('despesaDesc').value='';
+            document.getElementById('despesaValor').value='';
+            document.getElementById('despesaData').value='';
+            toast('✅ Despesa lançada!');
+        }catch(e){alert('Erro ao salvar')}
+    }
+    async function deleteDespesa(id){if(confirm('Excluir?')){await window.fsDel(window.fsDoc(window.db,"despesas",id));toast('🗑️ Excluída!')}}
+
+    function loadDespesas(){
+        if(!window.db)return;
+        window.fsSnap(window.fsColl(window.db,"despesas"),snap=>{
+            despesas=[];snap.forEach(d=>despesas.push({id:d.id,...d.data()}));
+            renderDespesas();
+            updateResumoFinanceiro();
+        });
+    }
+    function renderDespesas(){
+        let h=''; let total=0;
+        despesas.sort((a,b)=>new Date(b.data)-new Date(a.data));
+        despesas.forEach(d=>{
+            total+=d.valor||0;
+            h+=`<div class="li"><div><strong>${d.descricao}</strong><br><span style="font-size:10px;color:var(--tm);">${new Date(d.data+'T00:00:00').toLocaleDateString('pt-BR')}</span></div><div style="display:flex;align-items:center;gap:10px;"><span style="color:#ef4444;">R$ ${(d.valor||0).toFixed(2)}</span><button class="btn btn-d" style="padding:4px 8px;font-size:10px;" onclick="deleteDespesa('${d.id}')">🗑️</button></div></div>`;
+        });
+        document.getElementById('despesasList').innerHTML=`<div style="margin-bottom:8px;font-weight:700;">Total: R$ ${total.toFixed(2)}</div>${h||'<p style="color:var(--tm);text-align:center;">Nenhuma despesa.</p>'}`;
+    }
+
+    function updateResumoFinanceiro(){
+        // Receita total de todas as vendas (independente de filtro)
+        let receitaTotal=0,custoTotal=0;
+        sales.forEach(v=>{
+            receitaTotal+=parseFloat(v.total)||0;
+            if(v.itens)v.itens.forEach(i=>{
+                const q=parseInt(i.qtd)||0;
+                let cu=parseFloat(i.custoUn)||0;
+                if(cu===0){const prod=products.find(p=>p.nome===i.nome);if(prod)cu=parseFloat(prod.custo)||0;}
+                custoTotal+=cu*q;
+            });
+        });
+        const despesasTotal=despesas.reduce((s,d)=>s+(d.valor||0),0);
+        const lucroLiquido=receitaTotal-custoTotal-despesasTotal;
+        const margemLiquida=receitaTotal>0?(lucroLiquido/receitaTotal)*100:0;
+        document.getElementById('finReceita').textContent='R$ '+receitaTotal.toFixed(2);
+        document.getElementById('finCusto').textContent='R$ '+custoTotal.toFixed(2);
+        document.getElementById('finDespesas').textContent='R$ '+despesasTotal.toFixed(2);
+        document.getElementById('finLucro').textContent='R$ '+lucroLiquido.toFixed(2);
+        document.getElementById('finMargem').textContent=margemLiquida.toFixed(1)+'%';
+    }
 
     // ==================== EXPEDIENTE ====================
     async function toggleLoja(abrir){try{await window.fsSet(window.fsDoc(window.db,"configuracoes","expediente"),{aberto:abrir},{merge:true});document.getElementById('btnAbrirLoja').style.opacity=abrir?'1':'0.5';document.getElementById('btnFecharLoja').style.opacity=abrir?'0.5':'1';toast(abrir?'🟢 Aberta!':'🔴 Fechada!')}catch(e){}}
@@ -277,7 +479,8 @@
         window.fsSnap(window.fsColl(window.db,"adicionais"),snap=>{adicionais=[];snap.forEach(d=>adicionais.push({id:d.id,...d.data()}));renderAddons()});
         window.fsSnap(window.fsColl(window.db,"cupons"),snap=>{coupons=[];snap.forEach(d=>coupons.push({id:d.id,...d.data()}));renderCoupons()});
         window.fsSnap(window.fsColl(window.db,"promocoes"),snap=>{promocoes=[];snap.forEach(d=>promocoes.push({id:d.id,...d.data()}));renderPromoTable()});
-        window.fsSnap(window.fsColl(window.db,"vendas"),snap=>{sales=[];snap.forEach(d=>sales.push({id:d.id,...d.data()}));if(document.getElementById('sec-relatorios').classList.contains('active')){handlePeriodChange();generateReport()}});
+        window.fsSnap(window.fsColl(window.db,"vendas"),snap=>{sales=[];snap.forEach(d=>sales.push({id:d.id,...d.data()}));if(document.getElementById('sec-relatorios').classList.contains('active')){handlePeriodChange();generateReport()}updateResumoFinanceiro()});
+        loadDespesas();
     }
     init();
 </script>
