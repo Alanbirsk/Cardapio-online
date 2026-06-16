@@ -409,9 +409,11 @@
         localStorage.setItem('aquarius_pedidos', JSON.stringify(history));
     }
 
+    // FUNÇÃO CORRIGIDA: normaliza o telefone antes de comparar
     function getPedidosPorTelefone(telefone) {
         const all = JSON.parse(localStorage.getItem('aquarius_pedidos') || '[]');
-        return all.filter(p => p.telefone === telefone);
+        const telNormalizado = telefone.replace(/\D/g, '');
+        return all.filter(p => p.telefone === telNormalizado);
     }
 
     window.viewOrderHistory = function() {
