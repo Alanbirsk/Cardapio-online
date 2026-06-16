@@ -115,13 +115,6 @@
         .footer-link{opacity:.3;font-size:11px;cursor:pointer;transition:.3s}.footer-link:hover{opacity:.8}
         .loading-spinner{text-align:center;padding:40px;color:var(--text-muted)}
         .error-message{text-align:center;padding:40px;color:#ef4444}
-        .history-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:100000;justify-content:center;align-items:center;padding:20px}
-        .history-modal{background:#0f0f1a;border-radius:28px;max-width:500px;width:100%;max-height:80vh;overflow-y:auto;padding:20px;border:1px solid var(--border-glass)}
-        .history-modal h3{font-size:18px;margin-bottom:12px;color:var(--verde)}
-        .history-item{background:rgba(255,255,255,0.03);border-radius:12px;padding:12px;margin-bottom:10px}
-        .history-number{font-weight:800;font-size:14px;color:#4ade80}
-        .history-date{font-size:10px;color:var(--text-muted)}
-        .history-total{font-weight:700;margin-top:4px}
     </style>
 </head>
 <body>
@@ -170,7 +163,7 @@
     </div>
 </div>
 
-<!-- MODAL DE CONFIRMAÇÃO -->
+<!-- MODAL DE CONFIRMAÇÃO (sem histórico) -->
 <div class="confirm-overlay" id="confirmOverlay">
     <div class="confirm-modal">
         <div class="confirm-icon">🎉</div>
@@ -185,21 +178,11 @@
         </div>
         <div class="confirm-details" id="confirmDetails"></div>
         <div style="display:flex; gap:8px; margin-bottom:12px;">
-            <button class="btn-close" style="flex:1;" onclick="viewOrderHistory()">📋 Ver meus pedidos</button>
             <button class="btn-close" style="flex:1; background:#25D366; color:#fff; border:none;" onclick="sendWhatsAppReceipt()">📲 Enviar comprovante</button>
         </div>
         <div class="confirm-actions">
             <button class="btn-close" onclick="closeConfirm()">✕ Fechar</button>
         </div>
-    </div>
-</div>
-
-<!-- Modal de histórico de pedidos -->
-<div id="historyModal" class="history-modal-overlay" onclick="closeHistoryModal(event)">
-    <div class="history-modal" onclick="event.stopPropagation()">
-        <h3>📦 Seus pedidos anteriores</h3>
-        <div id="historyList">Carregando...</div>
-        <button class="btn-close" style="margin-top:15px;" onclick="closeHistoryModal()">Fechar</button>
     </div>
 </div>
 
@@ -302,13 +285,12 @@
     let currentCat = '';
     let couponActive = null;
     let cozinhaOnline = true;
-    let pedidoAtualNumero = 0;
     let pedidoAtualDados = null;
     let dataLoaded = { products: false, categories: false };
     let adicionaisDisponiveis = [];
     let adicionaisSelecionados = [];
     let kitchenStatusUnsubscribe = null;
-    let upsellProduct = null, pendingOrderData = null, upsellOffered = false;
+    let isCheckoutInProgress = false;
 
     const DELIVERY_FEE = 10;
     const coupons = {
@@ -400,63 +382,6 @@
         } catch(e) { console.warn('Erro ao restaurar carrinho', e); }
         return false;
     }
-
-    // ==================== HISTÓRICO DE PEDIDOS ====================
-    function savePedidoToHistory(pedido) {
-        let history = JSON.parse(localStorage.getItem('aquarius_pedidos') || '[]');
-        history.unshift(pedido);
-        if (history.length > 20) history.pop();
-        localStorage.setItem('aquarius_pedidos', JSON.stringify(history));
-    }
-
-    // FUNÇÃO CORRIGIDA: normaliza o telefone antes de comparar
-    function getPedidosPorTelefone(telefone) {
-        const all = JSON.parse(localStorage.getItem('aquarius_pedidos') || '[]');
-        const telNormalizado = telefone.replace(/\D/g, '');
-        return all.filter(p => p.telefone === telNormalizado);
-    }
-
-    window.viewOrderHistory = function() {
-        const telefone = document.getElementById('telefone').value.trim();
-        if (!telefone) {
-            alert('Informe seu telefone no carrinho primeiro.');
-            return;
-        }
-        const pedidos = getPedidosPorTelefone(telefone);
-        const historyDiv = document.getElementById('historyList');
-        if (pedidos.length === 0) {
-            historyDiv.innerHTML = '<p style="text-align:center;color:var(--text-muted);">Nenhum pedido encontrado para este telefone.</p>';
-        } else {
-            historyDiv.innerHTML = pedidos.map(p => `
-                <div class="history-item">
-                    <div class="history-number">Pedido #${p.numeroPedido}</div>
-                    <div class="history-date">${new Date(p.dataHora).toLocaleString()}</div>
-                    <div>${p.itens.map(i => `${i.qtd}x ${i.nome}`).join(', ')}</div>
-                    <div class="history-total">Total: R$ ${p.total.toFixed(2)}</div>
-                    <div style="font-size:10px;color:var(--verde);">${p.status || 'finalizado'}</div>
-                </div>
-            `).join('');
-        }
-        document.getElementById('historyModal').style.display = 'flex';
-    };
-
-    window.closeHistoryModal = function(event) {
-        if (!event || event.target.classList.contains('history-modal-overlay')) {
-            document.getElementById('historyModal').style.display = 'none';
-        }
-    };
-
-    window.sendWhatsAppReceipt = function() {
-        if (!pedidoAtualDados) {
-            showToast('Nenhum pedido para compartilhar', 'error');
-            return;
-        }
-        const d = pedidoAtualDados;
-        const itensTexto = d.itens.map(i => `${i.qtd}x ${i.nome}`).join('%0A');
-        const mensagem = `🍔 *Aquarius Burguer* - Pedido #${d.numeroPedido}%0A%0A*Cliente:* ${d.cliente}%0A*Itens:*%0A${itensTexto}%0A*Subtotal:* R$ ${d.subtotal.toFixed(2)}%0A*Taxa entrega:* R$ ${d.taxaEntrega.toFixed(2)}%0A*Desconto:* R$ ${d.desconto.toFixed(2)}%0A*Total:* R$ ${d.total.toFixed(2)}%0A*Pagamento:* ${d.formaPagamento}%0A*Tipo:* ${d.tipoEntrega === 'entrega' ? 'Delivery' : 'Retirada'}%0A*Endereço:* ${d.endereco || 'Balcão'}%0A%0A✅ Pedido confirmado! Obrigado.`;
-        const url = `https://wa.me/55${d.telefone}?text=${mensagem}`;
-        window.open(url, '_blank');
-    };
 
     // ==================== FUNÇÕES DO CARRINHO ====================
     function toggleCart() {
@@ -597,7 +522,10 @@
 
     // ==================== FINALIZAR PEDIDO ====================
     window.startCheckout = async function() {
-        console.log('▶️ startCheckout chamada');
+        if (isCheckoutInProgress) {
+            showToast('Aguarde, já estamos finalizando seu pedido...', 'error');
+            return;
+        }
         if (!cozinhaOnline) { showToast('🔴 Cozinha offline!', 'error'); return; }
         if (!cart.length) { alert('Carrinho vazio.'); return; }
         
@@ -610,67 +538,82 @@
         if (!nm || !tl) { alert('Nome e telefone obrigatórios.'); return; }
         if (tp === 'entrega' && !ed) { alert('Endereço obrigatório.'); return; }
 
-        let s = 0;
-        const its = cart.map(it => { const sb = it.price * it.qty; s += sb; return { nome: it.name, qtd: it.qty, precoUn: it.price, obs: it.obs }; });
+        isCheckoutInProgress = true;
+        const btn = document.getElementById('btnFinalizar');
+        btn.disabled = true;
+        btn.textContent = '⏳ Processando...';
 
-        let tx = 0;
-        if (tp === 'entrega') { tx = isBairroFraron(ed) ? 0 : DELIVERY_FEE; }
+        try {
+            let s = 0;
+            const its = cart.map(it => { const sb = it.price * it.qty; s += sb; return { nome: it.name, qtd: it.qty, precoUn: it.price, obs: it.obs }; });
 
-        let d = 0;
-        if (couponActive) d = couponActive.type === 'percent' ? s * (couponActive.value / 100) : Math.min(couponActive.value, tx);
+            let tx = 0;
+            if (tp === 'entrega') { tx = isBairroFraron(ed) ? 0 : DELIVERY_FEE; }
 
-        const av = adicionaisSelecionados.reduce((sum, a) => sum + parseFloat(a.preco), 0);
-        const total = s + tx - d + av;
-        const np = Math.floor(Math.random() * 9000) + 1000;
+            let d = 0;
+            if (couponActive) d = couponActive.type === 'percent' ? s * (couponActive.value / 100) : Math.min(couponActive.value, tx);
 
-        pedidoAtualDados = {
-            cliente: nm,
-            telefone: tl.replace(/\D/g, ''),
-            tipoEntrega: tp,
-            endereco: ed,
-            formaPagamento: pg,
-            subtotal: s,
-            taxaEntrega: tx,
-            desconto: d,
-            adicionais: JSON.parse(JSON.stringify(adicionaisSelecionados)),
-            total: total,
-            dataHora: new Date().toISOString(),
-            itens: its,
-            numeroPedido: np,
-            status: 'pendente'
-        };
+            const av = adicionaisSelecionados.reduce((sum, a) => sum + parseFloat(a.preco), 0);
+            const total = s + tx - d + av;
+            const np = Math.floor(Math.random() * 9000) + 1000;
 
-        // Fechar carrinho e mostrar modal de confirmação imediatamente
-        toggleCart();
-        mostrarConfirmacao(np, nm, its, total, ed, tp, pg);
-        savePedidoToHistory(pedidoAtualDados);
+            const telefoneNormalizado = tl.replace(/\D/g, '');
 
-        // Limpar carrinho
-        cart = [];
-        couponActive = null;
-        adicionaisSelecionados = [];
-        document.getElementById('couponInput').value = '';
-        document.getElementById('couponMsg').textContent = '';
-        updateCart();
-        saveCartToLocalStorage();
+            pedidoAtualDados = {
+                cliente: nm,
+                telefone: telefoneNormalizado,
+                tipoEntrega: tp,
+                endereco: ed,
+                formaPagamento: pg,
+                subtotal: s,
+                taxaEntrega: tx,
+                desconto: d,
+                adicionais: JSON.parse(JSON.stringify(adicionaisSelecionados)),
+                total: total,
+                dataHora: new Date().toISOString(),
+                itens: its,
+                numeroPedido: np,
+                status: 'pendente'
+            };
 
-        // Tentar salvar no Firebase (em segundo plano)
-        if (window.db) {
-            try {
-                await window.fsAdd(window.fsCollection(window.db, "vendas"), pedidoAtualDados);
-                await window.fsAdd(window.fsCollection(window.db, "pedidos_ativos"), {
-                    ...pedidoAtualDados,
-                    status: 'pendente',
-                    ultimaAtualizacao: new Date().toISOString()
-                });
-                console.log('✅ Pedido salvo no Firebase:', np);
-            } catch (e) {
-                console.error('Erro ao salvar no Firebase:', e);
-                const detalhes = document.getElementById('confirmDetails');
-                detalhes.innerHTML += '<p style="color:#f59e0b;margin-top:8px;">⚠️ Servidor momentaneamente indisponível, mas seu pedido foi registrado.</p>';
+            // Fecha carrinho e mostra confirmação
+            toggleCart();
+            mostrarConfirmacao(np, nm, its, total, ed, tp, pg);
+
+            // Limpa carrinho
+            cart = [];
+            couponActive = null;
+            adicionaisSelecionados = [];
+            document.getElementById('couponInput').value = '';
+            document.getElementById('couponMsg').textContent = '';
+            updateCart();
+            saveCartToLocalStorage();
+
+            // Salva no Firebase (sem histórico local)
+            if (window.db) {
+                try {
+                    await window.fsAdd(window.fsCollection(window.db, "vendas"), pedidoAtualDados);
+                    await window.fsAdd(window.fsCollection(window.db, "pedidos_ativos"), {
+                        ...pedidoAtualDados,
+                        status: 'pendente',
+                        ultimaAtualizacao: new Date().toISOString()
+                    });
+                    console.log('✅ Pedido salvo no Firebase:', np);
+                } catch (e) {
+                    console.error('Erro ao salvar no Firebase:', e);
+                    const detalhes = document.getElementById('confirmDetails');
+                    detalhes.innerHTML += '<p style="color:#f59e0b;margin-top:8px;">⚠️ Servidor momentaneamente indisponível, mas seu pedido foi registrado.</p>';
+                }
+            } else {
+                console.warn('Firebase não disponível. Pedido não foi salvo.');
             }
-        } else {
-            console.warn('Firebase não disponível. Pedido salvo apenas localmente.');
+        } catch (err) {
+            console.error('Erro no checkout:', err);
+            alert('Ocorreu um erro ao finalizar o pedido. Tente novamente.');
+        } finally {
+            isCheckoutInProgress = false;
+            btn.disabled = false;
+            btn.textContent = cozinhaOnline ? 'Finalizar Pedido 🚀' : '🔴 Cozinha Offline';
         }
     };
 
@@ -691,6 +634,18 @@
     window.closeConfirm = function() {
         document.getElementById('confirmOverlay').classList.remove('show');
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.sendWhatsAppReceipt = function() {
+        if (!pedidoAtualDados) {
+            showToast('Nenhum pedido para compartilhar', 'error');
+            return;
+        }
+        const d = pedidoAtualDados;
+        const itensTexto = d.itens.map(i => `${i.qtd}x ${i.nome}`).join('%0A');
+        const mensagem = `🍔 *Aquarius Burguer* - Pedido #${d.numeroPedido}%0A%0A*Cliente:* ${d.cliente}%0A*Itens:*%0A${itensTexto}%0A*Subtotal:* R$ ${d.subtotal.toFixed(2)}%0A*Taxa entrega:* R$ ${d.taxaEntrega.toFixed(2)}%0A*Desconto:* R$ ${d.desconto.toFixed(2)}%0A*Total:* R$ ${d.total.toFixed(2)}%0A*Pagamento:* ${d.formaPagamento}%0A*Tipo:* ${d.tipoEntrega === 'entrega' ? 'Delivery' : 'Retirada'}%0A*Endereço:* ${d.endereco || 'Balcão'}%0A%0A✅ Pedido confirmado! Obrigado.`;
+        const url = `https://wa.me/55${d.telefone}?text=${mensagem}`;
+        window.open(url, '_blank');
     };
 
     // ==================== RENDERIZAÇÃO DO CARDÁPIO ====================
@@ -759,7 +714,7 @@
         }, err => { updateCozinhaStatus(true); });
     }
 
-    // Inicialização
+    // ==================== INICIALIZAÇÃO ====================
     updateCozinhaStatus(true);
     loadCartFromLocalStorage();
     initFirebaseData();
