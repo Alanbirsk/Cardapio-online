@@ -7,7 +7,6 @@
     <title>Aquarius Burguer - Cardápio Digital</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        /* (mantenha o mesmo CSS que você já tem, não alterei) */
         :root{--verde:#22c55e;--verde-dark:#16a34a;--bg-dark:#09090b;--card-bg:rgba(24,24,27,0.75);--border-glass:rgba(255,255,255,0.08);--text-muted:#a1a1aa;--danger:#ef4444;--warning:#f59e0b;--radius-xl:28px;--radius-md:14px}
         *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
         body{background:var(--bg-dark);color:#fff;min-height:100vh;padding-bottom:90px}
@@ -171,7 +170,7 @@
     </div>
 </div>
 
-<!-- MODAL DE CONFIRMAÇÃO (melhorado) -->
+<!-- MODAL DE CONFIRMAÇÃO -->
 <div class="confirm-overlay" id="confirmOverlay">
     <div class="confirm-modal">
         <div class="confirm-icon">🎉</div>
@@ -269,7 +268,7 @@
 
 <div class="footer-links">
     <span class="footer-link" onclick="window.open('admin.html','_blank')">⚙️ Gestão</span>
-    <span class="footer-link" onclick="openKitchen()">👨‍🍳 Cozinha</span>
+    <span class="footer-link" onclick="window.open('cozinha.html','_blank')">👨‍🍳 Cozinha</span>
     <span class="footer-link" onclick="window.open('tv.html','_blank')">📺 TV</span>
 </div>
 
@@ -594,7 +593,7 @@
         btn.style.opacity = cozinhaOnline ? '1' : '0.5';
     }
 
-    // ==================== FINALIZAR PEDIDO (CORRIGIDO) ====================
+    // ==================== FINALIZAR PEDIDO ====================
     window.startCheckout = async function() {
         console.log('▶️ startCheckout chamada');
         if (!cozinhaOnline) { showToast('🔴 Cozinha offline!', 'error'); return; }
@@ -653,7 +652,7 @@
         updateCart();
         saveCartToLocalStorage();
 
-        // Tentar salvar no Firebase (em segundo plano, sem travar o modal)
+        // Tentar salvar no Firebase (em segundo plano)
         if (window.db) {
             try {
                 await window.fsAdd(window.fsCollection(window.db, "vendas"), pedidoAtualDados);
@@ -756,15 +755,6 @@
             if (snap.exists()) updateCozinhaStatus(snap.data().online !== false); 
             else updateCozinhaStatus(true); 
         }, err => { updateCozinhaStatus(true); });
-    }
-
-    function openKitchen() {
-        const p = prompt('Senha da cozinha:');
-        if (p === 'cozinha123') {
-            localStorage.setItem('aquarius_kitchen_auth', JSON.stringify({ ts: Date.now() }));
-            window.open('cozinha.html', 'AquariusCozinha', 'width=1400,height=900');
-            showToast('👨‍🍳 Cozinha aberta!');
-        } else if (p !== null) alert('Senha incorreta!');
     }
 
     // Inicialização
