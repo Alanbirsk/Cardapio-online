@@ -163,7 +163,7 @@
     </div>
 </div>
 
-<!-- MODAL DE CONFIRMAÇÃO (sem histórico) -->
+<!-- MODAL DE CONFIRMAÇÃO -->
 <div class="confirm-overlay" id="confirmOverlay">
     <div class="confirm-modal">
         <div class="confirm-icon">🎉</div>
@@ -274,7 +274,7 @@
     window.fsAdd = addDoc;
     window.fsSnapshot = onSnapshot;
     window.fsDoc = doc;
-    console.log('Firebase conectado');
+    console.log('✅ Firebase conectado');
 </script>
 
 <script>
@@ -302,6 +302,7 @@
     // ==================== FUNÇÕES AUXILIARES ====================
     function showToast(m, t) {
         const el = document.getElementById('toast');
+        if (!el) return;
         el.textContent = m;
         el.className = 'toast' + (t ? ' ' + t : '');
         el.style.display = 'block';
@@ -318,25 +319,41 @@
         document.documentElement.setAttribute('data-theme', localStorage.getItem('aquarius_theme'));
 
     function toggleTroco() {
-        document.getElementById('troco').style.display = document.getElementById('pagamento').value === 'Dinheiro' ? 'block' : 'none';
+        const trocoEl = document.getElementById('troco');
+        if (!trocoEl) return;
+        trocoEl.style.display = document.getElementById('pagamento').value === 'Dinheiro' ? 'block' : 'none';
     }
 
+    // 🔥 FUNÇÃO QUE DETECTA FRARON (CASE INSENSITIVE)
     function isBairroFraron(endereco) {
-        if (!endereco) return false;
+        if (!endereco || typeof endereco !== 'string') return false;
         const endLower = endereco.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        return endLower.includes('fraron') || endLower.includes('frarom') || endLower.includes('frarão');
+        const contains = endLower.includes('fraron') || 
+                         endLower.includes('frarom') || 
+                         endLower.includes('frarão') ||
+                         endLower.includes('frarã') ||
+                         endLower.includes('frarao');
+        console.log(`🔍 Endereço normalizado: "${endLower}" → Fraron? ${contains}`);
+        return contains;
     }
 
     function updateCozinhaStatus(online) {
         cozinhaOnline = online;
-        document.getElementById('kitchenStatusBadge').className = 'kitchen-status-badge ' + (online ? 'online' : 'offline');
-        document.getElementById('kitchenStatusDot').className = 'kitchen-status-dot ' + (online ? 'online' : 'offline');
-        document.getElementById('kitchenStatusLabel').textContent = online ? 'Cozinha Online' : 'Cozinha Offline';
-        document.getElementById('cartOfflineAlert').classList.toggle('show', !online);
+        const badge = document.getElementById('kitchenStatusBadge');
+        const dot = document.getElementById('kitchenStatusDot');
+        const label = document.getElementById('kitchenStatusLabel');
+        const alert = document.getElementById('cartOfflineAlert');
         const btn = document.getElementById('btnFinalizar');
-        btn.disabled = !online;
-        btn.textContent = online ? 'Finalizar Pedido 🚀' : '🔴 Cozinha Offline';
-        btn.style.opacity = online ? '1' : '0.5';
+        
+        if (badge) badge.className = 'kitchen-status-badge ' + (online ? 'online' : 'offline');
+        if (dot) dot.className = 'kitchen-status-dot ' + (online ? 'online' : 'offline');
+        if (label) label.textContent = online ? 'Cozinha Online' : 'Cozinha Offline';
+        if (alert) alert.classList.toggle('show', !online);
+        if (btn) {
+            btn.disabled = !online;
+            btn.textContent = online ? 'Finalizar Pedido 🚀' : '🔴 Cozinha Offline';
+            btn.style.opacity = online ? '1' : '0.5';
+        }
         updateCart();
     }
 
@@ -347,11 +364,11 @@
                 cart: cart,
                 adicionaisSelecionados: adicionaisSelecionados,
                 couponActive: couponActive,
-                nome: document.getElementById('nome').value,
-                telefone: document.getElementById('telefone').value,
-                tipoEntrega: document.getElementById('tipoEntrega').value,
-                endereco: document.getElementById('endereco').value,
-                pagamento: document.getElementById('pagamento').value
+                nome: document.getElementById('nome')?.value || '',
+                telefone: document.getElementById('telefone')?.value || '',
+                tipoEntrega: document.getElementById('tipoEntrega')?.value || 'retirada',
+                endereco: document.getElementById('endereco')?.value || '',
+                pagamento: document.getElementById('pagamento')?.value || 'Pix'
             };
             localStorage.setItem('aquarius_cart', JSON.stringify(data));
         } catch(e) { console.warn('Erro ao salvar carrinho:', e); }
@@ -372,7 +389,7 @@
                     document.getElementById('tipoEntrega').value = data.tipoEntrega || 'retirada';
                     document.getElementById('endereco').value = data.endereco || '';
                     document.getElementById('pagamento').value = data.pagamento || 'Pix';
-                    document.getElementById('tipoEntrega').dispatchEvent(new Event('change'));
+                    document.getElementById('tipoEntrega')?.dispatchEvent(new Event('change'));
                     toggleTroco();
                     updateCart();
                     showToast('Carrinho restaurado!');
@@ -385,8 +402,10 @@
 
     // ==================== FUNÇÕES DO CARRINHO ====================
     function toggleCart() {
-        document.getElementById('cartPanel').classList.toggle('open');
-        if (document.getElementById('cartPanel').classList.contains('open')) renderAddons();
+        const panel = document.getElementById('cartPanel');
+        if (!panel) return;
+        panel.classList.toggle('open');
+        if (panel.classList.contains('open')) renderAddons();
     }
 
     window.addItem = function(n, p) {
@@ -410,23 +429,23 @@
     };
 
     window.applyCoupon = function() {
-        const c = document.getElementById('couponInput').value.toUpperCase().trim(),
-            m = document.getElementById('couponMsg');
-        if (!c) { m.textContent = 'Digite um código'; m.style.color = '#f59e0b'; return; }
+        const c = document.getElementById('couponInput').value.toUpperCase().trim();
+        const m = document.getElementById('couponMsg');
+        if (!c) { if (m) { m.textContent = 'Digite um código'; m.style.color = '#f59e0b'; } return; }
         const cp = coupons[c];
-        if (!cp) { m.textContent = '❌ Inválido!'; m.style.color = '#ef4444'; couponActive = null; updateCart(); saveCartToLocalStorage(); return; }
+        if (!cp) { if (m) { m.textContent = '❌ Inválido!'; m.style.color = '#ef4444'; } couponActive = null; updateCart(); saveCartToLocalStorage(); return; }
         couponActive = cp;
-        m.textContent = '✅ ' + cp.desc;
-        m.style.color = '#22c55e';
+        if (m) { m.textContent = '✅ ' + cp.desc; m.style.color = '#22c55e'; }
         showToast('🎫 Cupom aplicado!');
         updateCart();
         saveCartToLocalStorage();
     };
 
     function renderAddons() {
-        const section = document.getElementById('addonsSection'),
-            list = document.getElementById('addonsList'),
-            selected = document.getElementById('selectedAddons');
+        const section = document.getElementById('addonsSection');
+        const list = document.getElementById('addonsList');
+        const selected = document.getElementById('selectedAddons');
+        if (!section || !list || !selected) return;
         if (cart.length === 0 || adicionaisDisponiveis.length === 0) { section.style.display = 'none'; return; }
         const cats = [...new Set(cart.map(item => { const p = products.find(pp => pp.nome === item.name); return p ? p.categoria : null; }).filter(Boolean))];
         const nomesNoCarrinho = cart.map(item => item.name.toLowerCase());
@@ -457,14 +476,24 @@
     };
 
     function updateCart() {
+        const cartItemsEl = document.getElementById('cartItems');
+        const subtotalEl = document.getElementById('subtotal');
+        const descontoEl = document.getElementById('desconto');
+        const totalEl = document.getElementById('total');
+        const cartCountEl = document.getElementById('cartCount');
+        const enderecoEl = document.getElementById('endereco');
+        const addonsTotalRow = document.getElementById('addonsTotalRow');
+        const addonsTotalEl = document.getElementById('addonsTotal');
+        const btnFinalizar = document.getElementById('btnFinalizar');
+
         let h = '', s = 0, ct = 0;
         cart.forEach((it, i) => {
             const sb = it.price * it.qty; s += sb; ct += it.qty;
             h += `<div class="cart-item"><div style="display:flex;justify-content:space-between;font-weight:700;font-size:12px"><span>${it.name}</span><span>R$ ${sb.toFixed(2)}</span></div><div class="qty-controls"><button class="qty-btn" onclick="changeQty(${i},-1)">-</button><span>${it.qty}</span><button class="qty-btn" onclick="changeQty(${i},1)">+</button><button class="remove-btn" onclick="changeQty(${i},-${it.qty})">Remover</button></div><textarea placeholder="Observações..." oninput="updateObs(${i},this.value)" style="width:100%;padding:6px;border-radius:6px;background:#1c1c1f;color:#fff;border:1px solid var(--border-glass);font-size:10px;resize:vertical;min-height:28px;">${it.obs}</textarea></div>`;
         });
 
-        const tp = document.getElementById('tipoEntrega').value;
-        const endereco = document.getElementById('endereco').value.trim();
+        const tp = document.getElementById('tipoEntrega')?.value || 'retirada';
+        const endereco = document.getElementById('endereco')?.value?.trim() || '';
         let tx = 0, isFraron = false;
         if (tp === 'entrega') {
             isFraron = isBairroFraron(endereco);
@@ -475,20 +504,20 @@
         const taxaLabel = document.getElementById('taxaLabel');
         const taxaSpan = document.getElementById('taxa');
         if (tp === 'entrega' && isFraron) {
-            freteInfo.classList.add('show');
-            taxaOriginal.style.display = 'inline';
-            taxaSpan.textContent = '0.00';
-            taxaLabel.innerHTML = '<strong style="color:#22c55e;">GRÁTIS (Fraron)</strong>';
+            if (freteInfo) freteInfo.classList.add('show');
+            if (taxaOriginal) taxaOriginal.style.display = 'inline';
+            if (taxaSpan) taxaSpan.textContent = '0.00';
+            if (taxaLabel) taxaLabel.innerHTML = '<strong style="color:#22c55e;">GRÁTIS (Fraron)</strong>';
         } else if (tp === 'entrega' && !isFraron) {
-            freteInfo.classList.remove('show');
-            taxaOriginal.style.display = 'none';
-            taxaSpan.textContent = DELIVERY_FEE.toFixed(2);
-            taxaLabel.innerHTML = 'R$ <span id="taxa">' + DELIVERY_FEE.toFixed(2) + '</span>';
+            if (freteInfo) freteInfo.classList.remove('show');
+            if (taxaOriginal) taxaOriginal.style.display = 'none';
+            if (taxaSpan) taxaSpan.textContent = DELIVERY_FEE.toFixed(2);
+            if (taxaLabel) taxaLabel.innerHTML = 'R$ <span id="taxa">' + DELIVERY_FEE.toFixed(2) + '</span>';
         } else {
-            freteInfo.classList.remove('show');
-            taxaOriginal.style.display = 'none';
-            taxaSpan.textContent = '0.00';
-            taxaLabel.innerHTML = 'R$ <span id="taxa">0.00</span>';
+            if (freteInfo) freteInfo.classList.remove('show');
+            if (taxaOriginal) taxaOriginal.style.display = 'none';
+            if (taxaSpan) taxaSpan.textContent = '0.00';
+            if (taxaLabel) taxaLabel.innerHTML = 'R$ <span id="taxa">0.00</span>';
         }
 
         let d = 0;
@@ -496,32 +525,35 @@
             if (couponActive.type === 'percent') d = s * (couponActive.value / 100);
             else d = Math.min(couponActive.value, tx);
         }
-        const av = adicionaisSelecionados.reduce((sum, a) => sum + parseFloat(a.preco), 0);
+        const av = adicionaisSelecionados.reduce((sum, a) => sum + parseFloat(a.preco || 0), 0);
         const tt = s + tx - d + av;
 
-        document.getElementById('cartItems').innerHTML = h || '<p style="text-align:center;color:var(--text-muted);padding:16px 0;">Carrinho vazio.</p>';
-        document.getElementById('subtotal').textContent = s.toFixed(2);
-        document.getElementById('desconto').textContent = d.toFixed(2);
-        document.getElementById('total').textContent = 'R$ ' + tt.toFixed(2);
-        document.getElementById('cartCount').textContent = ct;
-        document.getElementById('endereco').style.display = tp === 'entrega' ? 'block' : 'none';
+        if (cartItemsEl) cartItemsEl.innerHTML = h || '<p style="text-align:center;color:var(--text-muted);padding:16px 0;">Carrinho vazio.</p>';
+        if (subtotalEl) subtotalEl.textContent = s.toFixed(2);
+        if (descontoEl) descontoEl.textContent = d.toFixed(2);
+        if (totalEl) totalEl.textContent = 'R$ ' + tt.toFixed(2);
+        if (cartCountEl) cartCountEl.textContent = ct;
+        if (enderecoEl) enderecoEl.style.display = tp === 'entrega' ? 'block' : 'none';
 
-        const ar = document.getElementById('addonsTotalRow');
-        if (av > 0) {
-            ar.style.display = 'flex';
-            document.getElementById('addonsTotal').textContent = av.toFixed(2);
-        } else {
-            ar.style.display = 'none';
+        if (addonsTotalRow) {
+            if (av > 0) {
+                addonsTotalRow.style.display = 'flex';
+                if (addonsTotalEl) addonsTotalEl.textContent = av.toFixed(2);
+            } else {
+                addonsTotalRow.style.display = 'none';
+            }
         }
 
-        const btn = document.getElementById('btnFinalizar');
-        btn.disabled = !cozinhaOnline;
-        btn.textContent = cozinhaOnline ? 'Finalizar Pedido 🚀' : '🔴 Cozinha Offline';
-        btn.style.opacity = cozinhaOnline ? '1' : '0.5';
+        if (btnFinalizar) {
+            btnFinalizar.disabled = !cozinhaOnline;
+            btnFinalizar.textContent = cozinhaOnline ? 'Finalizar Pedido 🚀' : '🔴 Cozinha Offline';
+            btnFinalizar.style.opacity = cozinhaOnline ? '1' : '0.5';
+        }
     }
 
-    // ==================== FINALIZAR PEDIDO ====================
+    // ==================== FINALIZAR PEDIDO (CORRIGIDO) ====================
     window.startCheckout = async function() {
+        console.log('▶️ startCheckout chamada');
         if (isCheckoutInProgress) {
             showToast('Aguarde, já estamos finalizando seu pedido...', 'error');
             return;
@@ -535,29 +567,55 @@
         const ed = document.getElementById('endereco').value.trim();
         const pg = document.getElementById('pagamento').value;
         
+        console.log('📝 Dados do pedido:', { nm, tl, tp, ed, pg });
+
         if (!nm || !tl) { alert('Nome e telefone obrigatórios.'); return; }
-        if (tp === 'entrega' && !ed) { alert('Endereço obrigatório.'); return; }
+        if (tp === 'entrega' && !ed) { 
+            alert('Endereço obrigatório para entrega.');
+            return;
+        }
 
         isCheckoutInProgress = true;
         const btn = document.getElementById('btnFinalizar');
-        btn.disabled = true;
-        btn.textContent = '⏳ Processando...';
+        if (btn) { btn.disabled = true; btn.textContent = '⏳ Processando...'; }
 
         try {
             let s = 0;
-            const its = cart.map(it => { const sb = it.price * it.qty; s += sb; return { nome: it.name, qtd: it.qty, precoUn: it.price, obs: it.obs }; });
+            const its = cart.map(it => { 
+                const sb = it.price * it.qty; 
+                s += sb; 
+                return { nome: it.name, qtd: it.qty, precoUn: it.price, obs: it.obs || '' }; 
+            });
+            console.log(`💰 Subtotal: R$ ${s.toFixed(2)}`);
 
             let tx = 0;
-            if (tp === 'entrega') { tx = isBairroFraron(ed) ? 0 : DELIVERY_FEE; }
+            if (tp === 'entrega') {
+                const isFraron = isBairroFraron(ed);
+                tx = isFraron ? 0 : DELIVERY_FEE;
+                console.log(`🚚 Taxa de entrega: R$ ${tx.toFixed(2)} (Fraron? ${isFraron})`);
+            }
 
             let d = 0;
-            if (couponActive) d = couponActive.type === 'percent' ? s * (couponActive.value / 100) : Math.min(couponActive.value, tx);
+            if (couponActive) {
+                if (couponActive.type === 'percent') {
+                    d = s * (couponActive.value / 100);
+                } else {
+                    d = Math.min(couponActive.value, tx);
+                }
+                console.log(`🎫 Desconto: R$ ${d.toFixed(2)}`);
+            }
 
-            const av = adicionaisSelecionados.reduce((sum, a) => sum + parseFloat(a.preco), 0);
+            const av = adicionaisSelecionados.reduce((sum, a) => sum + parseFloat(a.preco || 0), 0);
+            console.log(`🍟 Adicionais: R$ ${av.toFixed(2)}`);
+
             const total = s + tx - d + av;
+            console.log(`💵 Total final: R$ ${total.toFixed(2)}`);
+
             const np = Math.floor(Math.random() * 9000) + 1000;
+            console.log(`🆕 Número do pedido: ${np}`);
 
             const telefoneNormalizado = tl.replace(/\D/g, '');
+            console.log(`📱 Telefone normalizado: ${telefoneNormalizado}`);
 
             pedidoAtualDados = {
                 cliente: nm,
@@ -575,64 +633,79 @@
                 numeroPedido: np,
                 status: 'pendente'
             };
+            console.log('📦 Pedido montado:', pedidoAtualDados);
 
-            // Fecha carrinho e mostra confirmação
+            // Mostrar confirmação e limpar carrinho
             toggleCart();
             mostrarConfirmacao(np, nm, its, total, ed, tp, pg);
 
-            // Limpa carrinho
             cart = [];
             couponActive = null;
             adicionaisSelecionados = [];
             document.getElementById('couponInput').value = '';
-            document.getElementById('couponMsg').textContent = '';
+            const msg = document.getElementById('couponMsg');
+            if (msg) msg.textContent = '';
             updateCart();
             saveCartToLocalStorage();
 
-            // Salva no Firebase (sem histórico local)
+            // Salvar no Firebase
             if (window.db) {
+                console.log('💾 Salvando no Firebase...');
                 try {
                     await window.fsAdd(window.fsCollection(window.db, "vendas"), pedidoAtualDados);
+                    console.log('✅ Venda salva com sucesso');
                     await window.fsAdd(window.fsCollection(window.db, "pedidos_ativos"), {
                         ...pedidoAtualDados,
                         status: 'pendente',
                         ultimaAtualizacao: new Date().toISOString()
                     });
-                    console.log('✅ Pedido salvo no Firebase:', np);
-                } catch (e) {
-                    console.error('Erro ao salvar no Firebase:', e);
+                    console.log('✅ Pedido ativo salvo com sucesso, número:', np);
+                } catch (firebaseError) {
+                    console.error('❌ Erro no Firebase:', firebaseError);
                     const detalhes = document.getElementById('confirmDetails');
-                    detalhes.innerHTML += '<p style="color:#f59e0b;margin-top:8px;">⚠️ Servidor momentaneamente indisponível, mas seu pedido foi registrado.</p>';
+                    if (detalhes) {
+                        detalhes.innerHTML += `<p style="color:#f59e0b;margin-top:8px;">⚠️ Erro ao salvar no servidor: ${firebaseError.message}. Seu pedido foi registrado localmente.</p>`;
+                    }
                 }
             } else {
-                console.warn('Firebase não disponível. Pedido não foi salvo.');
+                console.warn('⚠️ Firebase não disponível.');
             }
+
+            console.log('✅ Fluxo de checkout concluído com sucesso!');
+
         } catch (err) {
-            console.error('Erro no checkout:', err);
-            alert('Ocorreu um erro ao finalizar o pedido. Tente novamente.');
+            console.error('❌ Erro inesperado no checkout:', err);
+            alert(`Ocorreu um erro ao finalizar o pedido:\n\n${err.message || err}\n\nVerifique o console para mais detalhes.`);
         } finally {
             isCheckoutInProgress = false;
-            btn.disabled = false;
-            btn.textContent = cozinhaOnline ? 'Finalizar Pedido 🚀' : '🔴 Cozinha Offline';
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = cozinhaOnline ? 'Finalizar Pedido 🚀' : '🔴 Cozinha Offline';
+            }
         }
     };
 
     function mostrarConfirmacao(numero, nome, itens, total, endereco, tipoEntrega, pagamento) {
-        document.getElementById('confirmNumber').textContent = '#' + numero;
-        const detalhes = document.getElementById('confirmDetails');
-        const itensTexto = itens.map(i => `${i.qtd}x ${i.nome}`).join(', ');
-        detalhes.innerHTML = `
-            <div class="confirm-detail-row"><span>👤 Cliente:</span><span>${nome}</span></div>
-            <div class="confirm-detail-row"><span>🍔 Itens:</span><span>${itensTexto}</span></div>
-            <div class="confirm-detail-row"><span>💰 Total:</span><span style="color:#4ade80;font-size:16px;">R$ ${total.toFixed(2)}</span></div>
-            ${tipoEntrega === 'entrega' ? `<div class="confirm-detail-row"><span>📍 Entrega:</span><span>${endereco}</span></div>` : `<div class="confirm-detail-row"><span>🏪 Retirada:</span><span>No balcão</span></div>`}
-            <div class="confirm-detail-row"><span>💳 Pagamento:</span><span>${pagamento}</span></div>
-        `;
-        document.getElementById('confirmOverlay').classList.add('show');
+        const numberEl = document.getElementById('confirmNumber');
+        const detailsEl = document.getElementById('confirmDetails');
+        if (numberEl) numberEl.textContent = '#' + numero;
+        if (detailsEl) {
+            const itensTexto = itens.map(i => `${i.qtd}x ${i.nome}`).join(', ');
+            detailsEl.innerHTML = `
+                <div class="confirm-detail-row"><span>👤 Cliente:</span><span>${nome}</span></div>
+                <div class="confirm-detail-row"><span>🍔 Itens:</span><span>${itensTexto}</span></div>
+                <div class="confirm-detail-row"><span>💰 Total:</span><span style="color:#4ade80;font-size:16px;">R$ ${total.toFixed(2)}</span></div>
+                ${tipoEntrega === 'entrega' ? `<div class="confirm-detail-row"><span>📍 Entrega:</span><span>${endereco}</span></div>` : `<div class="confirm-detail-row"><span>🏪 Retirada:</span><span>No balcão</span></div>`}
+                <div class="confirm-detail-row"><span>💳 Pagamento:</span><span>${pagamento}</span></div>
+            `;
+        }
+        const overlay = document.getElementById('confirmOverlay');
+        if (overlay) overlay.classList.add('show');
     }
 
     window.closeConfirm = function() {
-        document.getElementById('confirmOverlay').classList.remove('show');
+        const overlay = document.getElementById('confirmOverlay');
+        if (overlay) overlay.classList.remove('show');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
@@ -653,19 +726,17 @@
         if (!dataLoaded.categories || !dataLoaded.products) return;
         const loadingDiv = document.getElementById('loadingMessage');
         const errorDiv = document.getElementById('errorMessage');
-        loadingDiv.style.display = 'none';
+        if (loadingDiv) loadingDiv.style.display = 'none';
         if (categories.length === 0) {
-            errorDiv.style.display = 'block';
-            errorDiv.textContent = '❌ Nenhuma categoria encontrada. Cadastre categorias no Firebase.';
+            if (errorDiv) { errorDiv.style.display = 'block'; errorDiv.textContent = '❌ Nenhuma categoria encontrada. Cadastre categorias no Firebase.'; }
             document.getElementById('productsGrid').innerHTML = '';
             document.getElementById('navCategories').innerHTML = '';
             return;
         }
         if (products.length === 0) {
-            errorDiv.style.display = 'block';
-            errorDiv.textContent = '❌ Nenhum produto encontrado. Cadastre produtos no Firebase.';
+            if (errorDiv) { errorDiv.style.display = 'block'; errorDiv.textContent = '❌ Nenhum produto encontrado. Cadastre produtos no Firebase.'; }
         } else {
-            errorDiv.style.display = 'none';
+            if (errorDiv) errorDiv.style.display = 'none';
         }
         let ch = '';
         categories.forEach(c => {
@@ -718,6 +789,9 @@
     updateCozinhaStatus(true);
     loadCartFromLocalStorage();
     initFirebaseData();
+
+    console.log('✅ Sistema iniciado. Frete grátis para Fraron ativo.');
+    console.log('🔧 Para depuração, acompanhe os logs no console.');
 </script>
 </body>
 </html>
