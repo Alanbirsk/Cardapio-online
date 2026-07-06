@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         :root{--v:#22c55e;--bg:#09090b;--bb:rgba(255,255,255,.08);--tm:#a1a1aa;--d:#ef4444;--w:#f59e0b;--i:#3b82f6}
         *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
@@ -24,10 +25,13 @@
         .card h3{font-size:15px;margin-bottom:12px;color:var(--v)}
         input,select,textarea{width:100%;padding:10px;margin-bottom:8px;border-radius:8px;background:#1c1c1f;color:#fff;border:1px solid var(--bb);font-size:12px;outline:none}
         input:focus,select:focus,textarea:focus{border-color:var(--v)}select{appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:35px}
+        select[multiple]{appearance:listbox;background-image:none;padding-right:10px;height:auto;min-height:80px}
         textarea{resize:vertical;min-height:50px}
         .g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}@media(max-width:768px){.g2{grid-template-columns:1fr}}
         .li{background:rgba(255,255,255,.02);border:1px solid var(--bb);padding:12px;border-radius:10px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;cursor:pointer;transition:all .2s}
         .li:hover{background:rgba(34,197,94,0.03);border-color:rgba(34,197,94,0.2)}
+        .li-indisponivel{opacity:0.5;border-color:var(--d);}
+        .li-indisponivel strong{text-decoration:line-through;color:#666;}
         .badge{padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700;white-space:nowrap}.badge-v{background:rgba(34,197,94,.2);color:#22c55e}.badge-r{background:rgba(239,68,68,.2);color:#ef4444}.badge-w{background:rgba(245,158,11,.2);color:#f59e0b}.badge-i{background:rgba(59,130,246,.2);color:#3b82f6}
         table{width:100%;border-collapse:collapse;font-size:11px}th{padding:8px 10px;border-bottom:1px solid var(--bb);color:var(--tm);text-align:left}td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.03)}
         .toast{position:fixed;bottom:16px;right:16px;background:var(--v);padding:10px 16px;border-radius:8px;font-weight:800;font-size:12px;z-index:9999;display:none}
@@ -54,6 +58,15 @@
         .filter-row{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-bottom:16px}
         .filter-row input,.filter-row select{width:auto;min-width:140px;margin-bottom:0}
         .alerta-preco{color:#ef4444;font-size:10px;margin-left:5px;}
+        .mov-tipo-badge{font-size:10px;padding:2px 8px;border-radius:12px;}
+        .mov-tipo-receita{background:rgba(34,197,94,0.2);color:#22c55e;}
+        .mov-tipo-despesa{background:rgba(239,68,68,0.2);color:#ef4444;}
+        .chart-container{background:rgba(255,255,255,0.02);border:1px solid var(--bb);border-radius:12px;padding:12px;margin-bottom:16px;max-height:350px;}
+        #salesChart, #rankingChart, #monthlyChart{max-height:280px;width:100% !important;}
+        .cmv-display{display:inline-block;background:rgba(255,255,255,0.05);padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;margin-top:4px;}
+        .cmv-display .cmv-value{color:#f59e0b;}
+        .cmv-display .cmv-label{color:var(--tm);}
+        .categoria-badge{display:inline-block;background:rgba(34,197,94,0.15);color:#22c55e;padding:1px 8px;border-radius:10px;font-size:9px;margin:2px 3px 2px 0;}
     </style>
 </head>
 <body>
@@ -72,25 +85,43 @@
         <button class="tab" onclick="switchTab('expediente')">🕐 Expediente</button>
     </div>
 
-    <!-- PRODUTOS -->
+    <!-- ================= PRODUTOS ================= -->
     <div class="sec active" id="sec-produtos">
-        <div class="card"><h3 id="formTitle">➕ Adicionar Produto</h3><input type="hidden" id="prodId"><input id="prodNome" placeholder="Nome"><textarea id="prodDesc" placeholder="Descrição"></textarea><div class="g2"><input id="prodPreco" type="number" step="0.01" placeholder="Preço (R$)"><input id="prodCusto" type="number" step="0.01" placeholder="Custo (R$)"></div><div class="upload-area" onclick="document.getElementById('prodFile').click()"><span id="uploadLabel">📸 Clique para foto</span><input type="file" id="prodFile" accept="image/*" onchange="handleProductImage(this)" style="display:none"></div><div id="cropBox" style="display:none;background:#141416;border:1px solid var(--bb);border-radius:10px;padding:14px;margin-bottom:8px;"><img id="cropImg" src="" style="max-width:100%;max-height:250px;display:block;margin:0 auto"><div style="display:flex;gap:6px;margin-top:10px;"><button class="btn btn-a" onclick="confirmCrop()">✂️ Recortar</button><button class="btn btn-o" onclick="resetCrop()">🔄 Resetar</button></div></div><select id="prodCategoria"><option value="">Categoria...</option></select><input id="prodTag" placeholder="Tag (Ex: 🔥 Novidade)"><div style="display:flex;gap:8px;"><button class="btn btn-v" onclick="saveProduct()" style="flex:1">💾 Salvar</button><button class="btn btn-o" id="btnCancelProduct" style="display:none" onclick="clearProductForm()">Cancelar</button></div></div>
+        <div class="card">
+            <h3 id="formTitle">➕ Adicionar Produto</h3>
+            <input type="hidden" id="prodId">
+            <input id="prodNome" placeholder="Nome">
+            <textarea id="prodDesc" placeholder="Descrição"></textarea>
+            <div class="g2">
+                <input id="prodPreco" type="number" step="0.01" placeholder="Preço (R$)" oninput="calcCMV()">
+                <input id="prodCusto" type="number" step="0.01" placeholder="Custo (R$)" oninput="calcCMV()">
+            </div>
+            <div id="cmvDisplay" class="cmv-display"><span class="cmv-label">📊 CMV: </span><span class="cmv-value" id="cmvValue">0%</span></div>
+            <div class="upload-area" onclick="document.getElementById('prodFile').click()"><span id="uploadLabel">📸 Clique para foto</span><input type="file" id="prodFile" accept="image/*" onchange="handleProductImage(this)" style="display:none"></div>
+            <div id="cropBox" style="display:none;background:#141416;border:1px solid var(--bb);border-radius:10px;padding:14px;margin-bottom:8px;"><img id="cropImg" src="" style="max-width:100%;max-height:250px;display:block;margin:0 auto"><div style="display:flex;gap:6px;margin-top:10px;"><button class="btn btn-a" onclick="confirmCrop()">✂️ Recortar</button><button class="btn btn-o" onclick="resetCrop()">🔄 Resetar</button></div></div>
+            <label style="font-size:10px;color:var(--tm);display:block;margin-bottom:4px;">📁 Categorias (segure Ctrl/Cmd para múltiplas)</label>
+            <select id="prodCategorias" multiple style="height:auto;min-height:80px;">
+                <option value="">Nenhuma</option>
+            </select>
+            <input id="prodTag" placeholder="Tag (Ex: 🔥 Novidade)">
+            <div style="display:flex;gap:8px;"><button class="btn btn-v" onclick="saveProduct()" style="flex:1">💾 Salvar</button><button class="btn btn-o" id="btnCancelProduct" style="display:none" onclick="clearProductForm()">Cancelar</button></div>
+        </div>
         <h3 style="margin-bottom:8px;">📋 Produtos</h3><div id="productsList"></div>
     </div>
 
-    <!-- CATEGORIAS -->
+    <!-- ================= CATEGORIAS ================= -->
     <div class="sec" id="sec-categorias"><div class="card"><h3>➕ Categoria</h3><div style="display:flex;gap:6px"><input id="catNome" placeholder="Nome" style="flex:1;margin-bottom:0"><button class="btn btn-v" onclick="saveCategory()">Cadastrar</button></div></div><h3 style="margin-bottom:8px;">📁 Categorias</h3><div id="categoriesList"></div></div>
 
-    <!-- ADICIONAIS -->
+    <!-- ================= ADICIONAIS ================= -->
     <div class="sec" id="sec-adicionais"><div class="card"><h3 id="addonFormTitle">➕ Adicional</h3><input type="hidden" id="addonId"><input id="addonNome" placeholder="Nome"><div class="g2"><input id="addonPreco" type="number" step="0.01" placeholder="Preço"><select id="addonCategoria"><option value="todas">Todas</option></select></div><label style="font-size:11px;display:flex;align-items:center;gap:4px;margin-bottom:8px"><input type="checkbox" id="addonAtivo" checked> Ativo</label><button class="btn btn-v" onclick="saveAddon()" style="width:100%">💾 Salvar</button><button class="btn btn-o" id="btnCancelAddon" style="display:none;width:100%;margin-top:4px" onclick="clearAddonForm()">Cancelar</button></div><h3 style="margin-bottom:8px;">🍟 Adicionais</h3><div id="addonsList"></div></div>
 
-    <!-- CUPONS -->
+    <!-- ================= CUPONS ================= -->
     <div class="sec" id="sec-cupons"><div class="card"><h3 id="cupomFormTitle">➕ Cupom</h3><input type="hidden" id="cupomId"><input id="cupomCodigo" placeholder="Código" style="text-transform:uppercase"><div class="g2"><select id="cupomTipo"><option value="percent">%</option><option value="fixed">R$</option></select><input id="cupomValor" type="number" step="0.01" placeholder="Valor"></div><input id="cupomDesc" placeholder="Descrição"><div class="g2"><input id="cupomValorMin" type="number" step="0.01" placeholder="Valor Mínimo" value="0"><input id="cupomLimite" type="number" placeholder="Limite Usos" value="0"></div><label style="font-size:11px;display:flex;align-items:center;gap:4px;margin-bottom:8px"><input type="checkbox" id="cupomAtivo" checked> Ativo</label><button class="btn btn-v" onclick="saveCoupon()" style="width:100%">💾 Salvar</button><button class="btn btn-o" id="btnCancelCupom" style="display:none;width:100%;margin-top:4px" onclick="clearCouponForm()">Cancelar</button></div><h3 style="margin-bottom:8px;">🎫 Cupons</h3><div id="couponsList"></div></div>
 
-    <!-- UPSELL -->
+    <!-- ================= UPSELL ================= -->
     <div class="sec" id="sec-upsell"><div class="card"><h3>🎯 Upsell por Produto</h3><p style="font-size:11px;color:var(--tm);margin-bottom:12px">Configure qual produto oferecer como upsell.</p><div class="g2" style="margin-bottom:10px"><div><label style="font-size:10px;color:var(--tm)">Produto Principal</label><select id="upsellProdutoPrincipal" onchange="loadUpsellConfig()"><option value="">Selecione...</option></select></div><div><label style="font-size:10px;color:var(--tm)">Upsell</label><select id="upsellProdutoOferta"><option value="">Selecione...</option></select></div></div><div class="toggle-row"><span>Ativo:</span><button class="btn btn-v" id="btnUpsellOn" onclick="toggleUpsellConfig(true)" style="padding:6px 12px;font-size:10px">🟢 Sim</button><button class="btn btn-d" id="btnUpsellOff" onclick="toggleUpsellConfig(false)" style="padding:6px 12px;font-size:10px">🔴 Não</button></div><button class="btn btn-v" onclick="saveUpsellConfig()">💾 Salvar</button></div><h3 style="margin-bottom:8px;">📋 Relação Produto → Upsell</h3><div style="overflow-x:auto"><table><thead><tr><th>Produto</th><th>Preço</th><th>Upsell</th><th>Status</th><th style="text-align:center">Ações</th></tr></thead><tbody id="upsellsTableBody"><tr><td colspan="5" style="text-align:center;color:var(--tm);padding:20px">Carregando...</td></tr></tbody></table></div></div>
 
-    <!-- PROMOÇÕES TV -->
+    <!-- ================= PROMOÇÕES TV ================= -->
     <div class="sec" id="sec-promocoes">
         <div class="card">
             <h3 id="promoFormTitle">🔥 Adicionar Promoção para TV</h3>
@@ -112,7 +143,7 @@
         <div style="overflow-x:auto;"><table><thead><tr><th style="width:60px;">Img</th><th>Nome</th><th>Preço</th><th>Status</th><th style="text-align:center;width:120px;">Ações</th></tr></thead><tbody id="promoTableBody"><tr><td colspan="5" style="text-align:center;color:var(--tm);padding:20px;">Nenhuma</td></tr></tbody></table></div>
     </div>
 
-    <!-- RELATÓRIOS -->
+    <!-- ================= RELATÓRIOS ================= -->
     <div class="sec" id="sec-relatorios">
         <div class="card">
             <h3>📅 Filtrar Período</h3>
@@ -134,12 +165,52 @@
             <div class="indicator-card"><div class="indicator-value green" id="rDelivery">0</div><div class="indicator-label">🛵 Deliverys</div></div>
             <div class="indicator-card"><div class="indicator-value white" id="rRetirada">0</div><div class="indicator-label">🏪 Retiradas</div></div>
         </div>
-        <div class="card" style="margin-bottom:16px;"><h3>🏆 Ranking de Mais Vendidos</h3><div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Produto</th><th style="text-align:center">Qtd</th><th style="text-align:right">Receita</th><th style="text-align:right">Custo</th><th style="text-align:right">Lucro</th><th style="text-align:right">Margem</th></tr></thead><tbody id="rankingTableBody"></tbody></table></div></div>
+
+        <!-- GRÁFICO EVOLUÇÃO DIÁRIA -->
+        <div class="card" style="margin-bottom:16px;">
+            <h3>📈 Evolução Diária - Faturamento vs Lucro Bruto</h3>
+            <div class="chart-container">
+                <canvas id="salesChart"></canvas>
+            </div>
+        </div>
+
+        <!-- NOVO: GRÁFICO COMPARATIVO MENSAL -->
+        <div class="card" style="margin-bottom:16px;">
+            <h3>📊 Comparativo Mensal - Pedidos, Faturamento, Custo e Lucro</h3>
+            <div class="chart-container" style="max-height:350px;">
+                <canvas id="monthlyChart"></canvas>
+            </div>
+        </div>
+
+        <!-- GRÁFICO RANKING -->
+        <div class="card" style="margin-bottom:16px;">
+            <h3>🏆 Ranking dos Mais Vendidos</h3>
+            <div class="chart-container" style="max-height:350px;">
+                <canvas id="rankingChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Vendas por Forma de Pagamento -->
+        <div class="card" style="margin-bottom:16px;">
+            <h3>💳 Vendas por Forma de Pagamento</h3>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr><th>Forma</th><th style="text-align:center">Pedidos</th><th style="text-align:right">Total</th><th style="text-align:right">%</th></tr>
+                    </thead>
+                    <tbody id="pagamentoTableBody">
+                        <tr><td colspan="4" style="text-align:center;color:var(--tm);">Nenhum dado</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card" style="margin-bottom:16px;"><h3>🏆 Ranking de Mais Vendidos (Tabela)</h3><div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Produto</th><th style="text-align:center">Qtd</th><th style="text-align:right">Receita</th><th style="text-align:right">Custo</th><th style="text-align:right">Lucro</th><th style="text-align:right">Margem</th></tr></thead><tbody id="rankingTableBody"></tbody></table></div></div>
         <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;"><button class="btn btn-v" onclick="exportCSV()">📥 CSV</button><button class="btn btn-o" onclick="exportJSON()">📥 JSON</button></div>
         <h3 style="margin-bottom:8px;">📋 Pedidos no Período</h3><div id="salesList" style="max-height:400px;overflow-y:auto;"></div>
     </div>
 
-    <!-- FINANCEIRO -->
+    <!-- ================= FINANCEIRO ================= -->
     <div class="sec" id="sec-financeiro">
         <div class="card">
             <h3>📅 Filtrar Período</h3>
@@ -149,15 +220,41 @@
                 <button class="btn btn-v" onclick="filtrarFinanceiro()">🔍 Filtrar</button>
             </div>
         </div>
+
         <div class="card">
-            <h3>➕ Lançar Despesa</h3>
-            <input id="despesaDesc" placeholder="Descrição (ex: Compra de carne, Aluguel)">
-            <div class="g2"><input id="despesaValor" type="number" step="0.01" placeholder="Valor (R$)"><input id="despesaData" type="date"></div>
-            <select id="despesaCategoria"><option value="insumos">🛒 Insumos (mercado)</option><option value="aluguel">🏠 Aluguel</option><option value="energia">⚡ Energia</option><option value="gas">🔥 Gás</option><option value="outros">📦 Outros</option></select>
-            <button class="btn btn-v" onclick="saveDespesa()">💾 Lançar</button>
+            <h3>➕ Lançar Movimentação</h3>
+            <select id="movTipo" style="margin-bottom:8px;">
+                <option value="despesa">📉 Despesa</option>
+                <option value="receita">📈 Receita (não-venda)</option>
+            </select>
+            <input id="movDesc" placeholder="Descrição (ex: Compra de carne, Aporte)">
+            <div class="g2">
+                <input id="movValor" type="number" step="0.01" placeholder="Valor (R$)">
+                <input id="movData" type="date">
+            </div>
+            <select id="movCategoria">
+                <option value="insumos">🛒 Insumos (mercado)</option>
+                <option value="aluguel">🏠 Aluguel</option>
+                <option value="energia">⚡ Energia</option>
+                <option value="gas">🔥 Gás</option>
+                <option value="outros">📦 Outros (despesa)</option>
+                <option value="aporte">💰 Aporte/Poupança</option>
+                <option value="devolucao">↩️ Devolução</option>
+                <option value="outras_receitas">📦 Outras Receitas</option>
+            </select>
+            <button class="btn btn-v" onclick="saveMovimento()">💾 Lançar</button>
         </div>
-        <div style="display:flex;gap:6px;margin-bottom:12px;"><button class="btn btn-o" onclick="filtrarPorCategoria('insumos')" style="font-size:10px;">🛒 Ver só Insumos</button><button class="btn btn-o" onclick="filtrarPorCategoria('todos')" style="font-size:10px;">📋 Todos</button></div>
-        <h3 style="margin-bottom:8px;">📋 Despesas Lançadas</h3><div id="despesasList" style="margin-bottom:16px;"></div>
+
+        <div style="display:flex;gap:6px;margin-bottom:12px;">
+            <button class="btn btn-o" onclick="filtrarPorCategoria('insumos')" style="font-size:10px;">🛒 Ver só Insumos</button>
+            <button class="btn btn-o" onclick="filtrarPorCategoria('todos')" style="font-size:10px;">📋 Todos</button>
+            <button class="btn btn-o" onclick="filtrarPorTipo('receita')" style="font-size:10px;">📈 Só Receitas</button>
+            <button class="btn btn-o" onclick="filtrarPorTipo('despesa')" style="font-size:10px;">📉 Só Despesas</button>
+        </div>
+
+        <h3 style="margin-bottom:8px;">📋 Movimentações</h3>
+        <div id="movimentosList" style="margin-bottom:16px;"></div>
+
         <h3 style="margin:16px 0 8px;">📊 Demonstrativo de Resultado (DRE)</h3>
         <div class="indicator-row">
             <div class="indicator-card"><div class="indicator-value green" id="finReceita">R$ 0,00</div><div class="indicator-label">💰 Receita Bruta</div></div>
@@ -165,17 +262,18 @@
             <div class="indicator-card"><div class="indicator-value red" id="finTaxaEntrega">R$ 0,00</div><div class="indicator-label">🛵 Repasse Entregadores</div></div>
             <div class="indicator-card"><div class="indicator-value green" id="finLucroBruto">R$ 0,00</div><div class="indicator-label">📈 Lucro Bruto</div></div>
             <div class="indicator-card"><div class="indicator-value yellow" id="finComprasInsumos">R$ 0,00</div><div class="indicator-label">🛒 Compras de Insumos (controle)</div></div>
-            <div class="indicator-card"><div class="indicator-value red" id="finOutrasDespesas">R$ 0,00</div><div class="indicator-label">📋 Despesas Operacionais</div></div>
+            <div class="indicator-card"><div class="indicator-value red" id="finDespesasOp">R$ 0,00</div><div class="indicator-label">📋 Despesas Operacionais</div></div>
+            <div class="indicator-card"><div class="indicator-value green" id="finReceitasExtras">R$ 0,00</div><div class="indicator-label">💰 Receitas Extras</div></div>
             <div class="indicator-card"><div class="indicator-value green" id="finLucro">R$ 0,00</div><div class="indicator-label">💰 Lucro Líquido</div></div>
             <div class="indicator-card"><div class="indicator-value blue" id="finMargem">0%</div><div class="indicator-label">📊 Margem Líquida</div></div>
         </div>
         <p style="font-size:10px;color:var(--tm);">* O valor de <span style="color:#f59e0b;font-weight:700;">Compras de Insumos</span> é apenas para controle e <strong>não é subtraído</strong> do lucro, pois o CMV já reflete o custo dos produtos vendidos.</p>
     </div>
 
-    <!-- EXPEDIENTE -->
+    <!-- ================= EXPEDIENTE ================= -->
     <div class="sec" id="sec-expediente"><div class="card"><h3>🕐 Expediente</h3><div class="toggle-row"><span>Status:</span><button class="btn btn-v" id="btnAbrirLoja" onclick="toggleLoja(true)">🟢 Abrir</button><button class="btn btn-d" id="btnFecharLoja" onclick="toggleLoja(false)">🔴 Fechar</button></div><h4 style="margin-bottom:6px;font-size:13px">Horários</h4><div class="g2"><div><label style="font-size:10px;color:var(--tm)">Seg-Sex Início</label><input type="time" id="hSegSexIni" value="18:00"></div><div><label style="font-size:10px;color:var(--tm)">Seg-Sex Fim</label><input type="time" id="hSegSexFim" value="23:00"></div><div><label style="font-size:10px;color:var(--tm)">Sáb Início</label><input type="time" id="hSabIni" value="18:00"></div><div><label style="font-size:10px;color:var(--tm)">Sáb Fim</label><input type="time" id="hSabFim" value="23:00"></div><div><label style="font-size:10px;color:var(--tm)">Dom Início</label><input type="time" id="hDomIni" value="18:00"></div><div><label style="font-size:10px;color:var(--tm)">Dom Fim</label><input type="time" id="hDomFim" value="22:00"></div></div><button class="btn btn-v" onclick="saveHorarios()" style="margin-top:10px">💾 Salvar</button></div></div>
 
-    <!-- MODAL DE DETALHES -->
+    <!-- ================= MODAL DETALHES ================= -->
     <div class="modal-overlay" id="saleDetailModal">
         <div class="modal-dialog">
             <div class="modal-header"><h2>📋 Detalhes do Pedido <span id="modalPedidoNum"></span></h2><button class="modal-close" onclick="closeSaleDetail()">✕</button></div>
@@ -190,55 +288,180 @@
 
 <div class="toast" id="toast">Mensagem</div>
 
+<!-- ================= FIREBASE MODULE ================= -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc, onSnapshot, setDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     const fc={apiKey:"AIzaSyABe9h5dM1FHrsYOI9vPiEvHsozqb-9PYI",authDomain:"aquarius-burguer.firebaseapp.com",projectId:"aquarius-burguer",storageBucket:"aquarius-burguer.firebasestorage.app",messagingSenderId:"1014795439621",appId:"1:1014795439621:web:1aef68c277c1e2f8aa966c"};
     const app=initializeApp(fc);const db=getFirestore(app);
-    window.db=db;window.fsColl=collection;window.fsAdd=addDoc;window.fsGet=getDocs;window.fsDoc=doc;window.fsDel=deleteDoc;window.fsUpd=updateDoc;window.fsSnap=onSnapshot;window.fsSet=setDoc;window.fsQ=query;window.fsOB=orderBy;window.fsLim=limit;
+    window.db=db;window.fsColl=collection;window.fsAdd=addDoc;window.fsGet=getDocs;window.fsDoc=doc;window.fsDel=deleteDoc;window.fsUpd=updateDoc;window.fsSnap=onSnapshot;window.fsSet=setDoc;
 </script>
 
+<!-- ================= JAVASCRIPT PRINCIPAL ================= -->
 <script>
+    // ----- AUTENTICAÇÃO -----
     if(!sessionStorage.getItem('admin_auth')){const p=prompt('Senha:');if(p!=='admin123'){alert('Negado!');window.close()}else{sessionStorage.setItem('admin_auth','1')}}
     function logout(){sessionStorage.removeItem('admin_auth');window.close()}
     function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2000)}
 
+    // ----- VARIÁVEIS GLOBAIS -----
+    let products=[], categories=[], coupons=[], adicionais=[], promocoes=[], sales=[], movimentos=[];
+    let cropper=null, finalImage='', promoImage='';
+    let filtroAtualCategoria = 'todos';
+    let filtroAtualTipo = 'todos';
+    let chartInstance = null, rankingChartInstance = null, monthlyChartInstance = null;
+
+    // ----- NAVEGAÇÃO -----
     function switchTab(t){
         document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
         document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
-        const sec=document.getElementById('sec-'+t);if(sec)sec.classList.add('active');
-        const tabs=document.querySelectorAll('.tab');
-        tabs.forEach(tab=>{if(tab.textContent.toLowerCase().includes(t.toLowerCase()))tab.classList.add('active')});
-        if(t==='relatorios'){handlePeriodChange();generateReport();}
-        if(t==='expediente')loadHorarios();
-        if(t==='adicionais')updateAddonCatSelect();
-        if(t==='produtos')updateCatSelect();
-        if(t==='upsell'){updateUpsellSelects();renderUpsellTable();clearUpsellForm();}
-        if(t==='promocoes'){updatePromoProdutoSelect();renderPromoTable();}
-        if(t==='financeiro'){initFinanceiroDates();}
+        const sec=document.getElementById('sec-'+t); if(sec) sec.classList.add('active');
+        document.querySelectorAll('.tab').forEach(tab=>{ if(tab.textContent.toLowerCase().includes(t.toLowerCase())) tab.classList.add('active'); });
+        if(t==='relatorios'){ handlePeriodChange(); generateReport(); }
+        if(t==='expediente') loadHorarios();
+        if(t==='adicionais') updateAddonCatSelect();
+        if(t==='produtos') updateCatSelect();
+        if(t==='upsell'){ updateUpsellSelects(); renderUpsellTable(); clearUpsellForm(); }
+        if(t==='promocoes'){ updatePromoProdutoSelect(); renderPromoTable(); }
+        if(t==='financeiro'){ initFinanceiroDates(); }
     }
 
-    let products=[],categories=[],coupons=[],adicionais=[],promocoes=[],sales=[],despesas=[],cropper=null,finalImage='',promoImage='';
-    let filtroAtualCategoria = 'todos';
+    // =======================================================
+    // ================== PRODUTOS ===========================
+    // =======================================================
+    function updateCatSelect(){
+        const sel = document.getElementById('prodCategorias');
+        sel.innerHTML = '<option value="">Nenhuma</option>';
+        categories.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.nome;
+            opt.textContent = c.nome;
+            sel.appendChild(opt);
+        });
+    }
 
-    // ==================== PRODUTOS ====================
-    function updateCatSelect(){document.getElementById('prodCategoria').innerHTML='<option value="">Categoria...</option>'+categories.map(c=>`<option value="${c.nome}">${c.nome}</option>`).join('')}
     function handleProductImage(input){const file=input.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){if(cropper)cropper.destroy();document.getElementById('cropBox').style.display='block';document.getElementById('cropImg').src=e.target.result;cropper=new Cropper(document.getElementById('cropImg'),{aspectRatio:1.33,viewMode:1,autoCropArea:0.9});document.getElementById('uploadLabel').textContent='📱 Ajuste'};reader.readAsDataURL(file)}
     function confirmCrop(){if(!cropper)return;const canvas=cropper.getCroppedCanvas({width:640,height:480});finalImage=canvas.toDataURL('image/jpeg',0.85);document.getElementById('cropBox').style.display='none';document.getElementById('uploadLabel').textContent='✅ Pronto!';toast('Imagem ajustada!')}
     function resetCrop(){if(cropper)cropper.reset()}
-    async function saveProduct(){const id=document.getElementById('prodId').value;const data={nome:document.getElementById('prodNome').value.trim(),descricao:document.getElementById('prodDesc').value.trim(),preco:parseFloat(document.getElementById('prodPreco').value),custo:parseFloat(document.getElementById('prodCusto').value)||0,imagem:finalImage,categoria:document.getElementById('prodCategoria').value,tag:document.getElementById('prodTag').value.trim()};if(!data.nome||isNaN(data.preco)||!data.categoria)return alert('Preencha nome, preço e categoria.');try{if(id)await window.fsUpd(window.fsDoc(window.db,"produtos",id),data);else await window.fsAdd(window.fsColl(window.db,"produtos"),data);toast('✅ Salvo!');clearProductForm()}catch(e){alert('Erro')}}
-    function editProduct(id){const p=products.find(x=>x.id===id);if(!p)return;document.getElementById('prodId').value=p.id;document.getElementById('prodNome').value=p.nome;document.getElementById('prodDesc').value=p.descricao;document.getElementById('prodPreco').value=p.preco;document.getElementById('prodCusto').value=p.custo||0;document.getElementById('prodCategoria').value=p.categoria;document.getElementById('prodTag').value=p.tag||'';finalImage=p.imagem||'';document.getElementById('formTitle').textContent='✏️ Editar';document.getElementById('btnCancelProduct').style.display='inline-block';window.scrollTo({top:0,behavior:'smooth'})}
-    async function deleteProduct(id){if(confirm('Excluir?')){await window.fsDel(window.fsDoc(window.db,"produtos",id));toast('🗑️ Excluído!')}}
-    function clearProductForm(){['prodId','prodNome','prodDesc','prodPreco','prodCusto','prodTag'].forEach(id=>document.getElementById(id).value='');document.getElementById('prodFile').value='';if(cropper){cropper.destroy();cropper=null}finalImage='';document.getElementById('cropBox').style.display='none';document.getElementById('uploadLabel').textContent='📸 Clique para foto';document.getElementById('formTitle').textContent='➕ Adicionar';document.getElementById('btnCancelProduct').style.display='none'}
-    function renderProducts(){let h='';products.forEach(p=>{h+=`<div class="li"><div><strong>${p.nome}</strong><br><span style="color:#4ade80;">R$ ${parseFloat(p.preco).toFixed(2)}</span> | Custo: R$ ${(p.custo||0).toFixed(2)}</div><div style="display:flex;gap:4px;"><button class="btn btn-a" style="padding:4px 8px;font-size:10px;" onclick="editProduct('${p.id}')">✏️</button><button class="btn btn-d" style="padding:4px 8px;font-size:10px;" onclick="deleteProduct('${p.id}')">🗑️</button></div></div>`});document.getElementById('productsList').innerHTML=h||'<p style="color:var(--tm);text-align:center;">Nenhum.</p>'}
+    
+    function calcCMV(){
+        const preco = parseFloat(document.getElementById('prodPreco').value);
+        const custo = parseFloat(document.getElementById('prodCusto').value);
+        const el = document.getElementById('cmvValue');
+        if(preco && preco > 0 && custo !== undefined && custo !== null && !isNaN(custo) && custo >= 0){
+            const cmv = (custo / preco) * 100;
+            el.textContent = cmv.toFixed(1) + '%';
+            el.style.color = cmv > 70 ? '#ef4444' : (cmv > 50 ? '#f59e0b' : '#22c55e');
+        } else {
+            el.textContent = '0%';
+            el.style.color = '#f59e0b';
+        }
+    }
 
-    // ==================== CATEGORIAS ====================
+    async function saveProduct(){
+        const id=document.getElementById('prodId').value;
+        const sel = document.getElementById('prodCategorias');
+        const selectedCats = Array.from(sel.selectedOptions)
+            .filter(opt => opt.value !== '')
+            .map(opt => opt.value);
+        const data={
+            nome:document.getElementById('prodNome').value.trim(),
+            descricao:document.getElementById('prodDesc').value.trim(),
+            preco:parseFloat(document.getElementById('prodPreco').value),
+            custo:parseFloat(document.getElementById('prodCusto').value)||0,
+            imagem:finalImage,
+            categorias: selectedCats.length ? selectedCats : [],
+            tag:document.getElementById('prodTag').value.trim(),
+            disponivel:true
+        };
+        if(!data.nome||isNaN(data.preco))return alert('Preencha nome e preço.');
+        try{
+            if(id) await window.fsUpd(window.fsDoc(window.db,"produtos",id),data);
+            else await window.fsAdd(window.fsColl(window.db,"produtos"),data);
+            toast('✅ Salvo!');
+            clearProductForm();
+        } catch(e){alert('Erro')}
+    }
+
+    function editProduct(id){
+        const p=products.find(x=>x.id===id); if(!p) return;
+        document.getElementById('prodId').value=p.id;
+        document.getElementById('prodNome').value=p.nome;
+        document.getElementById('prodDesc').value=p.descricao||'';
+        document.getElementById('prodPreco').value=p.preco;
+        document.getElementById('prodCusto').value=p.custo||0;
+        const sel = document.getElementById('prodCategorias');
+        const categorias = Array.isArray(p.categorias) ? p.categorias : (p.categoria ? [p.categoria] : []);
+        for (let opt of sel.options) {
+            opt.selected = (opt.value !== '' && categorias.includes(opt.value));
+        }
+        document.getElementById('prodTag').value=p.tag||'';
+        finalImage=p.imagem||'';
+        document.getElementById('formTitle').textContent='✏️ Editar';
+        document.getElementById('btnCancelProduct').style.display='inline-block';
+        calcCMV();
+        window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    async function deleteProduct(id){if(confirm('Excluir?')){await window.fsDel(window.fsDoc(window.db,"produtos",id));toast('🗑️ Excluído!')}}
+    async function toggleDisponibilidade(id){
+        const p=products.find(x=>x.id===id); if(!p) return;
+        const novoStatus=!p.disponivel;
+        try{await window.fsUpd(window.fsDoc(window.db,"produtos",id),{disponivel:novoStatus});toast(novoStatus?'✅ Disponível':'⛔ Indisponível')}catch(e){alert('Erro')}
+    }
+    function clearProductForm(){
+        ['prodId','prodNome','prodDesc','prodPreco','prodCusto','prodTag'].forEach(id=>document.getElementById(id).value='');
+        document.getElementById('prodFile').value='';
+        if(cropper){cropper.destroy();cropper=null}
+        finalImage='';
+        document.getElementById('cropBox').style.display='none';
+        document.getElementById('uploadLabel').textContent='📸 Clique para foto';
+        document.getElementById('formTitle').textContent='➕ Adicionar';
+        document.getElementById('btnCancelProduct').style.display='none';
+        const sel = document.getElementById('prodCategorias');
+        for (let opt of sel.options) opt.selected = false;
+        calcCMV();
+    }
+
+    function renderProducts(){
+        let h='';
+        products.forEach(p=>{
+            const disponivel=p.disponivel!==false;
+            const classe=disponivel?'':'li-indisponivel';
+            const statusText=disponivel?'✅ Disponível':'⛔ Indisponível';
+            const statusBadge=disponivel?'badge-v':'badge-r';
+            let cats = Array.isArray(p.categorias) ? p.categorias : (p.categoria ? [p.categoria] : []);
+            let catHtml = cats.length ? cats.map(c => `<span class="categoria-badge">${c}</span>`).join(' ') : '<span style="color:var(--tm);font-size:9px;">Nenhuma</span>';
+            h+=`<div class="li ${classe}">
+                <div>
+                    <strong>${p.nome}</strong><br>
+                    <span style="color:#4ade80;">R$ ${parseFloat(p.preco).toFixed(2)}</span> | 
+                    Custo: R$ ${(p.custo||0).toFixed(2)} | 
+                    CMV: ${p.preco>0?((p.custo||0)/p.preco*100).toFixed(1):0}%<br>
+                    ${catHtml}<br>
+                    <span class="badge ${statusBadge}">${statusText}</span>
+                </div>
+                <div style="display:flex;gap:4px;">
+                    <button class="btn btn-a" style="padding:4px 8px;font-size:10px;" onclick="editProduct('${p.id}')">✏️</button>
+                    <button class="btn ${disponivel?'btn-o':'btn-v'}" style="padding:4px 8px;font-size:10px;" onclick="toggleDisponibilidade('${p.id}')">${disponivel?'⏸️':'▶️'}</button>
+                    <button class="btn btn-d" style="padding:4px 8px;font-size:10px;" onclick="deleteProduct('${p.id}')">🗑️</button>
+                </div>
+            </div>`;
+        });
+        document.getElementById('productsList').innerHTML=h||'<p style="color:var(--tm);text-align:center;">Nenhum.</p>';
+    }
+
+    // =======================================================
+    // ================== CATEGORIAS =========================
+    // =======================================================
     async function saveCategory(){const n=document.getElementById('catNome').value.trim();if(!n)return;await window.fsAdd(window.fsColl(window.db,"categorias"),{nome:n,ordem:categories.length});document.getElementById('catNome').value='';toast('✅ Criada!')}
     async function deleteCategory(id){if(confirm('Excluir?'))await window.fsDel(window.fsDoc(window.db,"categorias",id))}
     async function moveCategory(i,d){const t=i+d;if(t<0||t>=categories.length)return;[categories[i],categories[t]]=[categories[t],categories[i]];for(let j=0;j<categories.length;j++)await window.fsUpd(window.fsDoc(window.db,"categorias",categories[j].id),{ordem:j})}
     function renderCategories(){let h='';categories.forEach((c,i)=>{h+=`<div class="li"><div><strong>${c.nome}</strong></div><div style="display:flex;gap:4px;"><button class="btn btn-o" style="padding:4px 8px;font-size:10px;" onclick="moveCategory(${i},-1)">▲</button><button class="btn btn-o" style="padding:4px 8px;font-size:10px;" onclick="moveCategory(${i},1)">▼</button><button class="btn btn-d" style="padding:4px 8px;font-size:10px;" onclick="deleteCategory('${c.id}')">🗑️</button></div></div>`});document.getElementById('categoriesList').innerHTML=h||'<p style="color:var(--tm);text-align:center;">Nenhuma.</p>'}
 
-    // ==================== ADICIONAIS ====================
+    // =======================================================
+    // ================== ADICIONAIS =========================
+    // =======================================================
     function updateAddonCatSelect(){document.getElementById('addonCategoria').innerHTML='<option value="todas">Todas</option>'+categories.map(c=>`<option value="${c.nome}">${c.nome}</option>`).join('')}
     async function saveAddon(){const id=document.getElementById('addonId').value;const data={nome:document.getElementById('addonNome').value.trim(),preco:parseFloat(document.getElementById('addonPreco').value),categoria:document.getElementById('addonCategoria').value,ativo:document.getElementById('addonAtivo').checked};if(!data.nome||isNaN(data.preco))return alert('Preencha nome e preço.');try{if(id)await window.fsUpd(window.fsDoc(window.db,"adicionais",id),data);else await window.fsAdd(window.fsColl(window.db,"adicionais"),data);toast('✅ Salvo!');clearAddonForm()}catch(e){alert('Erro')}}
     function editAddon(id){const a=adicionais.find(x=>x.id===id);if(!a)return;document.getElementById('addonId').value=a.id;document.getElementById('addonNome').value=a.nome;document.getElementById('addonPreco').value=a.preco;document.getElementById('addonCategoria').value=a.categoria||'todas';document.getElementById('addonAtivo').checked=a.ativo!==false;document.getElementById('addonFormTitle').textContent='✏️ Editar';document.getElementById('btnCancelAddon').style.display='inline-block'}
@@ -246,14 +469,18 @@
     function clearAddonForm(){['addonId','addonNome','addonPreco'].forEach(id=>document.getElementById(id).value='');document.getElementById('addonCategoria').value='todas';document.getElementById('addonAtivo').checked=true;document.getElementById('addonFormTitle').textContent='➕ Adicionar';document.getElementById('btnCancelAddon').style.display='none'}
     function renderAddons(){let h='';adicionais.forEach(a=>{h+=`<div class="li"><div><strong>${a.nome}</strong> - R$ ${parseFloat(a.preco).toFixed(2)} | <span class="badge ${a.ativo!==false?'badge-v':'badge-r'}">${a.ativo!==false?'Ativo':'Inativo'}</span></div><div style="display:flex;gap:4px;"><button class="btn btn-a" style="padding:4px 8px;font-size:10px;" onclick="editAddon('${a.id}')">✏️</button><button class="btn btn-d" style="padding:4px 8px;font-size:10px;" onclick="deleteAddon('${a.id}')">🗑️</button></div></div>`});document.getElementById('addonsList').innerHTML=h||'<p style="color:var(--tm);text-align:center;">Nenhum.</p>'}
 
-    // ==================== CUPONS ====================
+    // =======================================================
+    // ================== CUPONS =============================
+    // =======================================================
     async function saveCoupon(){const id=document.getElementById('cupomId').value;const codigo=document.getElementById('cupomCodigo').value.trim().toUpperCase();const tipo=document.getElementById('cupomTipo').value;const valor=parseFloat(document.getElementById('cupomValor').value);if(!codigo||!valor)return alert('Preencha.');const data={codigo,tipo,valor,descricao:document.getElementById('cupomDesc').value.trim(),valorMinimo:parseFloat(document.getElementById('cupomValorMin').value)||0,limiteUsos:parseInt(document.getElementById('cupomLimite').value)||0,ativo:document.getElementById('cupomAtivo').checked,usos:0};try{if(id){const ex=coupons.find(c=>c.id===id);if(ex)data.usos=ex.usos||0;await window.fsUpd(window.fsDoc(window.db,"cupons",id),data)}else await window.fsAdd(window.fsColl(window.db,"cupons"),data);toast('✅ Salvo!');clearCouponForm()}catch(e){alert('Erro')}}
     function editCoupon(id){const c=coupons.find(x=>x.id===id);if(!c)return;document.getElementById('cupomId').value=c.id;document.getElementById('cupomCodigo').value=c.codigo;document.getElementById('cupomTipo').value=c.tipo;document.getElementById('cupomValor').value=c.valor;document.getElementById('cupomDesc').value=c.descricao||'';document.getElementById('cupomValorMin').value=c.valorMinimo||0;document.getElementById('cupomLimite').value=c.limiteUsos||0;document.getElementById('cupomAtivo').checked=c.ativo;document.getElementById('cupomFormTitle').textContent='✏️ Editar';document.getElementById('btnCancelCupom').style.display='inline-block'}
     async function deleteCoupon(id){if(confirm('Excluir?')){await window.fsDel(window.fsDoc(window.db,"cupons",id));toast('🗑️ Excluído!')}}
     function clearCouponForm(){['cupomId','cupomCodigo','cupomValor','cupomDesc'].forEach(id=>document.getElementById(id).value='');document.getElementById('cupomValorMin').value='0';document.getElementById('cupomLimite').value='0';document.getElementById('cupomAtivo').checked=true;document.getElementById('cupomFormTitle').textContent='➕ Criar';document.getElementById('btnCancelCupom').style.display='none'}
     function renderCoupons(){let h='';coupons.forEach(c=>{h+=`<div class="li"><div><strong>${c.codigo}</strong> - ${c.tipo==='percent'?c.valor+'%':'R$ '+c.valor} | <span class="badge ${c.ativo?'badge-v':'badge-r'}">${c.ativo?'Ativo':'Inativo'}</span></div><div style="display:flex;gap:4px;"><button class="btn btn-a" style="padding:4px 8px;font-size:10px;" onclick="editCoupon('${c.id}')">✏️</button><button class="btn btn-d" style="padding:4px 8px;font-size:10px;" onclick="deleteCoupon('${c.id}')">🗑️</button></div></div>`});document.getElementById('couponsList').innerHTML=h||'<p style="color:var(--tm);text-align:center;">Nenhum.</p>'}
 
-    // ==================== UPSELL ====================
+    // =======================================================
+    // ================== UPSELL =============================
+    // =======================================================
     function updateUpsellSelects(){const opts=products.map(p=>`<option value="${p.id}">${p.nome} - R$ ${parseFloat(p.preco).toFixed(2)}</option>`).join('');document.getElementById('upsellProdutoPrincipal').innerHTML='<option value="">Selecione...</option>'+opts;document.getElementById('upsellProdutoOferta').innerHTML='<option value="">Selecione...</option>'+opts}
     async function loadUpsellConfig(){const pid=document.getElementById('upsellProdutoPrincipal').value;if(!pid){clearUpsellForm();return}try{const snap=await window.fsGet(window.fsColl(window.db,"configuracoes"));let found=false;snap.forEach(d=>{if(d.id==='upsell_'+pid){const u=d.data();document.getElementById('upsellProdutoOferta').value=u.upsellProdutoId||'';document.getElementById('btnUpsellOn').style.opacity=u.ativo?'1':'0.5';document.getElementById('btnUpsellOff').style.opacity=u.ativo?'0.5':'1';found=true}});if(!found)clearUpsellForm()}catch(e){}}
     function clearUpsellForm(){document.getElementById('upsellProdutoOferta').value='';document.getElementById('btnUpsellOn').style.opacity='1';document.getElementById('btnUpsellOff').style.opacity='1'}
@@ -263,7 +490,9 @@
     async function renderUpsellTable(){try{const snap=await window.fsGet(window.fsColl(window.db,"configuracoes"));let configs={};snap.forEach(d=>{if(d.id.startsWith('upsell_'))configs[d.id.replace('upsell_','')]=d.data()});let rows='';products.forEach(p=>{const u=configs[p.id];const up=u?products.find(pp=>pp.id===u.upsellProdutoId):null;rows+=`<tr><td><strong>${p.nome}</strong></td><td style="color:#4ade80;">R$ ${parseFloat(p.preco).toFixed(2)}</td><td>${u&&up?`→ ${up.nome} <span style="color:#4ade80;font-size:10px;">+R$ ${parseFloat(up.preco).toFixed(2)}</span>`:'<span style="color:var(--tm);">-</span>'}</td><td>${u?`<span class="badge ${u.ativo?'badge-v':'badge-r'}">${u.ativo?'✅ Ativo':'⏸️ Pausado'}</span>`:'<span class="badge" style="background:rgba(255,255,255,.05);color:var(--tm);">⚪ Pendente</span>'}</td><td style="text-align:center;"><button class="btn btn-a" style="padding:3px 8px;font-size:9px;" onclick="editUpsellFromTable('${p.id}')">⚙️</button>${u?`<button class="btn btn-d" style="padding:3px 8px;font-size:9px;" onclick="deleteUpsellConfig('${p.id}')">🗑️</button>`:''}</td></tr>`});document.getElementById('upsellsTableBody').innerHTML=rows||'<tr><td colspan="5" style="text-align:center;color:var(--tm);padding:20px;">Nenhum.</td></tr>'}catch(e){}}
     function editUpsellFromTable(pid){document.getElementById('upsellProdutoPrincipal').value=pid;loadUpsellConfig();window.scrollTo({top:0,behavior:'smooth'})}
 
-    // ==================== PROMOÇÕES TV ====================
+    // =======================================================
+    // ================== PROMOÇÕES TV =======================
+    // =======================================================
     function updatePromoProdutoSelect(){const s=document.getElementById('promoProdutoVinculado');if(s)s.innerHTML='<option value="">Nenhum</option>'+products.map(p=>`<option value="${p.id}">${p.nome} - R$ ${parseFloat(p.preco).toFixed(2)}</option>`).join('')}
     window.vincularProdutoPromocao=function(){const pid=document.getElementById('promoProdutoVinculado').value;if(!pid)return;const p=products.find(x=>x.id===pid);if(!p)return;document.getElementById('promoNome').value=p.nome;document.getElementById('promoPreco').value=p.preco;if(p.imagem&&!promoImage){promoImage=p.imagem;document.getElementById('promoImgPreview').style.display='block';document.getElementById('promoPreviewImg').src=promoImage;document.getElementById('promoUploadLabel').textContent='✅ Imagem do produto carregada!'}}
     window.savePromo=async function(){const id=document.getElementById('promoId').value;const d={nome:document.getElementById('promoNome').value.trim(),descricao:document.getElementById('promoDesc').value.trim(),preco:parseFloat(document.getElementById('promoPreco').value),precoOriginal:parseFloat(document.getElementById('promoPrecoOriginal').value)||0,imagem:promoImage||'',ativo:document.getElementById('promoAtivo').checked,produtoId:document.getElementById('promoProdutoVinculado').value||null,dataCriacao:new Date().toISOString()};if(!d.nome||isNaN(d.preco))return alert('Preencha nome e preço.');try{if(id)await window.fsUpd(window.fsDoc(window.db,"promocoes",id),d);else await window.fsAdd(window.fsColl(window.db,"promocoes"),d);toast('✅ Salvo!');clearPromoForm()}catch(e){alert('Erro')}}
@@ -275,20 +504,390 @@
     window.removePromoImage=function(){promoImage='';document.getElementById('promoImgPreview').style.display='none';document.getElementById('promoFile').value='';document.getElementById('promoUploadLabel').textContent='📸 Clique para imagem'}
     window.renderPromoTable=function(){const t=document.getElementById('promoTableBody');if(!t)return;if(!promocoes.length){t.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--tm);padding:20px;">Nenhuma.</td></tr>';return}t.innerHTML=promocoes.map(p=>{const img=p.imagem&&p.imagem.length>100?`<img src="${p.imagem}" style="width:45px;height:45px;border-radius:6px;object-fit:cover;">`:'📷';let alerta='';if(p.produtoId){const pr=products.find(x=>x.id===p.produtoId);if(pr&&parseFloat(pr.preco)!==parseFloat(p.preco))alerta=`<span class="alerta-preco" title="Preço cardápio: R$ ${parseFloat(pr.preco).toFixed(2)}">⚠️ Divergente</span>`}return `<tr><td style="text-align:center;">${img}</td><td><strong>${p.nome||'-'}</strong>${p.descricao?`<br><span style="font-size:10px;color:var(--tm);">${p.descricao}</span>`:''}${alerta}</td><td style="color:#4ade80;">${p.precoOriginal>0?`<span style="text-decoration:line-through;color:#666;font-size:10px;">R$ ${parseFloat(p.precoOriginal).toFixed(2)}</span><br>`:''}R$ ${parseFloat(p.preco||0).toFixed(2)}</td><td><span class="badge ${p.ativo!==false?'badge-v':'badge-r'}">${p.ativo!==false?'✅ Ativo':'⏸️ Pausado'}</span></td><td style="text-align:center;"><button class="btn btn-a" style="padding:4px 8px;font-size:9px;" onclick="editPromo('${p.id}')">✏️</button><button class="btn ${p.ativo!==false?'btn-d':'btn-v'}" style="padding:4px 8px;font-size:9px;" onclick="togglePromo('${p.id}',${p.ativo===false})">${p.ativo!==false?'⏸️':'▶️'}</button><button class="btn btn-d" style="padding:4px 8px;font-size:9px;" onclick="deletePromo('${p.id}')">🗑️</button></td></tr>`}).join('')}
 
-    // ==================== RELATÓRIOS ====================
+    // =======================================================
+    // ================== RELATÓRIOS =========================
+    // =======================================================
     window.handlePeriodChange=function(){const f=document.getElementById('reportFilter').value;if(f==='custom'){document.getElementById('customDateFields').style.display='flex';const h=new Date();document.getElementById('customEndDate').value=h.toISOString().split('T')[0];document.getElementById('customStartDate').value=new Date(h.getTime()-7*86400000).toISOString().split('T')[0]}else{document.getElementById('customDateFields').style.display='none'}generateReport()}
-    window.generateReport=function(){
-        const f=document.getElementById('reportFilter').value,n=new Date(),ts=new Date(n.getFullYear(),n.getMonth(),n.getDate()),tm=new Date(ts.getTime()+86400000),ys=new Date(ts.getTime()-86400000);
-        let s,e;switch(f){case'today':s=ts;e=tm;break;case'yesterday':s=ys;e=ts;break;case'7days':s=new Date(ts.getTime()-7*86400000);e=tm;break;case'30days':s=new Date(ts.getTime()-30*86400000);e=tm;break;case'month':s=new Date(n.getFullYear(),n.getMonth(),1);e=tm;break;case'lastmonth':s=new Date(n.getFullYear(),n.getMonth()-1,1);e=new Date(n.getFullYear(),n.getMonth(),1);break;case'custom':{const sv=document.getElementById('customStartDate').value,ev=document.getElementById('customEndDate').value;s=sv?new Date(sv+'T00:00:00'):new Date(ts.getTime()-7*86400000);e=ev?new Date(ev+'T23:59:59'):tm;break}default:s=new Date(2000,0,1);e=new Date(2099,11,31)}
-        const fl=sales.filter(v=>{const d=new Date(v.dataHora);return d>=s&&d<e});let fat=0,custo=0,tx=0,desc=0,it=0,del=0,ret=0;const rk={};
-        fl.forEach(v=>{fat+=parseFloat(v.total)||0;desc+=parseFloat(v.desconto)||0;const tv=parseFloat(v.taxaEntrega)||0;tx+=tv;if(v.itens)v.itens.forEach(i=>{const q=parseInt(i.qtd)||0,pu=parseFloat(i.precoUn)||0;let cu=parseFloat(i.custoUn)||0;if(!cu){const p=products.find(x=>x.nome===i.nome);if(p)cu=parseFloat(p.custo)||0}const rec=pu*q,cs=cu*q;custo+=cs;it+=q;if(!rk[i.nome])rk[i.nome]={qtd:0,receita:0,custo:0};rk[i.nome].qtd+=q;rk[i.nome].receita+=rec;rk[i.nome].custo+=cs});if(v.tipoEntrega==='entrega')del++;else ret++});
-        const lb=fat-custo-tx,mb=fat?(lb/fat)*100:0,ticket=fl.length?(fat-tx)/fl.length:0;
-        document.getElementById('rFaturamento').textContent='R$ '+fat.toFixed(2);document.getElementById('rCustoTotal').textContent='R$ '+custo.toFixed(2);document.getElementById('rTaxaEntrega').textContent='R$ '+tx.toFixed(2);document.getElementById('rLucroBruto').textContent='R$ '+lb.toFixed(2);document.getElementById('rMargemBruta').textContent=mb.toFixed(1)+'%';document.getElementById('rPedidos').textContent=fl.length;document.getElementById('rTicket').textContent='R$ '+ticket.toFixed(2);document.getElementById('rDesconto').textContent='R$ '+desc.toFixed(2);document.getElementById('rItens').textContent=it;document.getElementById('rDelivery').textContent=del;document.getElementById('rRetirada').textContent=ret;
-        const sorted=Object.entries(rk).sort((a,b)=>b[1].qtd-a[1].qtd);document.getElementById('rankingTableBody').innerHTML=sorted.map(([nm,d],i)=>{const li=d.receita-d.custo,mg=d.receita?(li/d.receita)*100:0;return`<tr><td>${i+1}º</td><td><strong>${nm}</strong></td><td style="text-align:center">${d.qtd}</td><td style="text-align:right">R$ ${d.receita.toFixed(2)}</td><td style="text-align:right">R$ ${d.custo.toFixed(2)}</td><td style="text-align:right">R$ ${li.toFixed(2)}</td><td style="text-align:right">${mg.toFixed(1)}%</td></tr>`}).join('')||'<tr><td colspan="7" style="text-align:center;color:var(--tm);padding:20px;">Nenhum item vendido</td></tr>';
-        fl.sort((a,b)=>new Date(b.dataHora)-new Date(a.dataHora));document.getElementById('salesList').innerHTML=fl.slice(0,100).map(v=>{const d=new Date(v.dataHora),ic=v.itens?v.itens.reduce((s,i)=>s+(parseInt(i.qtd)||0),0):0,cv=v.itens?v.itens.reduce((s,i)=>{let cu=parseFloat(i.custoUn)||0;if(!cu){const p=products.find(x=>x.nome===i.nome);if(p)cu=parseFloat(p.custo)||0}return s+cu*(parseInt(i.qtd)||0)},0):0,lv=parseFloat(v.total||0)-cv-(parseFloat(v.taxaEntrega)||0);return`<div class="li" onclick="showSaleDetail('${v.id}')"><div style="flex:1;"><div style="display:flex;justify-content:space-between;"><strong>${v.cliente}</strong><span style="color:#4ade80;">R$ ${parseFloat(v.total).toFixed(2)}</span></div><div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;align-items:center;"><span style="font-size:10px;color:var(--tm);">#${v.numeroPedido||v.id.substring(0,6)}</span><span class="badge badge-i">${ic} itens</span><span class="badge ${v.tipoEntrega==='entrega'?'badge-w':'badge-v'}">${v.tipoEntrega==='entrega'?'🛵':'🏪'}</span><span class="badge" style="background:rgba(255,255,255,.05);">${v.formaPagamento}</span><span style="font-size:10px;color:var(--tm);">${d.toLocaleDateString('pt-BR')} ${d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span><span style="font-size:9px;color:${lv>=0?'#22c55e':'#ef4444'};">Lucro: R$ ${lv.toFixed(2)}</span></div></div><div style="display:flex;gap:4px;margin-left:10px;"><button class="btn btn-i" style="padding:4px 10px;font-size:10px;" onclick="event.stopPropagation();showSaleDetail('${v.id}')">👁️</button><button class="btn btn-d" style="padding:4px 10px;font-size:10px;" onclick="event.stopPropagation();deleteSale('${v.id}')">🗑️</button></div></div>`}).join('')||'<p style="color:var(--tm);text-align:center;padding:20px;">Nenhuma venda.</p>';
-        updateResumoFinanceiro()}
 
-    // ==================== MODAL ====================
+    function renderEvolutionChart(labels, dataFaturamento, dataLucro) {
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        if (chartInstance) chartInstance.destroy();
+        if (!labels || !labels.length) { chartInstance = null; return; }
+        chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Faturamento Bruto (R$)',
+                        data: dataFaturamento,
+                        borderColor: '#22c55e',
+                        backgroundColor: 'rgba(34,197,94,0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#22c55e',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 1,
+                        pointRadius: 3
+                    },
+                    {
+                        label: 'Lucro Bruto (R$)',
+                        data: dataLucro,
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245,158,11,0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#f59e0b',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 1,
+                        pointRadius: 3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: '#fff', font: { size: 11 } } } },
+                scales: {
+                    x: { ticks: { color: '#a1a1aa', maxRotation: 45, autoSkip: true, maxTicksLimit: 15 }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                    y: { ticks: { color: '#a1a1aa', callback: value => 'R$ '+value.toFixed(2) }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                }
+            }
+        });
+    }
+
+    function renderRankingChart(labels, data) {
+        const ctx = document.getElementById('rankingChart').getContext('2d');
+        if (rankingChartInstance) rankingChartInstance.destroy();
+        if (!labels || !labels.length) { rankingChartInstance = null; return; }
+        const isHorizontal = labels.length > 5;
+        rankingChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Quantidade Vendida',
+                    data: data,
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245,158,11,0.25)',
+                    borderWidth: 1,
+                    barThickness: 20,
+                    maxBarThickness: 30
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: isHorizontal ? 'y' : 'x',
+                plugins: { legend: { labels: { color: '#fff', font: { size: 11 } } } },
+                scales: {
+                    x: { ticks: { color: '#a1a1aa' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                    y: { ticks: { color: '#a1a1aa' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                }
+            }
+        });
+    }
+
+    // NOVO: gráfico mensal com dois eixos Y
+    function renderMonthlyChart(labels, pedidos, faturamento, custo, lucro) {
+        const ctx = document.getElementById('monthlyChart').getContext('2d');
+        if (monthlyChartInstance) monthlyChartInstance.destroy();
+        if (!labels || !labels.length) { monthlyChartInstance = null; return; }
+
+        monthlyChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Pedidos',
+                        data: pedidos,
+                        backgroundColor: 'rgba(59,130,246,0.6)',
+                        borderColor: '#3b82f6',
+                        borderWidth: 1,
+                        yAxisID: 'y1',
+                        order: 1
+                    },
+                    {
+                        label: 'Faturamento (R$)',
+                        data: faturamento,
+                        backgroundColor: 'rgba(34,197,94,0.6)',
+                        borderColor: '#22c55e',
+                        borderWidth: 1,
+                        yAxisID: 'y',
+                        order: 2
+                    },
+                    {
+                        label: 'Custo (R$)',
+                        data: custo,
+                        backgroundColor: 'rgba(239,68,68,0.6)',
+                        borderColor: '#ef4444',
+                        borderWidth: 1,
+                        yAxisID: 'y',
+                        order: 3
+                    },
+                    {
+                        label: 'Lucro (R$)',
+                        data: lucro,
+                        backgroundColor: 'rgba(245,158,11,0.6)',
+                        borderColor: '#f59e0b',
+                        borderWidth: 1,
+                        yAxisID: 'y',
+                        order: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#fff', font: { size: 11 } } }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#a1a1aa' },
+                        grid: { color: 'rgba(255,255,255,0.05)' }
+                    },
+                    y: {
+                        type: 'linear',
+                        position: 'left',
+                        ticks: { color: '#a1a1aa', callback: v => 'R$ ' + v.toFixed(2) },
+                        grid: { color: 'rgba(255,255,255,0.05)' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        position: 'right',
+                        ticks: { color: '#a1a1aa', stepSize: 1 },
+                        grid: { drawOnChartArea: false }
+                    }
+                }
+            }
+        });
+    }
+
+    // ================== FUNÇÃO GERAR RELATÓRIO ==================
+    window.generateReport = function() {
+        const f=document.getElementById('reportFilter').value;
+        const now = new Date();
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const todayEnd = new Date(todayStart.getTime() + 86400000);
+        const yesterdayStart = new Date(todayStart.getTime() - 86400000);
+
+        let s, e;
+        switch(f) {
+            case 'today': s = todayStart; e = todayEnd; break;
+            case 'yesterday': s = yesterdayStart; e = todayStart; break;
+            case '7days': s = new Date(todayStart.getTime() - 7*86400000); e = todayEnd; break;
+            case '30days': s = new Date(todayStart.getTime() - 30*86400000); e = todayEnd; break;
+            case 'month': s = new Date(now.getFullYear(), now.getMonth(), 1); e = todayEnd; break;
+            case 'lastmonth': s = new Date(now.getFullYear(), now.getMonth()-1, 1); e = new Date(now.getFullYear(), now.getMonth(), 1); break;
+            case 'custom': {
+                const sv = document.getElementById('customStartDate').value;
+                const ev = document.getElementById('customEndDate').value;
+                s = sv ? new Date(sv+'T00:00:00') : new Date(todayStart.getTime() - 7*86400000);
+                e = ev ? new Date(ev+'T23:59:59') : todayEnd;
+                break;
+            }
+            default: s = new Date(2000,0,1); e = new Date(2099,11,31);
+        }
+
+        const filtered = sales.filter(v => {
+            const d = new Date(v.dataHora);
+            return d >= s && d < e;
+        });
+
+        let fatTotal = 0, custoTotal = 0, txTotal = 0, descTotal = 0, itensTotal = 0, delTotal = 0, retTotal = 0;
+        const rankMap = {};
+        const dailyFat = {};
+        const dailyCusto = {};
+        const dailyTx = {};
+        const pagMap = {};
+        // NOVO: acumuladores mensais
+        const monthly = {}; // key: "YYYY-MM", value: {pedidos, faturamento, custo, lucro}
+
+        filtered.forEach(v => {
+            const totalVenda = parseFloat(v.total) || 0;
+            const txVenda = parseFloat(v.taxaEntrega) || 0;
+            const desconto = parseFloat(v.desconto) || 0;
+            fatTotal += totalVenda;
+            descTotal += desconto;
+            txTotal += txVenda;
+            if (v.tipoEntrega === 'entrega') delTotal++; else retTotal++;
+
+            const d = new Date(v.dataHora);
+            const day = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+            const monthKey = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+
+            // Diário
+            if (!dailyFat[day]) dailyFat[day] = 0;
+            dailyFat[day] += totalVenda;
+            if (!dailyTx[day]) dailyTx[day] = 0;
+            dailyTx[day] += txVenda;
+            if (!dailyCusto[day]) dailyCusto[day] = 0;
+
+            // Mensal
+            if (!monthly[monthKey]) monthly[monthKey] = { pedidos: 0, faturamento: 0, custo: 0, lucro: 0 };
+            monthly[monthKey].pedidos += 1;
+            monthly[monthKey].faturamento += totalVenda;
+
+            const forma = v.formaPagamento || 'Não informado';
+            if (!pagMap[forma]) pagMap[forma] = { qtd: 0, total: 0 };
+            pagMap[forma].qtd += 1;
+            pagMap[forma].total += totalVenda;
+
+            if (v.itens && v.itens.length) {
+                v.itens.forEach(item => {
+                    const qtd = parseInt(item.qtd) || 0;
+                    const precoUn = parseFloat(item.precoUn) || 0;
+                    let custoUn = parseFloat(item.custoUn) || 0;
+                    if (!custoUn) {
+                        const prod = products.find(p => p.nome === item.nome);
+                        if (prod) custoUn = parseFloat(prod.custo) || 0;
+                    }
+                    const receitaItem = precoUn * qtd;
+                    const custoItem = custoUn * qtd;
+                    custoTotal += custoItem;
+                    itensTotal += qtd;
+                    dailyCusto[day] += custoItem;
+                    monthly[monthKey].custo += custoItem;
+
+                    const nomeProd = item.nome || 'Produto sem nome';
+                    if (!rankMap[nomeProd]) rankMap[nomeProd] = { qtd: 0, receita: 0, custo: 0 };
+                    rankMap[nomeProd].qtd += qtd;
+                    rankMap[nomeProd].receita += receitaItem;
+                    rankMap[nomeProd].custo += custoItem;
+                });
+            }
+        });
+
+        // Calcular lucro mensal (faturamento - custo - taxa)
+        for (let key in monthly) {
+            // A taxa de entrega não está acumulada por mês, vamos buscar do diário
+            // Para simplificar, podemos recalcular a taxa por mês a partir das vendas (ou usar o dailyTx)
+            // Vamos recalcular a taxa mensal a partir do dailyTx acumulado por dia que pertence ao mês
+            let txMes = 0;
+            for (let dayKey in dailyTx) {
+                if (dayKey.startsWith(key)) {
+                    txMes += dailyTx[dayKey];
+                }
+            }
+            monthly[key].lucro = monthly[key].faturamento - monthly[key].custo - txMes;
+        }
+
+        // Atualizar indicadores
+        const lucroBrutoTotal = fatTotal - custoTotal - txTotal;
+        const margemBruta = fatTotal > 0 ? (lucroBrutoTotal / fatTotal) * 100 : 0;
+        const ticketMedio = filtered.length > 0 ? (fatTotal - txTotal) / filtered.length : 0;
+
+        document.getElementById('rFaturamento').textContent = 'R$ ' + fatTotal.toFixed(2);
+        document.getElementById('rCustoTotal').textContent = 'R$ ' + custoTotal.toFixed(2);
+        document.getElementById('rTaxaEntrega').textContent = 'R$ ' + txTotal.toFixed(2);
+        document.getElementById('rLucroBruto').textContent = 'R$ ' + lucroBrutoTotal.toFixed(2);
+        document.getElementById('rMargemBruta').textContent = margemBruta.toFixed(1) + '%';
+        document.getElementById('rPedidos').textContent = filtered.length;
+        document.getElementById('rTicket').textContent = 'R$ ' + ticketMedio.toFixed(2);
+        document.getElementById('rDesconto').textContent = 'R$ ' + descTotal.toFixed(2);
+        document.getElementById('rItens').textContent = itensTotal;
+        document.getElementById('rDelivery').textContent = delTotal;
+        document.getElementById('rRetirada').textContent = retTotal;
+
+        // Gráfico diário
+        const sortedDays = Object.keys(dailyFat).sort();
+        const labelsDiario = sortedDays.map(d => {
+            const parts = d.split('-');
+            return parts[2] + '/' + parts[1];
+        });
+        const fatData = sortedDays.map(d => dailyFat[d] || 0);
+        const lucroData = sortedDays.map(d => (dailyFat[d] || 0) - (dailyCusto[d] || 0) - (dailyTx[d] || 0));
+        renderEvolutionChart(labelsDiario, fatData, lucroData);
+
+        // Gráfico mensal
+        const sortedMonths = Object.keys(monthly).sort();
+        const monthLabels = sortedMonths.map(m => {
+            const parts = m.split('-');
+            const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+            return meses[parseInt(parts[1])-1] + '/' + parts[0];
+        });
+        const pedidosData = sortedMonths.map(m => monthly[m].pedidos);
+        const fatMesData = sortedMonths.map(m => monthly[m].faturamento);
+        const custoMesData = sortedMonths.map(m => monthly[m].custo);
+        const lucroMesData = sortedMonths.map(m => monthly[m].lucro);
+        renderMonthlyChart(monthLabels, pedidosData, fatMesData, custoMesData, lucroMesData);
+
+        // Ranking gráfico
+        const sortedRank = Object.entries(rankMap).sort((a,b) => b[1].qtd - a[1].qtd).slice(0,10);
+        const rankLabels = sortedRank.map(([nome]) => nome);
+        const rankData = sortedRank.map(([_, d]) => d.qtd);
+        renderRankingChart(rankLabels, rankData);
+
+        // Tabela pagamento
+        let pagHtml = '';
+        const sortedPag = Object.entries(pagMap).sort((a,b) => b[1].total - a[1].total);
+        if (sortedPag.length === 0) {
+            pagHtml = '<tr><td colspan="4" style="text-align:center;color:var(--tm);">Nenhuma venda</td></tr>';
+        } else {
+            sortedPag.forEach(([forma, dados]) => {
+                const pct = fatTotal > 0 ? (dados.total / fatTotal * 100).toFixed(1) : 0;
+                pagHtml += `<tr><td><strong>${forma}</strong></td><td style="text-align:center">${dados.qtd}</td><td style="text-align:right">R$ ${dados.total.toFixed(2)}</td><td style="text-align:right">${pct}%</td></tr>`;
+            });
+        }
+        document.getElementById('pagamentoTableBody').innerHTML = pagHtml;
+
+        // Tabela ranking detalhada
+        const sortedFull = Object.entries(rankMap).sort((a,b) => b[1].qtd - a[1].qtd);
+        document.getElementById('rankingTableBody').innerHTML = sortedFull.map(([nm, d], i) => {
+            const li = d.receita - d.custo;
+            const mg = d.receita > 0 ? (li / d.receita * 100) : 0;
+            return `<tr><td>${i+1}º</td><td><strong>${nm}</strong></td><td style="text-align:center">${d.qtd}</td><td style="text-align:right">R$ ${d.receita.toFixed(2)}</td><td style="text-align:right">R$ ${d.custo.toFixed(2)}</td><td style="text-align:right">R$ ${li.toFixed(2)}</td><td style="text-align:right">${mg.toFixed(1)}%</td></tr>`;
+        }).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--tm);padding:20px;">Nenhum item vendido</td></tr>';
+
+        // Lista de pedidos
+        filtered.sort((a,b) => new Date(b.dataHora) - new Date(a.dataHora));
+        document.getElementById('salesList').innerHTML = filtered.slice(0, 100).map(v => {
+            const d = new Date(v.dataHora);
+            const totalItens = v.itens ? v.itens.reduce((s,i) => s + (parseInt(i.qtd)||0), 0) : 0;
+            let custoVenda = 0;
+            if (v.itens) {
+                v.itens.forEach(i => {
+                    let cu = parseFloat(i.custoUn) || 0;
+                    if (!cu) {
+                        const prod = products.find(p => p.nome === i.nome);
+                        if (prod) cu = parseFloat(prod.custo) || 0;
+                    }
+                    custoVenda += cu * (parseInt(i.qtd)||0);
+                });
+            }
+            const lucroVenda = parseFloat(v.total||0) - custoVenda - (parseFloat(v.taxaEntrega)||0);
+            return `<div class="li" onclick="showSaleDetail('${v.id}')">
+                <div style="flex:1;">
+                    <div style="display:flex;justify-content:space-between;">
+                        <strong>${v.cliente}</strong>
+                        <span style="color:#4ade80;">R$ ${parseFloat(v.total).toFixed(2)}</span>
+                    </div>
+                    <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;align-items:center;">
+                        <span style="font-size:10px;color:var(--tm);">#${v.numeroPedido||v.id.substring(0,6)}</span>
+                        <span class="badge badge-i">${totalItens} itens</span>
+                        <span class="badge ${v.tipoEntrega==='entrega'?'badge-w':'badge-v'}">${v.tipoEntrega==='entrega'?'🛵':'🏪'}</span>
+                        <span class="badge" style="background:rgba(255,255,255,.05);">${v.formaPagamento}</span>
+                        <span style="font-size:10px;color:var(--tm);">${d.toLocaleDateString('pt-BR')} ${d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span>
+                        <span style="font-size:9px;color:${lucroVenda>=0?'#22c55e':'#ef4444'};">Lucro: R$ ${lucroVenda.toFixed(2)}</span>
+                    </div>
+                </div>
+                <div style="display:flex;gap:4px;margin-left:10px;">
+                    <button class="btn btn-i" style="padding:4px 10px;font-size:10px;" onclick="event.stopPropagation();showSaleDetail('${v.id}')">👁️</button>
+                    <button class="btn btn-d" style="padding:4px 10px;font-size:10px;" onclick="event.stopPropagation();deleteSale('${v.id}')">🗑️</button>
+                </div>
+            </div>`;
+        }).join('') || '<p style="color:var(--tm);text-align:center;padding:20px;">Nenhuma venda.</p>';
+
+        updateResumoFinanceiro();
+    };
+
+    // =======================================================
+    // ================== MODAL DETALHES =====================
+    // =======================================================
     window.showSaleDetail=function(id){const v=sales.find(x=>x.id===id);if(!v)return;document.getElementById('modalPedidoNum').textContent='#'+(v.numeroPedido||v.id.substring(0,6));const d=new Date(v.dataHora),tx=parseFloat(v.taxaEntrega)||0;document.getElementById('modalGrid').innerHTML=`<div class="modal-card"><div class="modal-card-label">Cliente</div><div class="modal-card-value">${v.cliente}</div></div><div class="modal-card"><div class="modal-card-label">Telefone</div><div class="modal-card-value">${v.telefone||'N/A'}</div></div><div class="modal-card"><div class="modal-card-label">Data/Hora</div><div class="modal-card-value">${d.toLocaleDateString('pt-BR')} ${d.toLocaleTimeString('pt-BR')}</div></div><div class="modal-card"><div class="modal-card-label">Tipo</div><div class="modal-card-value">${v.tipoEntrega==='entrega'?'🛵 Delivery':'🏪 Retirada'}</div></div><div class="modal-card"><div class="modal-card-label">Pagamento</div><div class="modal-card-value">${v.formaPagamento}</div></div>${v.tipoEntrega==='entrega'?`<div class="modal-card"><div class="modal-card-label">Endereço</div><div class="modal-card-value">${v.endereco||'N/A'}</div></div>`:'<div class="modal-card"><div class="modal-card-label">Retirada</div><div class="modal-card-value">Balcão</div></div>'}${tx>0?`<div class="modal-card"><div class="modal-card-label">Taxa de Entrega</div><div class="modal-card-value" style="color:#f59e0b;">R$ ${tx.toFixed(2)} (repasse)</div></div>`:''}${v.cupomCodigo?`<div class="modal-card"><div class="modal-card-label">Cupom</div><div class="modal-card-value">${v.cupomCodigo} (-R$ ${parseFloat(v.desconto||0).toFixed(2)})</div></div>`:''}`;
     let ih='';if(v.itens)v.itens.forEach(i=>{const cu=parseFloat(i.custoUn)||(products.find(p=>p.nome===i.nome)?.custo)||0,pu=parseFloat(i.precoUn)||0,q=parseInt(i.qtd)||0,li=(pu-cu)*q;ih+=`<div class="modal-item"><div><strong>${q}x</strong> ${i.nome}${i.obs?` <span style="color:#f59e0b;font-size:10px;">(${i.obs})</span>`:''}</div><div style="text-align:right;">R$ ${(pu*q).toFixed(2)} <span style="color:var(--tm);font-size:10px;">| Custo: R$ ${(cu*q).toFixed(2)} | Lucro: R$ ${li.toFixed(2)}</span></div></div>`});document.getElementById('modalItems').innerHTML=ih||'<p style="color:var(--tm);">Nenhum item.</p>';let ah='';if(v.adicionais&&v.adicionais.length){ah='<h4 style="font-size:12px;margin-bottom:6px;">🍟 Adicionais</h4>';v.adicionais.forEach(a=>ah+=`<div class="modal-item"><span>• ${a.nome}</span><span style="color:#4ade80;">+R$ ${parseFloat(a.preco).toFixed(2)}</span></div>`)}document.getElementById('modalAdicionais').innerHTML=ah;const ct=v.itens?v.itens.reduce((s,i)=>{const cu=parseFloat(i.custoUn)||(products.find(p=>p.nome===i.nome)?.custo)||0;return s+cu*(parseInt(i.qtd)||0)},0):0,ll=parseFloat(v.total||0)-ct-tx;document.getElementById('modalTotal').innerHTML=`<span>Total: R$ ${parseFloat(v.total).toFixed(2)}</span><span style="font-size:12px;">Custo: R$ ${ct.toFixed(2)} | Taxa: R$ ${tx.toFixed(2)} | Lucro: R$ ${ll.toFixed(2)}</span>`;document.getElementById('saleDetailModal').classList.add('show')}
     window.closeSaleDetail=function(){document.getElementById('saleDetailModal').classList.remove('show')}
@@ -296,30 +895,237 @@
     window.exportCSV=function(){let csv='Data,Cliente,Telefone,Total,Custo,TaxaEntrega,Desconto,Lucro,Pagamento,Tipo,Endereço,Itens\n';sales.forEach(v=>{const itens=v.itens?v.itens.map(i=>i.qtd+'x '+i.nome).join('; '):'',custo=v.itens?v.itens.reduce((s,i)=>{const cu=parseFloat(i.custoUn)||(products.find(p=>p.nome===i.nome)?.custo)||0;return s+cu*(parseInt(i.qtd)||0)},0):0,total=parseFloat(v.total)||0,taxa=parseFloat(v.taxaEntrega)||0;csv+=`"${new Date(v.dataHora).toLocaleString('pt-BR')}","${v.cliente}","${v.telefone||''}","${total.toFixed(2)}","${custo.toFixed(2)}","${taxa.toFixed(2)}","${v.desconto||0}","${(total-custo-taxa).toFixed(2)}","${v.formaPagamento}","${v.tipoEntrega||''}","${v.endereco||''}","${itens}"\n`});const b=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='relatorio.csv';a.click();toast('✅ CSV!')}
     window.exportJSON=function(){const b=new Blob([JSON.stringify(sales,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='relatorio.json';a.click();toast('✅ JSON!')}
 
-    // ==================== FINANCEIRO ====================
+    // =======================================================
+    // ================== FINANCEIRO =========================
+    // =======================================================
     window.handleFinPeriodoRapido=function(){const p=document.getElementById('finPeriodoRapido').value,cf=document.getElementById('finCustomDateFields'),h=new Date(),ts=new Date(h.getFullYear(),h.getMonth(),h.getDate()),tm=new Date(ts.getTime()+86400000),ys=new Date(ts.getTime()-86400000);let s,e;switch(p){case'today':s=ts;e=tm;break;case'yesterday':s=ys;e=ts;break;case'7days':s=new Date(ts.getTime()-7*86400000);e=tm;break;case'30days':s=new Date(ts.getTime()-30*86400000);e=tm;break;case'month':s=new Date(h.getFullYear(),h.getMonth(),1);e=tm;break;case'lastmonth':s=new Date(h.getFullYear(),h.getMonth()-1,1);e=new Date(h.getFullYear(),h.getMonth(),1);break;case'all':s=new Date(2000,0,1);e=new Date(2099,11,31);break;case'custom':cf.style.display='flex';if(!document.getElementById('finDataInicial').value){document.getElementById('finDataInicial').value=new Date(ts.getTime()-7*86400000).toISOString().split('T')[0];document.getElementById('finDataFinal').value=h.toISOString().split('T')[0]}filtrarFinanceiro();return}cf.style.display='none';document.getElementById('finDataInicial').value=s.toISOString().split('T')[0];document.getElementById('finDataFinal').value=e.toISOString().split('T')[0];filtrarFinanceiro()}
     function initFinanceiroDates(){document.getElementById('finPeriodoRapido').value='month';handleFinPeriodoRapido()}
-    window.filtrarFinanceiro=function(){const di=document.getElementById('finDataInicial').value,df=document.getElementById('finDataFinal').value;let s=null,e=null;if(di)s=new Date(di+'T00:00:00');if(df)e=new Date(df+'T23:59:59');const vf=sales.filter(v=>{const d=new Date(v.dataHora);if(s&&d<s)return!1;if(e&&d>e)return!1;return!0});let dfi=despesas.filter(d=>{const dd=new Date(d.data+'T00:00:00');if(s&&dd<s)return!1;if(e&&dd>e)return!1;return!0});if(filtroAtualCategoria!=='todos')dfi=dfi.filter(d=>(d.categoria||'outros')===filtroAtualCategoria);let rec=0,cus=0,tax=0;vf.forEach(v=>{rec+=parseFloat(v.total)||0;tax+=parseFloat(v.taxaEntrega)||0;if(v.itens)v.itens.forEach(i=>{const q=parseInt(i.qtd)||0;let cu=parseFloat(i.custoUn)||0;if(!cu){const pr=products.find(x=>x.nome===i.nome);if(pr)cu=parseFloat(pr.custo)||0}cus+=cu*q})});const lb=rec-cus-tax,comp=dfi.filter(d=>(d.categoria||'outros')==='insumos').reduce((s,d)=>s+(d.valor||0),0),out=dfi.filter(d=>(d.categoria||'outros')!=='insumos').reduce((s,d)=>s+(d.valor||0),0),ll=lb-out,mg=rec?(ll/rec)*100:0;document.getElementById('finReceita').textContent='R$ '+rec.toFixed(2);document.getElementById('finCusto').textContent='R$ '+cus.toFixed(2);document.getElementById('finTaxaEntrega').textContent='R$ '+tax.toFixed(2);document.getElementById('finLucroBruto').textContent='R$ '+lb.toFixed(2);document.getElementById('finComprasInsumos').textContent='R$ '+comp.toFixed(2);document.getElementById('finOutrasDespesas').textContent='R$ '+out.toFixed(2);document.getElementById('finLucro').textContent='R$ '+ll.toFixed(2);document.getElementById('finMargem').textContent=mg.toFixed(1)+'%';let h='',tot=0;dfi.sort((a,b)=>new Date(b.data)-new Date(a.data));dfi.forEach(d=>{tot+=d.valor||0;const cat={insumos:'🛒 Insumos',aluguel:'🏠 Aluguel',energia:'⚡ Energia',gas:'🔥 Gás',outros:'📦 Outros'}[d.categoria]||'📦 Outros';h+=`<div class="li"><div><strong>${d.descricao}</strong><br><span style="font-size:10px;color:var(--tm);">${new Date(d.data+'T00:00:00').toLocaleDateString('pt-BR')} | ${cat}</span></div><div style="display:flex;align-items:center;gap:10px;"><span style="color:#ef4444;">R$ ${(d.valor||0).toFixed(2)}</span><button class="btn btn-d" style="padding:4px 8px;font-size:10px;" onclick="deleteDespesa('${d.id}')">🗑️</button></div></div>`});document.getElementById('despesasList').innerHTML=`<div style="margin-bottom:8px;font-weight:700;">Total: R$ ${tot.toFixed(2)}</div>${h||'<p style="color:var(--tm);text-align:center;">Nenhuma despesa.</p>'}`}
-    window.filtrarPorCategoria=function(c){filtroAtualCategoria=c;filtrarFinanceiro()}
-    async function saveDespesa(){const de=document.getElementById('despesaDesc').value.trim(),va=parseFloat(document.getElementById('despesaValor').value),da=document.getElementById('despesaData').value,ca=document.getElementById('despesaCategoria').value;if(!de||isNaN(va)||!da)return alert('Preencha todos os campos.');try{await window.fsAdd(window.fsColl(window.db,"despesas"),{descricao:de,valor:va,data:da,categoria:ca});['despesaDesc','despesaValor','despesaData'].forEach(id=>document.getElementById(id).value='');toast('✅ Despesa lançada!');loadDespesas()}catch(e){alert('Erro ao salvar')}}
-    async function deleteDespesa(id){if(confirm('Excluir?')){await window.fsDel(window.fsDoc(window.db,"despesas",id));toast('🗑️ Excluída!');loadDespesas()}}
-    function loadDespesas(){if(!window.db)return;window.fsSnap(window.fsColl(window.db,"despesas"),snap=>{despesas=[];snap.forEach(d=>despesas.push({id:d.id,...d.data()}));if(document.getElementById('sec-financeiro').classList.contains('active'))filtrarFinanceiro();else updateResumoFinanceiro()})}
-    function updateResumoFinanceiro(){let rec=0,cus=0,tax=0;sales.forEach(v=>{rec+=parseFloat(v.total)||0;tax+=parseFloat(v.taxaEntrega)||0;if(v.itens)v.itens.forEach(i=>{const q=parseInt(i.qtd)||0;let cu=parseFloat(i.custoUn)||0;if(!cu){const pr=products.find(x=>x.nome===i.nome);if(pr)cu=parseFloat(pr.custo)||0}cus+=cu*q})});const lb=rec-cus-tax,comp=despesas.filter(d=>(d.categoria||'outros')==='insumos').reduce((s,d)=>s+(d.valor||0),0),out=despesas.filter(d=>(d.categoria||'outros')!=='insumos').reduce((s,d)=>s+(d.valor||0),0),ll=lb-out,mg=rec?(ll/rec)*100:0;document.getElementById('finReceita').textContent='R$ '+rec.toFixed(2);document.getElementById('finCusto').textContent='R$ '+cus.toFixed(2);document.getElementById('finTaxaEntrega').textContent='R$ '+tax.toFixed(2);document.getElementById('finLucroBruto').textContent='R$ '+lb.toFixed(2);document.getElementById('finComprasInsumos').textContent='R$ '+comp.toFixed(2);document.getElementById('finOutrasDespesas').textContent='R$ '+out.toFixed(2);document.getElementById('finLucro').textContent='R$ '+ll.toFixed(2);document.getElementById('finMargem').textContent=mg.toFixed(1)+'%'}
 
-    // ==================== EXPEDIENTE ====================
+    async function saveMovimento(){
+        const tipo = document.getElementById('movTipo').value;
+        const desc = document.getElementById('movDesc').value.trim();
+        const valor = parseFloat(document.getElementById('movValor').value);
+        const data = document.getElementById('movData').value;
+        const categoria = document.getElementById('movCategoria').value;
+        if(!desc || isNaN(valor) || !data) return alert('Preencha todos os campos.');
+        try {
+            await window.fsAdd(window.fsColl(window.db, "movimentos"), {
+                tipo: tipo,
+                descricao: desc,
+                valor: valor,
+                data: data,
+                categoria: categoria
+            });
+            document.getElementById('movDesc').value = '';
+            document.getElementById('movValor').value = '';
+            document.getElementById('movData').value = '';
+            toast('✅ Movimento lançado!');
+            loadMovimentos();
+        } catch(e){ alert('Erro ao salvar'); }
+    }
+
+    function loadMovimentos(){
+        if(!window.db) return;
+        window.fsSnap(window.fsColl(window.db, "movimentos"), snap => {
+            movimentos = [];
+            snap.forEach(d => movimentos.push({id: d.id, ...d.data()}));
+            if(document.getElementById('sec-financeiro').classList.contains('active')) filtrarFinanceiro();
+            else updateResumoFinanceiro();
+        });
+    }
+
+    async function deleteMovimento(id){
+        if(confirm('Excluir?')){
+            await window.fsDel(window.fsDoc(window.db, "movimentos", id));
+            toast('🗑️ Excluído!');
+            loadMovimentos();
+        }
+    }
+
+    window.filtrarPorCategoria = function(cat){ filtroAtualCategoria = cat; filtrarFinanceiro(); }
+    window.filtrarPorTipo = function(tipo){ filtroAtualTipo = tipo; filtrarFinanceiro(); }
+
+    window.filtrarFinanceiro = function(){
+        const di = document.getElementById('finDataInicial').value;
+        const df = document.getElementById('finDataFinal').value;
+        let s=null, e=null;
+        if(di) s = new Date(di+'T00:00:00');
+        if(df) e = new Date(df+'T23:59:59');
+        const vf = sales.filter(v => {
+            const d = new Date(v.dataHora);
+            if(s && d < s) return false;
+            if(e && d > e) return false;
+            return true;
+        });
+        let movFiltrados = movimentos.filter(m => {
+            const dd = new Date(m.data+'T00:00:00');
+            if(s && dd < s) return false;
+            if(e && dd > e) return false;
+            return true;
+        });
+        if(filtroAtualCategoria !== 'todos'){
+            movFiltrados = movFiltrados.filter(m => (m.categoria||'outros') === filtroAtualCategoria);
+        }
+        if(filtroAtualTipo !== 'todos'){
+            movFiltrados = movFiltrados.filter(m => m.tipo === filtroAtualTipo);
+        }
+
+        let rec=0, cus=0, tax=0;
+        vf.forEach(v => {
+            rec += parseFloat(v.total)||0;
+            tax += parseFloat(v.taxaEntrega)||0;
+            if(v.itens) v.itens.forEach(i => {
+                const q = parseInt(i.qtd)||0;
+                let cu = parseFloat(i.custoUn)||0;
+                if(!cu){ const pr = products.find(x=>x.nome===i.nome); if(pr) cu=parseFloat(pr.custo)||0; }
+                cus += cu*q;
+            });
+        });
+        const lb = rec - cus - tax;
+        const despesasOp = movFiltrados.filter(m => m.tipo === 'despesa' && (m.categoria||'outros') !== 'insumos')
+                            .reduce((s,m) => s + (m.valor||0), 0);
+        const comprasInsumos = movFiltrados.filter(m => m.tipo === 'despesa' && (m.categoria||'outros') === 'insumos')
+                            .reduce((s,m) => s + (m.valor||0), 0);
+        const receitasExtras = movFiltrados.filter(m => m.tipo === 'receita')
+                            .reduce((s,m) => s + (m.valor||0), 0);
+        const ll = lb - despesasOp + receitasExtras;
+        const mg = rec ? (ll/rec)*100 : 0;
+
+        document.getElementById('finReceita').textContent = 'R$ '+rec.toFixed(2);
+        document.getElementById('finCusto').textContent = 'R$ '+cus.toFixed(2);
+        document.getElementById('finTaxaEntrega').textContent = 'R$ '+tax.toFixed(2);
+        document.getElementById('finLucroBruto').textContent = 'R$ '+lb.toFixed(2);
+        document.getElementById('finComprasInsumos').textContent = 'R$ '+comprasInsumos.toFixed(2);
+        document.getElementById('finDespesasOp').textContent = 'R$ '+despesasOp.toFixed(2);
+        document.getElementById('finReceitasExtras').textContent = 'R$ '+receitasExtras.toFixed(2);
+        document.getElementById('finLucro').textContent = 'R$ '+ll.toFixed(2);
+        document.getElementById('finMargem').textContent = mg.toFixed(1)+'%';
+
+        let h='', total=0;
+        movFiltrados.sort((a,b) => new Date(b.data) - new Date(a.data));
+        movFiltrados.forEach(m => {
+            total += (m.tipo === 'receita' ? m.valor : -m.valor);
+            const catMap = {
+                insumos:'🛒 Insumos', aluguel:'🏠 Aluguel', energia:'⚡ Energia', gas:'🔥 Gás',
+                aporte:'💰 Aporte', devolucao:'↩️ Devolução', outras_receitas:'📦 Outras Receitas',
+                outros:'📦 Outros'
+            };
+            const cat = catMap[m.categoria] || '📦 Outros';
+            const tipoLabel = m.tipo === 'receita' ? '📈 Receita' : '📉 Despesa';
+            const badgeClasse = m.tipo === 'receita' ? 'mov-tipo-receita' : 'mov-tipo-despesa';
+            const valorFormatado = (m.tipo === 'receita' ? '+' : '-') + ' R$ ' + (m.valor||0).toFixed(2);
+            h += `<div class="li">
+                <div>
+                    <strong>${m.descricao}</strong><br>
+                    <span style="font-size:10px;color:var(--tm);">${new Date(m.data+'T00:00:00').toLocaleDateString('pt-BR')} | ${cat}</span>
+                    <span class="mov-tipo-badge ${badgeClasse}" style="margin-left:6px;">${tipoLabel}</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span style="color:${m.tipo==='receita'?'#22c55e':'#ef4444'};">${valorFormatado}</span>
+                    <button class="btn btn-d" style="padding:4px 8px;font-size:10px;" onclick="deleteMovimento('${m.id}')">🗑️</button>
+                </div>
+            </div>`;
+        });
+        document.getElementById('movimentosList').innerHTML = `<div style="margin-bottom:8px;font-weight:700;">Saldo do período: R$ ${total.toFixed(2)}</div>` + (h || '<p style="color:var(--tm);text-align:center;">Nenhum movimento.</p>');
+    }
+
+    function updateResumoFinanceiro(){
+        let rec=0,cus=0,tax=0;
+        sales.forEach(v => {
+            rec += parseFloat(v.total)||0;
+            tax += parseFloat(v.taxaEntrega)||0;
+            if(v.itens) v.itens.forEach(i => {
+                const q = parseInt(i.qtd)||0;
+                let cu = parseFloat(i.custoUn)||0;
+                if(!cu){ const pr = products.find(x=>x.nome===i.nome); if(pr) cu=parseFloat(pr.custo)||0; }
+                cus += cu*q;
+            });
+        });
+        const lb = rec - cus - tax;
+        const despesasOp = movimentos.filter(m => m.tipo === 'despesa' && (m.categoria||'outros') !== 'insumos')
+                            .reduce((s,m) => s + (m.valor||0), 0);
+        const comprasInsumos = movimentos.filter(m => m.tipo === 'despesa' && (m.categoria||'outros') === 'insumos')
+                            .reduce((s,m) => s + (m.valor||0), 0);
+        const receitasExtras = movimentos.filter(m => m.tipo === 'receita')
+                            .reduce((s,m) => s + (m.valor||0), 0);
+        const ll = lb - despesasOp + receitasExtras;
+        const mg = rec ? (ll/rec)*100 : 0;
+        document.getElementById('finReceita').textContent = 'R$ '+rec.toFixed(2);
+        document.getElementById('finCusto').textContent = 'R$ '+cus.toFixed(2);
+        document.getElementById('finTaxaEntrega').textContent = 'R$ '+tax.toFixed(2);
+        document.getElementById('finLucroBruto').textContent = 'R$ '+lb.toFixed(2);
+        document.getElementById('finComprasInsumos').textContent = 'R$ '+comprasInsumos.toFixed(2);
+        document.getElementById('finDespesasOp').textContent = 'R$ '+despesasOp.toFixed(2);
+        document.getElementById('finReceitasExtras').textContent = 'R$ '+receitasExtras.toFixed(2);
+        document.getElementById('finLucro').textContent = 'R$ '+ll.toFixed(2);
+        document.getElementById('finMargem').textContent = mg.toFixed(1)+'%';
+    }
+
+    // =======================================================
+    // ================== EXPEDIENTE =========================
+    // =======================================================
     async function toggleLoja(a){try{await window.fsSet(window.fsDoc(window.db,"configuracoes","expediente"),{aberto:a},{merge:!0});document.getElementById('btnAbrirLoja').style.opacity=a?'1':'0.5';document.getElementById('btnFecharLoja').style.opacity=a?'0.5':'1';toast(a?'🟢 Aberta!':'🔴 Fechada!')}catch(e){}}
     async function saveHorarios(){const d={aberto:!0,horarios:{seg_sex:{inicio:document.getElementById('hSegSexIni').value,fim:document.getElementById('hSegSexFim').value},sab:{inicio:document.getElementById('hSabIni').value,fim:document.getElementById('hSabFim').value},dom:{inicio:document.getElementById('hDomIni').value,fim:document.getElementById('hDomFim').value}}};try{await window.fsSet(window.fsDoc(window.db,"configuracoes","expediente"),d,{merge:!0});toast('✅ Horários salvos!')}catch(e){}}
     async function loadHorarios(){const s=await window.fsGet(window.fsColl(window.db,"configuracoes"));s.forEach(d=>{if(d.id==='expediente'){const h=d.data().horarios;if(h){if(h.seg_sex){document.getElementById('hSegSexIni').value=h.seg_sex.inicio;document.getElementById('hSegSexFim').value=h.seg_sex.fim}if(h.sab){document.getElementById('hSabIni').value=h.sab.inicio;document.getElementById('hSabFim').value=h.sab.fim}if(h.dom){document.getElementById('hDomIni').value=h.dom.inicio;document.getElementById('hDomFim').value=h.dom.fim}}document.getElementById('btnAbrirLoja').style.opacity=d.data().aberto!==!1?'1':'0.5';document.getElementById('btnFecharLoja').style.opacity=d.data().aberto===!1?'1':'0.5'}})}
 
-    function init(){if(!window.db){setTimeout(init,500);return}
-        window.fsSnap(window.fsColl(window.db,"categorias"),snap=>{categories=[];snap.forEach(d=>categories.push({id:d.id,...d.data()}));categories.sort((a,b)=>(a.ordem||0)-(b.ordem||0));updateCatSelect();updateAddonCatSelect();renderCategories()});
-        window.fsSnap(window.fsColl(window.db,"produtos"),snap=>{products=[];snap.forEach(d=>products.push({id:d.id,...d.data()}));renderProducts();updateUpsellSelects();renderUpsellTable();updatePromoProdutoSelect()});
-        window.fsSnap(window.fsColl(window.db,"adicionais"),snap=>{adicionais=[];snap.forEach(d=>adicionais.push({id:d.id,...d.data()}));renderAddons()});
-        window.fsSnap(window.fsColl(window.db,"cupons"),snap=>{coupons=[];snap.forEach(d=>coupons.push({id:d.id,...d.data()}));renderCoupons()});
-        window.fsSnap(window.fsColl(window.db,"promocoes"),snap=>{promocoes=[];snap.forEach(d=>promocoes.push({id:d.id,...d.data()}));renderPromoTable()});
-        window.fsSnap(window.fsColl(window.db,"vendas"),snap=>{sales=[];snap.forEach(d=>sales.push({id:d.id,...d.data()}));if(document.getElementById('sec-relatorios').classList.contains('active')){handlePeriodChange();generateReport()}updateResumoFinanceiro()});
-        loadDespesas();
+    // =======================================================
+    // ================== INICIALIZAÇÃO ======================
+    // =======================================================
+    function init(){
+        if(!window.db){ setTimeout(init, 500); return; }
+        window.fsSnap(window.fsColl(window.db, "categorias"), snap => {
+            categories = [];
+            snap.forEach(d => categories.push({id: d.id, ...d.data()}));
+            categories.sort((a,b) => (a.ordem||0) - (b.ordem||0));
+            updateCatSelect();
+            updateAddonCatSelect();
+            renderCategories();
+        });
+        window.fsSnap(window.fsColl(window.db, "produtos"), snap => {
+            products = [];
+            snap.forEach(d => {
+                const data = d.data();
+                if (data.categoria && !data.categorias) {
+                    data.categorias = [data.categoria];
+                }
+                if (!data.categorias || !Array.isArray(data.categorias)) {
+                    data.categorias = [];
+                }
+                products.push({id: d.id, ...data});
+            });
+            renderProducts();
+            updateUpsellSelects();
+            renderUpsellTable();
+            updatePromoProdutoSelect();
+        });
+        window.fsSnap(window.fsColl(window.db, "adicionais"), snap => {
+            adicionais = [];
+            snap.forEach(d => adicionais.push({id: d.id, ...d.data()}));
+            renderAddons();
+        });
+        window.fsSnap(window.fsColl(window.db, "cupons"), snap => {
+            coupons = [];
+            snap.forEach(d => coupons.push({id: d.id, ...d.data()}));
+            renderCoupons();
+        });
+        window.fsSnap(window.fsColl(window.db, "promocoes"), snap => {
+            promocoes = [];
+            snap.forEach(d => promocoes.push({id: d.id, ...d.data()}));
+            renderPromoTable();
+        });
+        window.fsSnap(window.fsColl(window.db, "vendas"), snap => {
+            sales = [];
+            snap.forEach(d => sales.push({id: d.id, ...d.data()}));
+            if(document.getElementById('sec-relatorios').classList.contains('active')){
+                window.handlePeriodChange();
+                window.generateReport();
+            }
+            updateResumoFinanceiro();
+        });
+        loadMovimentos();
+        calcCMV();
     }
+
     init();
 </script>
 </body>
