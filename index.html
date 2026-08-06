@@ -1137,7 +1137,7 @@
 </script>
 
 <!-- ============================================================ -->
-<!-- JAVASCRIPT PRINCIPAL -->
+<!-- JAVASCRIPT PRINCIPAL – COM VERIFICAÇÕES DE SEGURANÇA -->
 <script>
     // ============================================
     //  VARIÁVEIS
@@ -1185,7 +1185,9 @@
 
     function toggleTroco() {
         const el = document.getElementById('troco');
-        el.style.display = document.getElementById('pagamento').value === 'Dinheiro' ? 'block' : 'none';
+        if (el) {
+            el.style.display = document.getElementById('pagamento')?.value === 'Dinheiro' ? 'block' : 'none';
+        }
     }
 
     // ============================================
@@ -1223,11 +1225,11 @@
             const data = {
                 cart: cart,
                 adicionaisSelecionados: adicionaisSelecionados,
-                nome: document.getElementById('nome').value || '',
-                telefone: document.getElementById('telefone').value || '',
-                tipoEntrega: document.getElementById('tipoEntrega').value || 'retirada',
-                endereco: document.getElementById('endereco').value || '',
-                pagamento: document.getElementById('pagamento').value || 'Pix',
+                nome: document.getElementById('nome')?.value || '',
+                telefone: document.getElementById('telefone')?.value || '',
+                tipoEntrega: document.getElementById('tipoEntrega')?.value || 'retirada',
+                endereco: document.getElementById('endereco')?.value || '',
+                pagamento: document.getElementById('pagamento')?.value || 'Pix',
                 cupom: cupomAplicado
             };
             localStorage.setItem('aquarius_cart', JSON.stringify(data));
@@ -1243,13 +1245,18 @@
                 if (confirm('🛒 Você tinha itens no carrinho. Deseja restaurar?')) {
                     cart = data.cart;
                     adicionaisSelecionados = data.adicionaisSelecionados || [];
-                    document.getElementById('nome').value = data.nome || '';
-                    document.getElementById('telefone').value = data.telefone || '';
-                    document.getElementById('tipoEntrega').value = data.tipoEntrega || 'retirada';
-                    document.getElementById('endereco').value = data.endereco || '';
-                    document.getElementById('pagamento').value = data.pagamento || 'Pix';
+                    const nome = document.getElementById('nome');
+                    if (nome) nome.value = data.nome || '';
+                    const telefone = document.getElementById('telefone');
+                    if (telefone) telefone.value = data.telefone || '';
+                    const tipoEntrega = document.getElementById('tipoEntrega');
+                    if (tipoEntrega) tipoEntrega.value = data.tipoEntrega || 'retirada';
+                    const endereco = document.getElementById('endereco');
+                    if (endereco) endereco.value = data.endereco || '';
+                    const pagamento = document.getElementById('pagamento');
+                    if (pagamento) pagamento.value = data.pagamento || 'Pix';
                     if (data.cupom) cupomAplicado = data.cupom;
-                    document.getElementById('tipoEntrega').dispatchEvent(new Event('change'));
+                    if (tipoEntrega) tipoEntrega.dispatchEvent(new Event('change'));
                     toggleTroco();
                     updateCart();
                     showToast('Carrinho restaurado!');
@@ -1266,8 +1273,10 @@
             cart = [];
             adicionaisSelecionados = [];
             cupomAplicado = null;
-            document.getElementById('cupomInput').value = '';
-            document.getElementById('cupomStatus').textContent = '';
+            const cupomInput = document.getElementById('cupomInput');
+            if (cupomInput) cupomInput.value = '';
+            const cupomStatus = document.getElementById('cupomStatus');
+            if (cupomStatus) cupomStatus.textContent = '';
             updateCart();
             saveCartToLocalStorage();
             showToast('Carrinho limpo!');
@@ -1277,6 +1286,7 @@
 
     function toggleCart() {
         const panel = document.getElementById('cartPanel');
+        if (!panel) return;
         panel.classList.toggle('open');
         if (panel.classList.contains('open')) renderAddons();
     }
@@ -1295,6 +1305,7 @@
     };
 
     window.changeQty = function(i, a) {
+        if (!cart[i]) return;
         cart[i].qty += a;
         if (cart[i].qty <= 0) cart.splice(i, 1);
         if (cupomAplicado) recalcCouponDiscount();
@@ -1303,6 +1314,7 @@
     };
 
     window.updateObs = function(i, v) {
+        if (!cart[i]) return;
         cart[i].obs = v;
         saveCartToLocalStorage();
     };
@@ -1314,7 +1326,6 @@
         const section = document.getElementById('addonsSection');
         const list = document.getElementById('addonsList');
         const selected = document.getElementById('selectedAddons');
-        // Segurança: se algum elemento não existir, sai
         if (!section || !list || !selected) return;
 
         if (cart.length === 0 || adicionaisDisponiveis.length === 0) {
@@ -1390,6 +1401,7 @@
     async function applyCoupon() {
         const input = document.getElementById('cupomInput');
         const status = document.getElementById('cupomStatus');
+        if (!input || !status) return;
         const codigo = input.value.trim().toUpperCase();
         if (!codigo) { status.textContent = 'Digite um código.'; return; }
         if (!window.db) { status.textContent = '⚠️ Aguarde conexão.'; return; }
@@ -1494,124 +1506,130 @@
 
     function clearCoupon() {
         cupomAplicado = null;
-        document.getElementById('cupomInput').value = '';
-        document.getElementById('cupomStatus').textContent = '';
+        const input = document.getElementById('cupomInput');
+        if (input) input.value = '';
+        const status = document.getElementById('cupomStatus');
+        if (status) status.textContent = '';
         updateCart();
         saveCartToLocalStorage();
     }
     window.clearCoupon = clearCoupon;
 
     // ============================================
-    //  UPDATE CART
+    //  UPDATE CART (com try-catch e verificações)
     // ============================================
     function isBairroFraron(endereco) {
-        if (!endereco) return false;
+        if (!endereco || typeof endereco !== 'string') return false;
         const e = endereco.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
         return /fraron|frarom|frarão|frarã|frarao/.test(e);
     }
 
     function updateCart() {
-        const cartItemsEl = document.getElementById('cartItems');
-        const subtotalEl = document.getElementById('subtotal');
-        const totalEl = document.getElementById('total');
-        const cartCountEl = document.getElementById('cartCount');
-        const enderecoEl = document.getElementById('endereco');
-        const addonsTotalRow = document.getElementById('addonsTotalRow');
-        const addonsTotalEl = document.getElementById('addonsTotal');
-        const btnFinalizar = document.getElementById('btnFinalizar');
-        const taxaSpan = document.getElementById('taxa');
-        const taxaLabel = document.getElementById('taxaLabel');
-        const descontoRow = document.getElementById('descontoRow');
-        const descontoValorEl = document.getElementById('descontoValor');
-        const freteInfo = document.getElementById('freteInfo');
+        try {
+            const cartItemsEl = document.getElementById('cartItems');
+            const subtotalEl = document.getElementById('subtotal');
+            const totalEl = document.getElementById('total');
+            const cartCountEl = document.getElementById('cartCount');
+            const enderecoEl = document.getElementById('endereco');
+            const addonsTotalRow = document.getElementById('addonsTotalRow');
+            const addonsTotalEl = document.getElementById('addonsTotal');
+            const btnFinalizar = document.getElementById('btnFinalizar');
+            const taxaSpan = document.getElementById('taxa');
+            const taxaLabel = document.getElementById('taxaLabel');
+            const descontoRow = document.getElementById('descontoRow');
+            const descontoValorEl = document.getElementById('descontoValor');
+            const freteInfo = document.getElementById('freteInfo');
 
-        let h = '', s = 0, ct = 0;
-        cart.forEach((it, i) => {
-            const sb = it.price * it.qty;
-            s += sb;
-            ct += it.qty;
-            const elegivel = isItemElegivel(it);
-            const classeElegivel = elegivel ? 'elegivel' : 'nao-elegivel';
-            const icone = elegivel ? '✅' : '🚫';
-            const label = elegivel ? 'Elegível' : 'Não elegível (promoção)';
-            const itemClasse = elegivel ? '' : 'nao-elegivel';
+            let h = '', s = 0, ct = 0;
+            cart.forEach((it, i) => {
+                const sb = it.price * it.qty;
+                s += sb;
+                ct += it.qty;
+                const elegivel = isItemElegivel(it);
+                const classeElegivel = elegivel ? 'elegivel' : 'nao-elegivel';
+                const icone = elegivel ? '✅' : '🚫';
+                const label = elegivel ? 'Elegível' : 'Não elegível (promoção)';
+                const itemClasse = elegivel ? '' : 'nao-elegivel';
 
-            h += `<div class="cart-item ${itemClasse}">
-                <div class="item-header">
-                    <span class="item-name">${it.name}</span>
-                    <span>R$ ${sb.toFixed(2)}</span>
-                </div>
-                <div class="item-elegibilidade ${classeElegivel}">
-                    <span class="icone">${icone}</span>
-                    <span>${label}</span>
-                </div>
-                <div class="qty-controls">
-                    <button class="qty-btn" onclick="changeQty(${i},-1)">−</button>
-                    <span style="font-weight:700;min-width:24px;text-align:center;">${it.qty}</span>
-                    <button class="qty-btn" onclick="changeQty(${i},1)">+</button>
-                    <button class="remove-btn" onclick="changeQty(${i},-${it.qty})">Remover</button>
-                </div>
-                <textarea placeholder="Observações..." oninput="updateObs(${i},this.value)" style="width:100%;padding:6px 10px;border-radius:8px;background:var(--input-bg);border:1px solid var(--input-border);color:var(--text-primary);font-size:11px;resize:vertical;min-height:28px;outline:none;margin-top:4px;">${it.obs}</textarea>
-            </div>`;
-        });
+                h += `<div class="cart-item ${itemClasse}">
+                    <div class="item-header">
+                        <span class="item-name">${it.name}</span>
+                        <span>R$ ${sb.toFixed(2)}</span>
+                    </div>
+                    <div class="item-elegibilidade ${classeElegivel}">
+                        <span class="icone">${icone}</span>
+                        <span>${label}</span>
+                    </div>
+                    <div class="qty-controls">
+                        <button class="qty-btn" onclick="changeQty(${i},-1)">−</button>
+                        <span style="font-weight:700;min-width:24px;text-align:center;">${it.qty}</span>
+                        <button class="qty-btn" onclick="changeQty(${i},1)">+</button>
+                        <button class="remove-btn" onclick="changeQty(${i},-${it.qty})">Remover</button>
+                    </div>
+                    <textarea placeholder="Observações..." oninput="updateObs(${i},this.value)" style="width:100%;padding:6px 10px;border-radius:8px;background:var(--input-bg);border:1px solid var(--input-border);color:var(--text-primary);font-size:11px;resize:vertical;min-height:28px;outline:none;margin-top:4px;">${it.obs}</textarea>
+                </div>`;
+            });
 
-        const tp = document.getElementById('tipoEntrega').value;
-        const endereco = document.getElementById('endereco').value.trim();
-        let tx = 0, isFraron = false;
-        if (tp === 'entrega') {
-            isFraron = isBairroFraron(endereco);
-            tx = isFraron ? 0 : DELIVERY_FEE;
-        }
-        if (tp === 'entrega' && isFraron) {
-            freteInfo.classList.add('show');
-            taxaSpan.textContent = '0.00';
-            taxaLabel.innerHTML = '<strong style="color:#22c55e;">GRÁTIS (Fraron)</strong>';
-        } else if (tp === 'entrega') {
-            freteInfo.classList.remove('show');
-            taxaSpan.textContent = DELIVERY_FEE.toFixed(2);
-            taxaLabel.innerHTML = 'R$ <span id="taxa">' + DELIVERY_FEE.toFixed(2) + '</span>';
-        } else {
-            freteInfo.classList.remove('show');
-            taxaSpan.textContent = '0.00';
-            taxaLabel.innerHTML = 'R$ <span id="taxa">0.00</span>';
-        }
-
-        const addonsTotal = adicionaisSelecionados.reduce((sum, a) => sum + parseFloat(a.preco || 0), 0);
-        let desconto = cupomAplicado ? cupomAplicado.desconto : 0;
-        let total = s + tx + addonsTotal - desconto;
-        if (total < 0) total = 0;
-
-        cartItemsEl.innerHTML = h || '<p style="text-align:center;color:var(--text-muted);padding:20px 0;">Carrinho vazio.</p>';
-        subtotalEl.textContent = s.toFixed(2);
-        totalEl.textContent = total.toFixed(2);
-        cartCountEl.textContent = ct;
-        enderecoEl.style.display = tp === 'entrega' ? 'block' : 'none';
-
-        if (addonsTotalRow) {
-            if (addonsTotal > 0) {
-                addonsTotalRow.style.display = 'flex';
-                addonsTotalEl.textContent = addonsTotal.toFixed(2);
-            } else {
-                addonsTotalRow.style.display = 'none';
+            const tp = document.getElementById('tipoEntrega')?.value || 'retirada';
+            const endereco = document.getElementById('endereco')?.value?.trim() || '';
+            let tx = 0, isFraron = false;
+            if (tp === 'entrega') {
+                isFraron = isBairroFraron(endereco);
+                tx = isFraron ? 0 : DELIVERY_FEE;
             }
-        }
-
-        if (descontoRow && descontoValorEl) {
-            if (cupomAplicado && cupomAplicado.desconto > 0) {
-                descontoRow.style.display = 'flex';
-                descontoValorEl.textContent = cupomAplicado.desconto.toFixed(2);
+            if (tp === 'entrega' && isFraron && freteInfo) {
+                freteInfo.classList.add('show');
+                if (taxaSpan) taxaSpan.textContent = '0.00';
+                if (taxaLabel) taxaLabel.innerHTML = '<strong style="color:#22c55e;">GRÁTIS (Fraron)</strong>';
+            } else if (tp === 'entrega' && !isFraron) {
+                if (freteInfo) freteInfo.classList.remove('show');
+                if (taxaSpan) taxaSpan.textContent = DELIVERY_FEE.toFixed(2);
+                if (taxaLabel) taxaLabel.innerHTML = 'R$ <span id="taxa">' + DELIVERY_FEE.toFixed(2) + '</span>';
             } else {
-                descontoRow.style.display = 'none';
+                if (freteInfo) freteInfo.classList.remove('show');
+                if (taxaSpan) taxaSpan.textContent = '0.00';
+                if (taxaLabel) taxaLabel.innerHTML = 'R$ <span id="taxa">0.00</span>';
             }
-        }
 
-        if (btnFinalizar) {
-            btnFinalizar.disabled = !cozinhaOnline || cart.length === 0;
-            btnFinalizar.textContent = cozinhaOnline ? 'FINALIZAR 🚀' : '🔴 OFFLINE';
-            btnFinalizar.style.opacity = (cozinhaOnline && cart.length > 0) ? '1' : '0.4';
-        }
+            const addonsTotal = adicionaisSelecionados.reduce((sum, a) => sum + parseFloat(a.preco || 0), 0);
+            let desconto = cupomAplicado ? cupomAplicado.desconto : 0;
+            let total = s + tx + addonsTotal - desconto;
+            if (total < 0) total = 0;
 
-        renderAddons();
+            if (cartItemsEl) cartItemsEl.innerHTML = h || '<p style="text-align:center;color:var(--text-muted);padding:20px 0;">Carrinho vazio.</p>';
+            if (subtotalEl) subtotalEl.textContent = s.toFixed(2);
+            if (totalEl) totalEl.textContent = total.toFixed(2);
+            if (cartCountEl) cartCountEl.textContent = ct;
+            if (enderecoEl) enderecoEl.style.display = tp === 'entrega' ? 'block' : 'none';
+
+            if (addonsTotalRow) {
+                if (addonsTotal > 0) {
+                    addonsTotalRow.style.display = 'flex';
+                    if (addonsTotalEl) addonsTotalEl.textContent = addonsTotal.toFixed(2);
+                } else {
+                    addonsTotalRow.style.display = 'none';
+                }
+            }
+
+            if (descontoRow && descontoValorEl) {
+                if (cupomAplicado && cupomAplicado.desconto > 0) {
+                    descontoRow.style.display = 'flex';
+                    descontoValorEl.textContent = cupomAplicado.desconto.toFixed(2);
+                } else {
+                    descontoRow.style.display = 'none';
+                }
+            }
+
+            if (btnFinalizar) {
+                btnFinalizar.disabled = !cozinhaOnline || cart.length === 0;
+                btnFinalizar.textContent = cozinhaOnline ? 'FINALIZAR 🚀' : '🔴 OFFLINE';
+                btnFinalizar.style.opacity = (cozinhaOnline && cart.length > 0) ? '1' : '0.4';
+            }
+
+            renderAddons();
+        } catch (err) {
+            console.error('Erro no updateCart:', err);
+        }
     }
 
     // ============================================
@@ -1632,43 +1650,47 @@
     }
 
     function showUpsell(prod) {
-        document.getElementById('upsellName').textContent = prod.nome;
-        document.getElementById('upsellPrice').textContent = 'R$ ' + parseFloat(prod.preco).toFixed(2);
-        document.getElementById('upsellImg').src = prod.imagem || '';
-        document.getElementById('upsellModal').classList.add('show');
+        const nameEl = document.getElementById('upsellName');
+        const priceEl = document.getElementById('upsellPrice');
+        const imgEl = document.getElementById('upsellImg');
+        if (nameEl) nameEl.textContent = prod.nome;
+        if (priceEl) priceEl.textContent = 'R$ ' + parseFloat(prod.preco).toFixed(2);
+        if (imgEl) imgEl.src = prod.imagem || '';
+        const modal = document.getElementById('upsellModal');
+        if (modal) modal.classList.add('show');
         upsellCallback = () => {
             addItem(prod.nome, prod.preco, prod.id);
-            document.getElementById('upsellModal').classList.remove('show');
+            if (modal) modal.classList.remove('show');
         };
     }
     window.acceptUpsell = function() { if (upsellCallback) upsellCallback(); };
     window.declineUpsell = function() {
-        document.getElementById('upsellModal').classList.remove('show');
+        const modal = document.getElementById('upsellModal');
+        if (modal) modal.classList.remove('show');
         upsellCallback = null;
     };
 
     // ============================================
-    //  CHECKOUT
+    //  CHECKOUT (com validação segura)
     // ============================================
     window.startCheckout = async function() {
         if (isCheckoutInProgress) { showToast('Aguarde...', 'error'); return; }
         if (!cozinhaOnline) { showToast('🔴 Cozinha offline!', 'error'); return; }
         if (!cart.length) { alert('Carrinho vazio.'); return; }
 
-        const nome = document.getElementById('nome').value.trim();
-        const telefone = document.getElementById('telefone').value.trim();
-        const tipo = document.getElementById('tipoEntrega').value;
-        const endereco = document.getElementById('endereco').value.trim();
-        const pagamento = document.getElementById('pagamento').value;
-        const troco = document.getElementById('troco').value.trim();
+        const nome = document.getElementById('nome')?.value?.trim() || '';
+        const telefone = document.getElementById('telefone')?.value?.trim() || '';
+        const tipo = document.getElementById('tipoEntrega')?.value || 'retirada';
+        const endereco = document.getElementById('endereco')?.value?.trim() || '';
+        const pagamento = document.getElementById('pagamento')?.value || 'Pix';
+        const troco = document.getElementById('troco')?.value?.trim() || '';
 
         if (!nome || !telefone) { alert('Nome e telefone obrigatórios.'); return; }
         if (tipo === 'entrega' && !endereco) { alert('Endereço obrigatório para entrega.'); return; }
 
         isCheckoutInProgress = true;
         const btn = document.getElementById('btnFinalizar');
-        btn.disabled = true;
-        btn.textContent = '⏳ PROCESSANDO...';
+        if (btn) { btn.disabled = true; btn.textContent = '⏳ PROCESSANDO...'; }
 
         try {
             let subtotal = 0;
@@ -1714,10 +1736,16 @@
             adicionaisSelecionados = [];
             const cupomId = cupomAplicado ? cupomAplicado.id : null;
             cupomAplicado = null;
-            document.getElementById('cupomInput').value = '';
-            document.getElementById('cupomStatus').textContent = '';
-            updateCart();
-            saveCartToLocalStorage();
+            const cupomInput = document.getElementById('cupomInput');
+            if (cupomInput) cupomInput.value = '';
+            const cupomStatus = document.getElementById('cupomStatus');
+            if (cupomStatus) cupomStatus.textContent = '';
+            
+            // Atualizar UI com carrinho vazio (com segurança)
+            setTimeout(() => {
+                updateCart();
+                saveCartToLocalStorage();
+            }, 100);
 
             if (window.db) {
                 try {
@@ -1746,31 +1774,39 @@
             alert('Erro: ' + (err.message || err));
         } finally {
             isCheckoutInProgress = false;
-            btn.disabled = false;
-            btn.textContent = cozinhaOnline ? 'FINALIZAR 🚀' : '🔴 OFFLINE';
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = cozinhaOnline ? 'FINALIZAR 🚀' : '🔴 OFFLINE';
+            }
         }
     };
 
     function mostrarConfirmacao(numero, nome, itens, total, endereco, tipo, pagamento, desconto, cupom) {
-        document.getElementById('confirmNumber').textContent = '#' + numero;
+        const numberEl = document.getElementById('confirmNumber');
+        if (numberEl) numberEl.textContent = '#' + numero;
         const itensTexto = itens.map(i => `${i.qtd}x ${i.nome}`).join(', ');
         let extra = '';
         if (desconto > 0) {
             extra = `<div><span>🏷️ Cupom:</span><span style="color:#f59e0b;">${cupom ? cupom.codigo : ''} (-R$ ${desconto.toFixed(2)})</span></div>`;
         }
-        document.getElementById('confirmDetails').innerHTML = `
-            <div><span>👤 Cliente:</span><span>${nome}</span></div>
-            <div><span>🍔 Itens:</span><span>${itensTexto}</span></div>
-            <div><span>💰 Total:</span><span style="color:#4ade80;font-weight:700;">R$ ${total.toFixed(2)}</span></div>
-            <div><span>${tipo === 'entrega' ? '📍 Entrega:' : '🏪 Retirada:'}</span><span>${tipo === 'entrega' ? endereco : 'No balcão'}</span></div>
-            <div><span>💳 Pagamento:</span><span>${pagamento}</span></div>
-            ${extra}
-        `;
-        document.getElementById('confirmOverlay').classList.add('show');
+        const details = document.getElementById('confirmDetails');
+        if (details) {
+            details.innerHTML = `
+                <div><span>👤 Cliente:</span><span>${nome}</span></div>
+                <div><span>🍔 Itens:</span><span>${itensTexto}</span></div>
+                <div><span>💰 Total:</span><span style="color:#4ade80;font-weight:700;">R$ ${total.toFixed(2)}</span></div>
+                <div><span>${tipo === 'entrega' ? '📍 Entrega:' : '🏪 Retirada:'}</span><span>${tipo === 'entrega' ? endereco : 'No balcão'}</span></div>
+                <div><span>💳 Pagamento:</span><span>${pagamento}</span></div>
+                ${extra}
+            `;
+        }
+        const overlay = document.getElementById('confirmOverlay');
+        if (overlay) overlay.classList.add('show');
     }
 
     window.closeConfirm = function() {
-        document.getElementById('confirmOverlay').classList.remove('show');
+        const overlay = document.getElementById('confirmOverlay');
+        if (overlay) overlay.classList.remove('show');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
@@ -1788,18 +1824,18 @@
     // ============================================
     function renderMenu() {
         if (!dataLoaded.categories || !dataLoaded.products) return;
-        document.getElementById('loadingMessage').style.display = 'none';
+        const loading = document.getElementById('loadingMessage');
+        if (loading) loading.style.display = 'none';
 
-        // Categories
         let nav = '';
         categories.forEach(c => {
             const cnt = products.filter(p => p.categoria === c.nome).length;
             nav += `<button class="cat-btn ${currentCat === c.nome ? 'active' : ''}" onclick="setCat('${c.nome}')">${c.nome}${cnt > 0 ? `<span class="count">${cnt}</span>` : ''}</button>`;
         });
-        document.getElementById('navCategories').innerHTML = nav;
+        const navEl = document.getElementById('navCategories');
+        if (navEl) navEl.innerHTML = nav;
 
-        // Filter
-        const search = document.getElementById('searchInput').value.toLowerCase();
+        const search = document.getElementById('searchInput')?.value?.toLowerCase() || '';
         let filtered = products.filter(p => p.categoria === currentCat);
         if (search) {
             filtered = products.filter(p =>
@@ -1808,7 +1844,6 @@
             );
         }
 
-        // Products
         let grid = '';
         filtered.forEach(p => {
             const disp = p.disponivel !== false;
@@ -1828,7 +1863,8 @@
                 </div>
             </div>`;
         });
-        document.getElementById('productsGrid').innerHTML = grid || '<p style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:40px 0;">Nenhum item encontrado.</p>';
+        const gridEl = document.getElementById('productsGrid');
+        if (gridEl) gridEl.innerHTML = grid || '<p style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:40px 0;">Nenhum item encontrado.</p>';
     }
 
     window.setCat = function(c) { currentCat = c; renderMenu(); };
@@ -1878,7 +1914,7 @@
     loadCartFromLocalStorage();
     initFirebaseData();
 
-    console.log('✅ Aquarius Burguer - Cupom com indicadores de elegibilidade e adicionais corrigidos!');
+    console.log('✅ Aquarius Burguer - Versão estável com verificações de segurança!');
 </script>
 </body>
 </html>
