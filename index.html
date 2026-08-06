@@ -10,7 +10,7 @@
         /* ==========================================================
            CSS REVITALIZAÇÃO TOTAL – ESTILO "MODERN BURGER"
            Mantendo a paleta verde (#22c55e / #16a34a)
-           MELHORIA: ENQUADRAMENTO DAS IMAGENS
+           MELHORIA: ENQUADRAMENTO DAS IMAGENS + INDICADORES DE ELEGIBILIDADE
            ========================================================== */
         :root {
             --primary: #22c55e;
@@ -363,7 +363,7 @@
         /* ===== MELHORIA: ENQUADRAMENTO DAS IMAGENS ===== */
         .img-container {
             position: relative;
-            height: 200px; /* um pouco mais alto */
+            height: 200px;
             background: radial-gradient(circle at center, rgba(34,197,94,0.04), rgba(0,0,0,0.2));
             display: flex;
             align-items: center;
@@ -374,13 +374,13 @@
         .product-card img {
             width: 100%;
             height: 100%;
-            object-fit: cover;       /* preenche todo o espaço */
-            object-position: center; /* centraliza o foco da imagem */
+            object-fit: cover;
+            object-position: center;
             transition: transform 0.6s ease;
-            padding: 0;             /* remove padding antigo */
+            padding: 0;
         }
         .product-card:hover img {
-            transform: scale(1.08); /* zoom sutil no hover */
+            transform: scale(1.08);
         }
 
         .card-badge {
@@ -526,6 +526,7 @@
             padding: 0 6px;
         }
 
+        /* ===== ITEM DO CARRINHO COM INDICADOR DE ELEGIBILIDADE ===== */
         .cart-item {
             background: var(--bg-card);
             border: 1px solid var(--border-glass);
@@ -534,14 +535,51 @@
             margin-bottom: 10px;
             transition: var(--transition);
             border-left: 3px solid transparent;
+            position: relative;
         }
         .cart-item:hover { border-left-color: var(--primary); }
         .cart-item .item-header {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             font-weight: 700;
             font-size: 14px;
         }
+        .cart-item .item-elegibilidade {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 2px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-glass);
+            width: fit-content;
+        }
+        .cart-item .item-elegibilidade.elegivel {
+            color: #22c55e;
+            border-color: rgba(34,197,94,0.2);
+            background: rgba(34,197,94,0.06);
+        }
+        .cart-item .item-elegibilidade.nao-elegivel {
+            color: #ef4444;
+            border-color: rgba(239,68,68,0.2);
+            background: rgba(239,68,68,0.06);
+        }
+        .cart-item .item-elegibilidade .icone {
+            font-size: 14px;
+        }
+        .cart-item.nao-elegivel {
+            opacity: 0.6;
+            border-left-color: rgba(239,68,68,0.3);
+        }
+        .cart-item.nao-elegivel .item-name {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
         .qty-controls {
             display: flex;
             gap: 6px;
@@ -941,7 +979,7 @@
             .brand h1 { font-size: 20px; }
             .controls { padding: 0 10px; }
             .products-grid { gap: 16px; }
-            .img-container { height: 160px; } /* um pouco menor no mobile */
+            .img-container { height: 160px; }
             .cart-float { right: 12px; bottom: 12px; padding: 10px 18px; font-size: 13px; }
             .sidebar-panel { padding: 16px; }
         }
@@ -1128,7 +1166,7 @@
     let isCheckoutInProgress = false;
     let upsellCallback = null;
     const DELIVERY_FEE = 10;
-    let cupomAplicado = null;
+    let cupomAplicado = null; // { codigo, tipo, valor, desconto, id, baseElegivel }
 
     // ============================================
     //  TOAST
@@ -1338,8 +1376,26 @@
     };
 
     // ============================================
-    //  CUPOM
+    //  CUPOM (com restrição para promoções e indicadores visuais)
     // ============================================
+    function isItemElegivel(item) {
+        const prod = products.find(p => p.id === item.productId);
+        if (!prod) return true; // se não encontrar, assume elegível
+        const categorias = Array.isArray(prod.categorias) ? prod.categorias : (prod.categoria ? [prod.categoria] : []);
+        const isPromocao = categorias.some(cat => cat.toLowerCase().trim() === 'promoções' || cat.toLowerCase().trim() === 'promoção');
+        return !isPromocao;
+    }
+
+    function getItensElegiveis() {
+        let total = 0;
+        cart.forEach(item => {
+            if (isItemElegivel(item)) {
+                total += item.price * item.qty;
+            }
+        });
+        return total;
+    }
+
     async function applyCoupon() {
         const input = document.getElementById('cupomInput');
         const status = document.getElementById('cupomStatus');
@@ -1362,27 +1418,46 @@
                 cupomAplicado = null; updateCart(); return;
             }
 
-            const subtotal = cart.reduce((s, item) => s + item.price * item.qty, 0);
-            const addons = adicionaisSelecionados.reduce((s, a) => s + parseFloat(a.preco || 0), 0);
-            const base = subtotal + addons;
-            if (cupom.valorMinimo && base < cupom.valorMinimo) {
-                status.textContent = `❌ Valor mínimo: R$ ${cupom.valorMinimo.toFixed(2)}`;
+            // Calcula base elegível
+            const subtotalTotal = cart.reduce((s, item) => s + item.price * item.qty, 0);
+            const addonsTotal = adicionaisSelecionados.reduce((s, a) => s + parseFloat(a.preco || 0), 0);
+            const subtotalElegivel = getItensElegiveis();
+            const baseElegivel = subtotalElegivel + addonsTotal;
+
+            if (subtotalElegivel === 0) {
+                status.innerHTML = '⚠️ <strong>Cupom não aplicado:</strong> seu carrinho contém apenas <strong>itens de promoção</strong>, que não são elegíveis para desconto.';
+                cupomAplicado = null; updateCart(); return;
+            }
+
+            if (cupom.valorMinimo && baseElegivel < cupom.valorMinimo) {
+                status.innerHTML = `❌ Valor mínimo para itens elegíveis: R$ ${cupom.valorMinimo.toFixed(2)}. Seu subtotal elegível é R$ ${baseElegivel.toFixed(2)}.`;
                 cupomAplicado = null; updateCart(); return;
             }
 
             let desconto = 0;
-            if (cupom.tipo === 'percent') desconto = base * (cupom.valor / 100);
-            else desconto = cupom.valor;
-            if (desconto > base) desconto = base;
+            if (cupom.tipo === 'percent') {
+                desconto = baseElegivel * (cupom.valor / 100);
+            } else {
+                desconto = cupom.valor;
+            }
+            if (desconto > baseElegivel) desconto = baseElegivel;
 
             cupomAplicado = {
                 codigo: cupom.codigo,
                 tipo: cupom.tipo,
                 valor: cupom.valor,
                 desconto: desconto,
-                id: cupom.id
+                id: cupom.id,
+                baseElegivel: baseElegivel
             };
-            status.innerHTML = `✅ Cupom aplicado: <strong>${cupom.codigo}</strong> (R$ ${desconto.toFixed(2)})`;
+
+            // Mensagem informativa detalhada
+            if (subtotalElegivel < subtotalTotal) {
+                const qtdePromo = cart.filter(item => !isItemElegivel(item)).length;
+                status.innerHTML = `✅ Cupom <strong>${cupom.codigo}</strong> aplicado com desconto de R$ ${desconto.toFixed(2)} sobre itens elegíveis. <span style="color:#ef4444;font-size:10px;">(${qtdePromo} item(ns) de promoção excluídos)</span>`;
+            } else {
+                status.innerHTML = `✅ Cupom <strong>${cupom.codigo}</strong> aplicado! Desconto de R$ ${desconto.toFixed(2)}.`;
+            }
             updateCart();
             saveCartToLocalStorage();
         } catch (err) {
@@ -1396,18 +1471,36 @@
 
     function recalcCouponDiscount() {
         if (!cupomAplicado) return;
-        const subtotal = cart.reduce((s, item) => s + item.price * item.qty, 0);
-        const addons = adicionaisSelecionados.reduce((s, a) => s + parseFloat(a.preco || 0), 0);
-        const base = subtotal + addons;
+        const subtotalTotal = cart.reduce((s, item) => s + item.price * item.qty, 0);
+        const addonsTotal = adicionaisSelecionados.reduce((s, a) => s + parseFloat(a.preco || 0), 0);
+        const subtotalElegivel = getItensElegiveis();
+        const baseElegivel = subtotalElegivel + addonsTotal;
+
         let desconto = 0;
-        if (cupomAplicado.tipo === 'percent') desconto = base * (cupomAplicado.valor / 100);
-        else desconto = cupomAplicado.valor;
-        if (desconto > base) desconto = base;
+        if (cupomAplicado.tipo === 'percent') {
+            desconto = baseElegivel * (cupomAplicado.valor / 100);
+        } else {
+            desconto = cupomAplicado.valor;
+        }
+        if (desconto > baseElegivel) desconto = baseElegivel;
         cupomAplicado.desconto = desconto;
+        cupomAplicado.baseElegivel = baseElegivel;
+
         const status = document.getElementById('cupomStatus');
         if (status && cupomAplicado) {
-            status.innerHTML = `✅ Cupom: <strong>${cupomAplicado.codigo}</strong> (R$ ${desconto.toFixed(2)})`;
+            if (subtotalElegivel === 0) {
+                status.innerHTML = '⚠️ <strong>Cupom removido:</strong> não há mais itens elegíveis para desconto.';
+                clearCoupon();
+                return;
+            }
+            if (subtotalElegivel < subtotalTotal) {
+                const qtdePromo = cart.filter(item => !isItemElegivel(item)).length;
+                status.innerHTML = `✅ Cupom <strong>${cupomAplicado.codigo}</strong> aplicado com desconto de R$ ${desconto.toFixed(2)} sobre itens elegíveis. <span style="color:#ef4444;font-size:10px;">(${qtdePromo} item(ns) de promoção excluídos)</span>`;
+            } else {
+                status.innerHTML = `✅ Cupom <strong>${cupomAplicado.codigo}</strong> aplicado! Desconto de R$ ${desconto.toFixed(2)}.`;
+            }
         }
+        updateCart();
     }
 
     function clearCoupon() {
@@ -1420,7 +1513,7 @@
     window.clearCoupon = clearCoupon;
 
     // ============================================
-    //  UPDATE CART (TOTALS)
+    //  UPDATE CART (com indicadores de elegibilidade)
     // ============================================
     function isBairroFraron(endereco) {
         if (!endereco) return false;
@@ -1448,8 +1541,21 @@
             const sb = it.price * it.qty;
             s += sb;
             ct += it.qty;
-            h += `<div class="cart-item">
-                <div class="item-header"><span>${it.name}</span><span>R$ ${sb.toFixed(2)}</span></div>
+            const elegivel = isItemElegivel(it);
+            const classeElegivel = elegivel ? 'elegivel' : 'nao-elegivel';
+            const icone = elegivel ? '✅' : '🚫';
+            const label = elegivel ? 'Elegível' : 'Não elegível (promoção)';
+            const itemClasse = elegivel ? '' : 'nao-elegivel';
+
+            h += `<div class="cart-item ${itemClasse}">
+                <div class="item-header">
+                    <span class="item-name">${it.name}</span>
+                    <span>R$ ${sb.toFixed(2)}</span>
+                </div>
+                <div class="item-elegibilidade ${classeElegivel}">
+                    <span class="icone">${icone}</span>
+                    <span>${label}</span>
+                </div>
                 <div class="qty-controls">
                     <button class="qty-btn" onclick="changeQty(${i},-1)">−</button>
                     <span style="font-weight:700;min-width:24px;text-align:center;">${it.qty}</span>
@@ -1783,7 +1889,7 @@
     loadCartFromLocalStorage();
     initFirebaseData();
 
-    console.log('✅ Aquarius Burguer - Nova identidade visual com imagens em destaque!');
+    console.log('✅ Aquarius Burguer - Cupom com indicadores de elegibilidade!');
 </script>
 </body>
 </html>
