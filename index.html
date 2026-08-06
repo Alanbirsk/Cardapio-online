@@ -8,9 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         /* ==========================================================
-           CSS REVITALIZAÇÃO TOTAL – ESTILO "MODERN BURGER"
-           Mantendo a paleta verde (#22c55e / #16a34a)
-           MELHORIA: ENQUADRAMENTO DAS IMAGENS + INDICADORES DE ELEGIBILIDADE
+           CSS – ESTILO MODERNO COM INDICADORES DE ELEGIBILIDADE
            ========================================================== */
         :root {
             --primary: #22c55e;
@@ -18,7 +16,6 @@
             --primary-glow: rgba(34,197,94,0.3);
             --primary-soft: rgba(34,197,94,0.08);
             --bg-body: #09090b;
-            --bg-surface: rgba(18,18,22,0.85);
             --bg-card: rgba(255,255,255,0.03);
             --border-subtle: rgba(255,255,255,0.04);
             --border-glass: rgba(255,255,255,0.06);
@@ -40,7 +37,6 @@
         }
         [data-theme="light"] {
             --bg-body: #f0f2f5;
-            --bg-surface: rgba(255,255,255,0.85);
             --bg-card: rgba(255,255,255,0.9);
             --border-subtle: rgba(0,0,0,0.04);
             --border-glass: rgba(0,0,0,0.06);
@@ -64,7 +60,6 @@
             line-height: 1.5;
             position: relative;
         }
-        /* Decoração de fundo: linhas geométricas */
         body::before {
             content: '';
             position: fixed;
@@ -77,12 +72,10 @@
         }
         * { position: relative; z-index: 1; }
 
-        /* Scroll */
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 20px; }
 
-        /* Toast */
         .toast {
             position: fixed;
             bottom: 100px;
@@ -107,7 +100,7 @@
             to { opacity:1; transform: translateX(-50%) translateY(0) scale(1); }
         }
 
-        /* ===== HEADER ASIMÉTRICO ===== */
+        /* ===== HEADER ===== */
         .header {
             position: relative;
             padding: 16px 20px 10px;
@@ -247,7 +240,6 @@
             cursor: pointer;
         }
 
-        /* Categorias estilo "mega menu" com ícones */
         .nav-categories {
             display: flex;
             gap: 6px;
@@ -291,7 +283,7 @@
             box-shadow: 0 6px 20px var(--primary-glow);
         }
 
-        /* ===== PRODUCTS GRID ===== */
+        /* ===== PRODUCTS ===== */
         .container {
             max-width: 1100px;
             margin: 0 auto;
@@ -306,7 +298,6 @@
             .products-grid { grid-template-columns: 1fr; }
         }
 
-        /* Card estilo "ficha" com borda esquerda colorida */
         .product-card {
             background: var(--bg-card);
             border: 1px solid var(--border-glass);
@@ -327,7 +318,6 @@
             width: 5px;
             height: 100%;
             background: var(--primary);
-            border-radius: 0 0 0 0;
             transition: width var(--transition);
         }
         .product-card:hover::before { width: 8px; }
@@ -360,7 +350,6 @@
             color: #dc2626;
         }
 
-        /* ===== MELHORIA: ENQUADRAMENTO DAS IMAGENS ===== */
         .img-container {
             position: relative;
             height: 200px;
@@ -379,9 +368,7 @@
             transition: transform 0.6s ease;
             padding: 0;
         }
-        .product-card:hover img {
-            transform: scale(1.08);
-        }
+        .product-card:hover img { transform: scale(1.08); }
 
         .card-badge {
             position: absolute;
@@ -459,7 +446,7 @@
             box-shadow: none;
         }
 
-        /* ===== FLOATING CART ===== */
+        /* ===== CART FLOAT ===== */
         .cart-float {
             position: fixed;
             right: 24px;
@@ -526,7 +513,7 @@
             padding: 0 6px;
         }
 
-        /* ===== ITEM DO CARRINHO COM INDICADOR DE ELEGIBILIDADE ===== */
+        /* ===== ITEM DO CARRINHO ===== */
         .cart-item {
             background: var(--bg-card);
             border: 1px solid var(--border-glass);
@@ -568,9 +555,7 @@
             border-color: rgba(239,68,68,0.2);
             background: rgba(239,68,68,0.06);
         }
-        .cart-item .item-elegibilidade .icone {
-            font-size: 14px;
-        }
+        .cart-item .item-elegibilidade .icone { font-size: 14px; }
         .cart-item.nao-elegivel {
             opacity: 0.6;
             border-left-color: rgba(239,68,68,0.3);
@@ -747,7 +732,59 @@
             transform: none !important;
         }
 
-        /* ===== MODAL UPSELL ===== */
+        /* ===== ADICIONAIS (dentro do carrinho) ===== */
+        .addons-section {
+            margin: 12px 0;
+            padding: 12px;
+            background: var(--primary-soft);
+            border: 1px solid rgba(34,197,94,0.08);
+            border-radius: var(--radius-md);
+            display: none;
+        }
+        .addons-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+        .addons-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .addon-chip {
+            padding: 6px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-glass);
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: var(--transition);
+            color: var(--text-primary);
+        }
+        .addon-chip:hover { border-color: var(--primary); }
+        .addon-chip.selected {
+            background: var(--primary-soft);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .addon-chip .price { font-size: 10px; opacity: 0.7; }
+        .selected-addons {
+            margin-top: 6px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        .selected-addons span {
+            background: var(--primary-soft);
+            padding: 2px 10px;
+            border-radius: 20px;
+            margin: 2px;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        /* ===== MODAL UPSELL / CONFIRM ===== */
         .upsell-modal {
             display: none;
             position: fixed;
@@ -820,7 +857,6 @@
         }
         .upsell-btn-no:hover { background: rgba(255,255,255,0.04); }
 
-        /* ===== CONFIRM MODAL ===== */
         .confirm-overlay {
             display: none;
             position: fixed;
@@ -920,59 +956,6 @@
         }
         .footer-link:hover { opacity: 1; color: var(--primary); }
 
-        /* ===== ADICIONAIS ===== */
-        .addons-section {
-            margin: 12px 0;
-            padding: 12px;
-            background: var(--primary-soft);
-            border: 1px solid rgba(34,197,94,0.08);
-            border-radius: var(--radius-md);
-            display: none;
-        }
-        .addons-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 8px;
-        }
-        .addons-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-        .addon-chip {
-            padding: 6px 16px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-glass);
-            border-radius: 40px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            transition: var(--transition);
-            color: var(--text-primary);
-        }
-        .addon-chip:hover { border-color: var(--primary); }
-        .addon-chip.selected {
-            background: var(--primary-soft);
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-        .addon-chip .price { font-size: 10px; opacity: 0.7; }
-        .selected-addons {
-            margin-top: 6px;
-            font-size: 11px;
-            color: var(--text-muted);
-        }
-        .selected-addons span {
-            background: var(--primary-soft);
-            padding: 2px 10px;
-            border-radius: 20px;
-            margin: 2px;
-            display: inline-block;
-            cursor: pointer;
-        }
-
-        /* ===== RESPONSIVE ===== */
         @media (max-width: 640px) {
             .header { padding: 12px 12px 8px; }
             .logo { width: 44px; height: 44px; }
@@ -1021,7 +1004,7 @@
     <div class="products-grid" id="productsGrid"></div>
 </div>
 
-<!-- ===== UPSELL MODAL ===== -->
+<!-- ===== MODAIS ===== -->
 <div class="upsell-modal" id="upsellModal">
     <div class="upsell-content">
         <div style="font-size:48px;margin-bottom:4px;">🔥</div>
@@ -1040,7 +1023,6 @@
     </div>
 </div>
 
-<!-- ===== CONFIRM MODAL ===== -->
 <div class="confirm-overlay" id="confirmOverlay">
     <div class="confirm-modal">
         <div style="font-size:56px;margin-bottom:4px;">🎉</div>
@@ -1087,6 +1069,13 @@
         <button class="btn-remove-cupom" onclick="clearCoupon()">✕</button>
     </div>
     <div id="cupomStatus" style="font-size:12px;color:var(--text-muted);min-height:20px;margin-bottom:6px;"></div>
+
+    <!-- ADICIONAIS -->
+    <div class="addons-section" id="addonsSection">
+        <div class="addons-title">🍟 Adicionais</div>
+        <div class="addons-list" id="addonsList"></div>
+        <div class="selected-addons" id="selectedAddons"></div>
+    </div>
 
     <!-- TOTALS -->
     <div class="totals-row"><span>Subtotal</span><span>R$ <span id="subtotal">0.00</span></span></div>
@@ -1166,7 +1155,7 @@
     let isCheckoutInProgress = false;
     let upsellCallback = null;
     const DELIVERY_FEE = 10;
-    let cupomAplicado = null; // { codigo, tipo, valor, desconto, id, baseElegivel }
+    let cupomAplicado = null;
 
     // ============================================
     //  TOAST
@@ -1325,7 +1314,9 @@
         const section = document.getElementById('addonsSection');
         const list = document.getElementById('addonsList');
         const selected = document.getElementById('selectedAddons');
+        // Segurança: se algum elemento não existir, sai
         if (!section || !list || !selected) return;
+
         if (cart.length === 0 || adicionaisDisponiveis.length === 0) {
             section.style.display = 'none';
             return;
@@ -1376,11 +1367,11 @@
     };
 
     // ============================================
-    //  CUPOM (com restrição para promoções e indicadores visuais)
+    //  CUPOM (com restrição para promoções)
     // ============================================
     function isItemElegivel(item) {
         const prod = products.find(p => p.id === item.productId);
-        if (!prod) return true; // se não encontrar, assume elegível
+        if (!prod) return true;
         const categorias = Array.isArray(prod.categorias) ? prod.categorias : (prod.categoria ? [prod.categoria] : []);
         const isPromocao = categorias.some(cat => cat.toLowerCase().trim() === 'promoções' || cat.toLowerCase().trim() === 'promoção');
         return !isPromocao;
@@ -1418,7 +1409,6 @@
                 cupomAplicado = null; updateCart(); return;
             }
 
-            // Calcula base elegível
             const subtotalTotal = cart.reduce((s, item) => s + item.price * item.qty, 0);
             const addonsTotal = adicionaisSelecionados.reduce((s, a) => s + parseFloat(a.preco || 0), 0);
             const subtotalElegivel = getItensElegiveis();
@@ -1451,7 +1441,6 @@
                 baseElegivel: baseElegivel
             };
 
-            // Mensagem informativa detalhada
             if (subtotalElegivel < subtotalTotal) {
                 const qtdePromo = cart.filter(item => !isItemElegivel(item)).length;
                 status.innerHTML = `✅ Cupom <strong>${cupom.codigo}</strong> aplicado com desconto de R$ ${desconto.toFixed(2)} sobre itens elegíveis. <span style="color:#ef4444;font-size:10px;">(${qtdePromo} item(ns) de promoção excluídos)</span>`;
@@ -1513,7 +1502,7 @@
     window.clearCoupon = clearCoupon;
 
     // ============================================
-    //  UPDATE CART (com indicadores de elegibilidade)
+    //  UPDATE CART
     // ============================================
     function isBairroFraron(endereco) {
         if (!endereco) return false;
@@ -1889,7 +1878,7 @@
     loadCartFromLocalStorage();
     initFirebaseData();
 
-    console.log('✅ Aquarius Burguer - Cupom com indicadores de elegibilidade!');
+    console.log('✅ Aquarius Burguer - Cupom com indicadores de elegibilidade e adicionais corrigidos!');
 </script>
 </body>
 </html>
