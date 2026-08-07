@@ -9,7 +9,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        /* ===== (mesmo CSS da versão anterior, mantido) ===== */
         :root {
             --v: #22c55e;
             --bg: #09090b;
@@ -60,36 +59,6 @@
             border-radius:16px; padding:18px; margin-bottom:14px
         }
         .card h3 { font-size:15px; margin-bottom:12px; color:var(--v) }
-
-        .dash-filters {
-            display:flex; gap:10px; flex-wrap:wrap; align-items:end;
-            margin-bottom:16px; background:var(--card-bg); padding:14px;
-            border-radius:12px; border:1px solid var(--bb)
-        }
-        .dash-filters .filter-group {
-            display:flex; flex-direction:column; gap:4px;
-        }
-        .dash-filters .filter-group label {
-            font-size:10px; color:var(--tm); text-transform:uppercase; letter-spacing:1px
-        }
-        .dash-filters select, .dash-filters input {
-            padding:6px 10px; border-radius:8px; background:#1c1c1f;
-            color:#fff; border:1px solid var(--bb); font-size:12px; outline:none;
-            min-width:120px
-        }
-        .dash-filters select:focus, .dash-filters input:focus { border-color:var(--v) }
-
-        .dashboard-grid {
-            display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr));
-            gap:10px; margin-bottom:20px
-        }
-        .dash-card {
-            background:var(--card-bg); border:1px solid var(--bb);
-            border-radius:12px; padding:14px; text-align:center
-        }
-        .dash-card .value { font-size:24px; font-weight:900 }
-        .dash-card .label { font-size:9px; color:var(--tm); text-transform:uppercase; letter-spacing:1px; margin-top:4px }
-        .dash-card .sub { font-size:10px; color:var(--tm); margin-top:2px }
 
         input, select, textarea {
             width:100%; padding:10px; margin-bottom:8px;
@@ -227,17 +196,9 @@
         .sub-sec { display:none }
         .sub-sec.active { display:block }
 
-        .chart-grid {
-            display:grid; grid-template-columns:1fr 1fr; gap:16px
-        }
-        @media(max-width:768px){ .chart-grid { grid-template-columns:1fr } }
-
         @media(max-width:768px){
-            .dashboard-grid { grid-template-columns:repeat(2,1fr) }
             .indicator-row { grid-template-columns:repeat(2,1fr) }
             .modal-grid { grid-template-columns:1fr }
-            .dash-filters .filter-group { width:100% }
-            .dash-filters select, .dash-filters input { width:100% }
         }
     </style>
 </head>
@@ -254,147 +215,19 @@
     </div>
 
     <div class="tabs">
-        <button class="tab active" onclick="switchTab('dashboard')">📊 Dashboard</button>
+        <button class="tab active" onclick="switchTab('relatorios')">📊 Relatórios</button>
         <button class="tab" onclick="switchTab('produtos')">📦 Produtos</button>
         <button class="tab" onclick="switchTab('categorias')">📁 Categorias</button>
         <button class="tab" onclick="switchTab('adicionais')">🍟 Adicionais</button>
         <button class="tab" onclick="switchTab('cupons')">🎫 Cupons</button>
         <button class="tab" onclick="switchTab('upsell')">🎯 Upsell</button>
         <button class="tab" onclick="switchTab('promocoes')">🔥 Promoções TV</button>
-        <button class="tab" onclick="switchTab('relatorios')">📊 Relatórios</button>
         <button class="tab" onclick="switchTab('financeiro')">💰 Financeiro</button>
         <button class="tab" onclick="switchTab('expediente')">🕐 Expediente</button>
     </div>
 
-    <!-- ================= DASHBOARD (TURBINADO) ================= -->
-    <div class="sec active" id="sec-dashboard">
-        <div class="dash-filters">
-            <div class="filter-group">
-                <label>📅 Período</label>
-                <select id="dashPeriodo" onchange="atualizarDashboard()">
-                    <option value="today">Hoje</option>
-                    <option value="yesterday">Ontem</option>
-                    <option value="week">Última semana</option>
-                    <option value="month">Último mês</option>
-                    <option value="custom">📅 Personalizado</option>
-                </select>
-            </div>
-            <div class="filter-group" id="dashCustomDateGroup" style="display:none">
-                <label>De</label>
-                <input type="date" id="dashDataInicio" onchange="atualizarDashboard()">
-            </div>
-            <div class="filter-group" id="dashCustomDateGroup2" style="display:none">
-                <label>Até</label>
-                <input type="date" id="dashDataFim" onchange="atualizarDashboard()">
-            </div>
-            <div class="filter-group">
-                <label>📁 Categoria</label>
-                <select id="dashCategoria" onchange="atualizarDashboard()">
-                    <option value="">Todas</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label>🚚 Tipo entrega</label>
-                <select id="dashTipoEntrega" onchange="atualizarDashboard()">
-                    <option value="">Todos</option>
-                    <option value="entrega">Delivery</option>
-                    <option value="retirada">Retirada</option>
-                </select>
-            </div>
-            <button class="btn btn-v" onclick="atualizarDashboard()" style="align-self:flex-end;">🔍 Atualizar</button>
-        </div>
-
-        <div class="dashboard-grid" id="dashGrid">
-            <div class="dash-card"><div class="value" id="dashPedidos">0</div><div class="label">Pedidos</div></div>
-            <div class="dash-card"><div class="value green" id="dashFaturamento">R$ 0</div><div class="label">Faturamento</div></div>
-            <div class="dash-card"><div class="value green" id="dashLucro">R$ 0</div><div class="label">Lucro Bruto</div></div>
-            <div class="dash-card"><div class="value blue" id="dashTicket">R$ 0</div><div class="label">Ticket Médio</div></div>
-            <div class="dash-card"><div class="value" id="dashItens">0</div><div class="label">Itens Vendidos</div></div>
-            <div class="dash-card"><div class="value" id="dashDelivery">0</div><div class="label">Deliverys</div><div class="sub" id="dashRetirada">Retiradas: 0</div></div>
-            <div class="dash-card"><div class="value yellow" id="dashMargem">0%</div><div class="label">Margem Bruta</div></div>
-            <div class="dash-card"><div class="value red" id="dashCustoTotal">R$ 0</div><div class="label">Custo Total</div></div>
-        </div>
-
-        <div class="chart-grid">
-            <div class="card" style="margin-bottom:0;">
-                <h3>📈 Evolução Faturamento vs Lucro</h3>
-                <div class="chart-container"><canvas id="dashEvolucaoChart"></canvas></div>
-            </div>
-            <div class="card" style="margin-bottom:0;">
-                <h3>🍔 Top 5 Produtos</h3>
-                <div class="chart-container"><canvas id="dashTopChart"></canvas></div>
-            </div>
-            <div class="card" style="margin-bottom:0;">
-                <h3>🚚 Distribuição por Tipo</h3>
-                <div class="chart-container"><canvas id="dashTipoChart"></canvas></div>
-            </div>
-            <div class="card" style="margin-bottom:0;">
-                <h3>📁 Faturamento por Categoria</h3>
-                <div class="chart-container"><canvas id="dashCategoriaChart"></canvas></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ================= PRODUTOS ================= -->
-    <div class="sec" id="sec-produtos">
-        <div class="card">
-            <h3 id="formTitle">➕ Adicionar Produto</h3>
-            <input type="hidden" id="prodId">
-            <input id="prodNome" placeholder="Nome">
-            <textarea id="prodDesc" placeholder="Descrição"></textarea>
-            <div class="g2">
-                <input id="prodPreco" type="number" step="0.01" placeholder="Preço (R$)" oninput="calcCMV()">
-                <input id="prodCusto" type="number" step="0.01" placeholder="Custo (R$)" oninput="calcCMV()">
-            </div>
-            <div id="cmvDisplay" class="cmv-display"><span class="cmv-label">📊 CMV: </span><span class="cmv-value" id="cmvValue">0%</span></div>
-            <div class="upload-area" onclick="document.getElementById('prodFile').click()"><span id="uploadLabel">📸 Clique para foto</span><input type="file" id="prodFile" accept="image/*" onchange="handleProductImage(this)" style="display:none"></div>
-            <div id="cropBox" style="display:none;background:#141416;border:1px solid var(--bb);border-radius:10px;padding:14px;margin-bottom:8px;"><img id="cropImg" src="" style="max-width:100%;max-height:250px;display:block;margin:0 auto"><div style="display:flex;gap:6px;margin-top:10px;"><button class="btn btn-a" onclick="confirmCrop()">✂️ Recortar</button><button class="btn btn-o" onclick="resetCrop()">🔄 Resetar</button></div></div>
-            <label style="font-size:10px;color:var(--tm);display:block;margin-bottom:4px;">📁 Categorias (segure Ctrl/Cmd para múltiplas)</label>
-            <select id="prodCategorias" multiple style="height:auto;min-height:80px;">
-                <option value="">Nenhuma</option>
-            </select>
-            <input id="prodTag" placeholder="Tag (Ex: 🔥 Novidade)">
-            <div style="display:flex;gap:8px;"><button class="btn btn-v" onclick="saveProduct()" style="flex:1">💾 Salvar</button><button class="btn btn-o" id="btnCancelProduct" style="display:none" onclick="clearProductForm()">Cancelar</button></div>
-        </div>
-        <h3 style="margin-bottom:8px;">📋 Produtos</h3><div id="productsList"></div>
-    </div>
-
-    <!-- ================= CATEGORIAS ================= -->
-    <div class="sec" id="sec-categorias"><div class="card"><h3>➕ Categoria</h3><div style="display:flex;gap:6px"><input id="catNome" placeholder="Nome" style="flex:1;margin-bottom:0"><button class="btn btn-v" onclick="saveCategory()">Cadastrar</button></div></div><h3 style="margin-bottom:8px;">📁 Categorias</h3><div id="categoriesList"></div></div>
-
-    <!-- ================= ADICIONAIS ================= -->
-    <div class="sec" id="sec-adicionais"><div class="card"><h3 id="addonFormTitle">➕ Adicional</h3><input type="hidden" id="addonId"><input id="addonNome" placeholder="Nome"><div class="g2"><input id="addonPreco" type="number" step="0.01" placeholder="Preço"><select id="addonCategoria"><option value="todas">Todas</option></select></div><label style="font-size:11px;display:flex;align-items:center;gap:4px;margin-bottom:8px"><input type="checkbox" id="addonAtivo" checked> Ativo</label><button class="btn btn-v" onclick="saveAddon()" style="width:100%">💾 Salvar</button><button class="btn btn-o" id="btnCancelAddon" style="display:none;width:100%;margin-top:4px" onclick="clearAddonForm()">Cancelar</button></div><h3 style="margin-bottom:8px;">🍟 Adicionais</h3><div id="addonsList"></div></div>
-
-    <!-- ================= CUPONS ================= -->
-    <div class="sec" id="sec-cupons"><div class="card"><h3 id="cupomFormTitle">➕ Cupom</h3><input type="hidden" id="cupomId"><input id="cupomCodigo" placeholder="Código" style="text-transform:uppercase"><div class="g2"><select id="cupomTipo"><option value="percent">%</option><option value="fixed">R$</option></select><input id="cupomValor" type="number" step="0.01" placeholder="Valor"></div><input id="cupomDesc" placeholder="Descrição"><div class="g2"><input id="cupomValorMin" type="number" step="0.01" placeholder="Valor Mínimo" value="0"><input id="cupomLimite" type="number" placeholder="Limite Usos" value="0"></div><label style="font-size:11px;display:flex;align-items:center;gap:4px;margin-bottom:8px"><input type="checkbox" id="cupomAtivo" checked> Ativo</label><button class="btn btn-v" onclick="saveCoupon()" style="width:100%">💾 Salvar</button><button class="btn btn-o" id="btnCancelCupom" style="display:none;width:100%;margin-top:4px" onclick="clearCouponForm()">Cancelar</button></div><h3 style="margin-bottom:8px;">🎫 Cupons</h3><div id="couponsList"></div></div>
-
-    <!-- ================= UPSELL ================= -->
-    <div class="sec" id="sec-upsell"><div class="card"><h3>🎯 Upsell por Produto</h3><p style="font-size:11px;color:var(--tm);margin-bottom:12px">Configure qual produto oferecer como upsell.</p><div class="g2" style="margin-bottom:10px"><div><label style="font-size:10px;color:var(--tm)">Produto Principal</label><select id="upsellProdutoPrincipal" onchange="loadUpsellConfig()"><option value="">Selecione...</option></select></div><div><label style="font-size:10px;color:var(--tm)">Upsell</label><select id="upsellProdutoOferta"><option value="">Selecione...</option></select></div></div><div class="toggle-row"><span>Ativo:</span><button class="btn btn-v" id="btnUpsellOn" onclick="toggleUpsellConfig(true)" style="padding:6px 12px;font-size:10px">🟢 Sim</button><button class="btn btn-d" id="btnUpsellOff" onclick="toggleUpsellConfig(false)" style="padding:6px 12px;font-size:10px">🔴 Não</button></div><button class="btn btn-v" onclick="saveUpsellConfig()">💾 Salvar</button></div><h3 style="margin-bottom:8px;">📋 Relação Produto → Upsell</h3><div style="overflow-x:auto"><table><thead><tr><th>Produto</th><th>Preço</th><th>Upsell</th><th>Status</th><th style="text-align:center">Ações</th></tr></thead><tbody id="upsellsTableBody"><tr><td colspan="5" style="text-align:center;color:var(--tm);padding:20px">Carregando...</td></tr></tbody></table></div></div>
-
-    <!-- ================= PROMOÇÕES TV ================= -->
-    <div class="sec" id="sec-promocoes">
-        <div class="card">
-            <h3 id="promoFormTitle">🔥 Adicionar Promoção para TV</h3>
-            <p style="font-size:11px;color:var(--tm);margin-bottom:12px;">Cadastre promoções com imagens. <a href="tv.html" target="_blank" style="color:var(--v);font-weight:700;">📺 Abrir TV</a></p>
-            <input type="hidden" id="promoId">
-            <div style="margin-bottom:8px;">
-                <label style="font-size:10px;color:var(--tm);display:block;margin-bottom:4px;">🔗 Vincular a um produto (opcional)</label>
-                <select id="promoProdutoVinculado" onchange="vincularProdutoPromocao()"><option value="">Nenhum (preencher manualmente)</option></select>
-            </div>
-            <input id="promoNome" placeholder="Nome da Promoção">
-            <textarea id="promoDesc" placeholder="Descrição (opcional)"></textarea>
-            <div class="g2"><input id="promoPreco" type="number" step="0.01" placeholder="Preço (R$)"><input id="promoPrecoOriginal" type="number" step="0.01" placeholder="Preço Original (opcional)"></div>
-            <div class="upload-area" onclick="document.getElementById('promoFile').click()"><span id="promoUploadLabel">📸 Clique para imagem da promoção</span><input type="file" id="promoFile" accept="image/*" onchange="handlePromoImage(this)" style="display:none"></div>
-            <div class="preview-box" id="promoImgPreview"><img id="promoPreviewImg" src="" alt="Preview"><button class="btn btn-d" onclick="removePromoImage()" style="margin-top:6px;font-size:10px;">🗑️ Remover</button></div>
-            <label style="font-size:11px;display:flex;align-items:center;gap:4px;margin-bottom:8px"><input type="checkbox" id="promoAtivo" checked> Ativo</label>
-            <div style="display:flex;gap:8px;"><button class="btn btn-v" onclick="savePromo()" style="flex:1;">💾 Salvar</button><button class="btn btn-o" id="btnCancelPromo" style="display:none;" onclick="clearPromoForm()">Cancelar</button></div>
-        </div>
-        <h3 style="margin-bottom:8px;">📺 Promoções no Carrossel</h3>
-        <div style="overflow-x:auto;"><table><thead><tr><th style="width:60px;">Img</th><th>Nome</th><th>Preço</th><th>Status</th><th style="text-align:center;width:120px;">Ações</th></tr></thead><tbody id="promoTableBody"><tr><td colspan="5" style="text-align:center;color:var(--tm);padding:20px;">Nenhuma</td></tr></tbody></table></div>
-    </div>
-
-    <!-- ================= RELATÓRIOS ================= -->
-    <div class="sec" id="sec-relatorios">
+    <!-- ================= RELATÓRIOS (agora primeira) ================= -->
+    <div class="sec active" id="sec-relatorios">
         <div class="card">
             <h3>📅 Filtrar Período</h3>
             <div style="display:flex;gap:10px;align-items:end;flex-wrap:wrap;">
@@ -506,6 +339,64 @@
         </div>
     </div>
 
+    <!-- ================= PRODUTOS ================= -->
+    <div class="sec" id="sec-produtos">
+        <div class="card">
+            <h3 id="formTitle">➕ Adicionar Produto</h3>
+            <input type="hidden" id="prodId">
+            <input id="prodNome" placeholder="Nome">
+            <textarea id="prodDesc" placeholder="Descrição"></textarea>
+            <div class="g2">
+                <input id="prodPreco" type="number" step="0.01" placeholder="Preço (R$)" oninput="calcCMV()">
+                <input id="prodCusto" type="number" step="0.01" placeholder="Custo (R$)" oninput="calcCMV()">
+            </div>
+            <div id="cmvDisplay" class="cmv-display"><span class="cmv-label">📊 CMV: </span><span class="cmv-value" id="cmvValue">0%</span></div>
+            <div class="upload-area" onclick="document.getElementById('prodFile').click()"><span id="uploadLabel">📸 Clique para foto</span><input type="file" id="prodFile" accept="image/*" onchange="handleProductImage(this)" style="display:none"></div>
+            <div id="cropBox" style="display:none;background:#141416;border:1px solid var(--bb);border-radius:10px;padding:14px;margin-bottom:8px;"><img id="cropImg" src="" style="max-width:100%;max-height:250px;display:block;margin:0 auto"><div style="display:flex;gap:6px;margin-top:10px;"><button class="btn btn-a" onclick="confirmCrop()">✂️ Recortar</button><button class="btn btn-o" onclick="resetCrop()">🔄 Resetar</button></div></div>
+            <label style="font-size:10px;color:var(--tm);display:block;margin-bottom:4px;">📁 Categorias (segure Ctrl/Cmd para múltiplas)</label>
+            <select id="prodCategorias" multiple style="height:auto;min-height:80px;">
+                <option value="">Nenhuma</option>
+            </select>
+            <input id="prodTag" placeholder="Tag (Ex: 🔥 Novidade)">
+            <div style="display:flex;gap:8px;"><button class="btn btn-v" onclick="saveProduct()" style="flex:1">💾 Salvar</button><button class="btn btn-o" id="btnCancelProduct" style="display:none" onclick="clearProductForm()">Cancelar</button></div>
+        </div>
+        <h3 style="margin-bottom:8px;">📋 Produtos</h3><div id="productsList"></div>
+    </div>
+
+    <!-- ================= CATEGORIAS ================= -->
+    <div class="sec" id="sec-categorias"><div class="card"><h3>➕ Categoria</h3><div style="display:flex;gap:6px"><input id="catNome" placeholder="Nome" style="flex:1;margin-bottom:0"><button class="btn btn-v" onclick="saveCategory()">Cadastrar</button></div></div><h3 style="margin-bottom:8px;">📁 Categorias</h3><div id="categoriesList"></div></div>
+
+    <!-- ================= ADICIONAIS ================= -->
+    <div class="sec" id="sec-adicionais"><div class="card"><h3 id="addonFormTitle">➕ Adicional</h3><input type="hidden" id="addonId"><input id="addonNome" placeholder="Nome"><div class="g2"><input id="addonPreco" type="number" step="0.01" placeholder="Preço"><select id="addonCategoria"><option value="todas">Todas</option></select></div><label style="font-size:11px;display:flex;align-items:center;gap:4px;margin-bottom:8px"><input type="checkbox" id="addonAtivo" checked> Ativo</label><button class="btn btn-v" onclick="saveAddon()" style="width:100%">💾 Salvar</button><button class="btn btn-o" id="btnCancelAddon" style="display:none;width:100%;margin-top:4px" onclick="clearAddonForm()">Cancelar</button></div><h3 style="margin-bottom:8px;">🍟 Adicionais</h3><div id="addonsList"></div></div>
+
+    <!-- ================= CUPONS ================= -->
+    <div class="sec" id="sec-cupons"><div class="card"><h3 id="cupomFormTitle">➕ Cupom</h3><input type="hidden" id="cupomId"><input id="cupomCodigo" placeholder="Código" style="text-transform:uppercase"><div class="g2"><select id="cupomTipo"><option value="percent">%</option><option value="fixed">R$</option></select><input id="cupomValor" type="number" step="0.01" placeholder="Valor"></div><input id="cupomDesc" placeholder="Descrição"><div class="g2"><input id="cupomValorMin" type="number" step="0.01" placeholder="Valor Mínimo" value="0"><input id="cupomLimite" type="number" placeholder="Limite Usos" value="0"></div><label style="font-size:11px;display:flex;align-items:center;gap:4px;margin-bottom:8px"><input type="checkbox" id="cupomAtivo" checked> Ativo</label><button class="btn btn-v" onclick="saveCoupon()" style="width:100%">💾 Salvar</button><button class="btn btn-o" id="btnCancelCupom" style="display:none;width:100%;margin-top:4px" onclick="clearCouponForm()">Cancelar</button></div><h3 style="margin-bottom:8px;">🎫 Cupons</h3><div id="couponsList"></div></div>
+
+    <!-- ================= UPSELL ================= -->
+    <div class="sec" id="sec-upsell"><div class="card"><h3>🎯 Upsell por Produto</h3><p style="font-size:11px;color:var(--tm);margin-bottom:12px">Configure qual produto oferecer como upsell.</p><div class="g2" style="margin-bottom:10px"><div><label style="font-size:10px;color:var(--tm)">Produto Principal</label><select id="upsellProdutoPrincipal" onchange="loadUpsellConfig()"><option value="">Selecione...</option></select></div><div><label style="font-size:10px;color:var(--tm)">Upsell</label><select id="upsellProdutoOferta"><option value="">Selecione...</option></select></div></div><div class="toggle-row"><span>Ativo:</span><button class="btn btn-v" id="btnUpsellOn" onclick="toggleUpsellConfig(true)" style="padding:6px 12px;font-size:10px">🟢 Sim</button><button class="btn btn-d" id="btnUpsellOff" onclick="toggleUpsellConfig(false)" style="padding:6px 12px;font-size:10px">🔴 Não</button></div><button class="btn btn-v" onclick="saveUpsellConfig()">💾 Salvar</button></div><h3 style="margin-bottom:8px;">📋 Relação Produto → Upsell</h3><div style="overflow-x:auto"><table><thead><tr><th>Produto</th><th>Preço</th><th>Upsell</th><th>Status</th><th style="text-align:center">Ações</th></tr></thead><tbody id="upsellsTableBody"><tr><td colspan="5" style="text-align:center;color:var(--tm);padding:20px">Carregando...</td></tr></tbody></table></div></div>
+
+    <!-- ================= PROMOÇÕES TV ================= -->
+    <div class="sec" id="sec-promocoes">
+        <div class="card">
+            <h3 id="promoFormTitle">🔥 Adicionar Promoção para TV</h3>
+            <p style="font-size:11px;color:var(--tm);margin-bottom:12px;">Cadastre promoções com imagens. <a href="tv.html" target="_blank" style="color:var(--v);font-weight:700;">📺 Abrir TV</a></p>
+            <input type="hidden" id="promoId">
+            <div style="margin-bottom:8px;">
+                <label style="font-size:10px;color:var(--tm);display:block;margin-bottom:4px;">🔗 Vincular a um produto (opcional)</label>
+                <select id="promoProdutoVinculado" onchange="vincularProdutoPromocao()"><option value="">Nenhum (preencher manualmente)</option></select>
+            </div>
+            <input id="promoNome" placeholder="Nome da Promoção">
+            <textarea id="promoDesc" placeholder="Descrição (opcional)"></textarea>
+            <div class="g2"><input id="promoPreco" type="number" step="0.01" placeholder="Preço (R$)"><input id="promoPrecoOriginal" type="number" step="0.01" placeholder="Preço Original (opcional)"></div>
+            <div class="upload-area" onclick="document.getElementById('promoFile').click()"><span id="promoUploadLabel">📸 Clique para imagem da promoção</span><input type="file" id="promoFile" accept="image/*" onchange="handlePromoImage(this)" style="display:none"></div>
+            <div class="preview-box" id="promoImgPreview"><img id="promoPreviewImg" src="" alt="Preview"><button class="btn btn-d" onclick="removePromoImage()" style="margin-top:6px;font-size:10px;">🗑️ Remover</button></div>
+            <label style="font-size:11px;display:flex;align-items:center;gap:4px;margin-bottom:8px"><input type="checkbox" id="promoAtivo" checked> Ativo</label>
+            <div style="display:flex;gap:8px;"><button class="btn btn-v" onclick="savePromo()" style="flex:1;">💾 Salvar</button><button class="btn btn-o" id="btnCancelPromo" style="display:none;" onclick="clearPromoForm()">Cancelar</button></div>
+        </div>
+        <h3 style="margin-bottom:8px;">📺 Promoções no Carrossel</h3>
+        <div style="overflow-x:auto;"><table><thead><tr><th style="width:60px;">Img</th><th>Nome</th><th>Preço</th><th>Status</th><th style="text-align:center;width:120px;">Ações</th></tr></thead><tbody id="promoTableBody"><tr><td colspan="5" style="text-align:center;color:var(--tm);padding:20px;">Nenhuma</td></tr></tbody></table></div>
+    </div>
+
     <!-- ================= FINANCEIRO ================= -->
     <div class="sec" id="sec-financeiro">
         <div class="card">
@@ -606,7 +497,6 @@
     let filtroAtualCategoria = 'todos';
     let filtroAtualTipo = 'todos';
     let chartInstance = null, rankingChartInstance = null, monthlyChartInstance = null, categoryChartInstance = null, hourlyChartInstance = null;
-    let dashEvolucaoChart = null, dashTopChart = null, dashTipoChart = null, dashCategoriaChart = null;
 
     // =======================================================
     // ================== FUNÇÕES AUXILIARES ==================
@@ -652,7 +542,6 @@
             const cats = prod.categorias || (prod.categoria ? [prod.categoria] : []);
             if (cats.length > 0) return cats[0];
         }
-        // Tenta variações
         const variacoes = [
             nomeNorm.replace(/\b(hamburguer|burger|hambúrguer|x-|combo|sanduíche|sandwich|burguer|burger)\b/g, '').trim(),
             nomeNorm.replace(/\b(x-|x |x)\b/g, '').trim(),
@@ -683,7 +572,6 @@
         if(t==='upsell'){ updateUpsellSelects(); renderUpsellTable(); clearUpsellForm(); }
         if(t==='promocoes'){ updatePromoProdutoSelect(); renderPromoTable(); }
         if(t==='financeiro'){ initFinanceiroDates(); }
-        if(t==='dashboard'){ atualizarDashboard(); }
     }
 
     function switchSubTab(id){
@@ -698,193 +586,6 @@
     }
 
     // =======================================================
-    // ================== DASHBOARD ===========================
-    // =======================================================
-    function obterIntervaloDashboard() {
-        const periodo = document.getElementById('dashPeriodo').value;
-        const hoje = new Date();
-        const inicio = new Date(hoje);
-        let fim = new Date(hoje);
-        fim.setHours(23,59,59,999);
-
-        switch(periodo) {
-            case 'today': break;
-            case 'yesterday': inicio.setDate(inicio.getDate()-1); fim.setDate(fim.getDate()-1); break;
-            case 'week': inicio.setDate(inicio.getDate()-6); break;
-            case 'month': inicio.setDate(inicio.getDate()-29); break;
-            case 'custom':
-                const di = document.getElementById('dashDataInicio').value;
-                const df = document.getElementById('dashDataFim').value;
-                if(di) { const d=new Date(di+'T00:00:00'); inicio.setTime(d.getTime()); }
-                if(df) { const d=new Date(df+'T23:59:59'); fim.setTime(d.getTime()); }
-                break;
-        }
-        return { inicio, fim };
-    }
-
-    window.atualizarDashboard = function() {
-        const periodo = document.getElementById('dashPeriodo').value;
-        const customGroup = document.getElementById('dashCustomDateGroup');
-        const customGroup2 = document.getElementById('dashCustomDateGroup2');
-        if(periodo === 'custom') {
-            customGroup.style.display = 'block';
-            customGroup2.style.display = 'block';
-        } else {
-            customGroup.style.display = 'none';
-            customGroup2.style.display = 'none';
-        }
-
-        const { inicio, fim } = obterIntervaloDashboard();
-        const categoriaFiltro = document.getElementById('dashCategoria').value;
-        const tipoEntregaFiltro = document.getElementById('dashTipoEntrega').value;
-
-        const filtrados = sales.filter(v => {
-            const d = new Date(v.dataHora);
-            if (d < inicio || d > fim) return false;
-            if (categoriaFiltro) {
-                const temCategoria = v.itens && v.itens.some(item => {
-                    const cat = getCategoriaProduto(item.nome);
-                    return cat === categoriaFiltro;
-                });
-                if (!temCategoria) return false;
-            }
-            if (tipoEntregaFiltro && v.tipoEntrega !== tipoEntregaFiltro) return false;
-            return true;
-        });
-
-        let pedidos = filtrados.length;
-        let faturamento = filtrados.reduce((s,v) => s + parseFloat(v.total||0), 0);
-        let custoTotal = 0, taxaTotal = 0, itensTotal = 0, delivery=0, retirada=0;
-        const rank = {};
-        const dailyData = {};
-        const categoriaFat = {};
-        const produtosSemCusto = new Set();
-
-        filtrados.forEach(v => {
-            taxaTotal += parseFloat(v.taxaEntrega||0);
-            if(v.tipoEntrega==='entrega') delivery++; else retirada++;
-            const dia = new Date(v.dataHora).toLocaleDateString('pt-BR');
-            if(!dailyData[dia]) dailyData[dia] = { fat:0, lucro:0 };
-            dailyData[dia].fat += parseFloat(v.total||0);
-
-            if(v.itens) v.itens.forEach(item => {
-                const qtd = parseInt(item.qtd)||0;
-                itensTotal += qtd;
-                const cu = getCustoProduto(item.nome, item.custoUn);
-                if(cu===0 && item.nome) produtosSemCusto.add(item.nome);
-                custoTotal += cu * qtd;
-                const nome = item.nome || 'Produto';
-                if(!rank[nome]) rank[nome] = 0;
-                rank[nome] += qtd;
-
-                // Categoria – agora sempre retorna "Sem categoria" se não encontrada
-                const cat = getCategoriaProduto(item.nome);
-                if(!categoriaFat[cat]) categoriaFat[cat] = 0;
-                categoriaFat[cat] += (parseFloat(item.precoUn||0) * qtd);
-            });
-        });
-
-        const lucro = faturamento - custoTotal - taxaTotal;
-        const ticket = pedidos > 0 ? (faturamento - taxaTotal) / pedidos : 0;
-        const margem = faturamento > 0 ? (lucro / faturamento) * 100 : 0;
-
-        document.getElementById('dashPedidos').textContent = pedidos;
-        document.getElementById('dashFaturamento').textContent = 'R$ '+faturamento.toFixed(2);
-        document.getElementById('dashLucro').textContent = 'R$ '+lucro.toFixed(2);
-        document.getElementById('dashTicket').textContent = 'R$ '+ticket.toFixed(2);
-        document.getElementById('dashItens').textContent = itensTotal;
-        document.getElementById('dashDelivery').textContent = delivery;
-        document.getElementById('dashRetirada').textContent = 'Retiradas: '+retirada;
-        document.getElementById('dashMargem').textContent = margem.toFixed(1)+'%';
-        document.getElementById('dashCustoTotal').textContent = 'R$ '+custoTotal.toFixed(2);
-
-        // Gráfico evolução
-        const labels = Object.keys(dailyData).sort();
-        const fatData = labels.map(d => dailyData[d].fat);
-        const lucroData = labels.map(d => {
-            let custoDia=0, taxaDia=0;
-            filtrados.filter(v => new Date(v.dataHora).toLocaleDateString('pt-BR') === d).forEach(v => {
-                taxaDia += parseFloat(v.taxaEntrega||0);
-                if(v.itens) v.itens.forEach(i => {
-                    const cu = getCustoProduto(i.nome, i.custoUn);
-                    custoDia += cu * (parseInt(i.qtd)||0);
-                });
-            });
-            return dailyData[d].fat - custoDia - taxaDia;
-        });
-
-        const ctxEvolucao = document.getElementById('dashEvolucaoChart').getContext('2d');
-        if(dashEvolucaoChart) dashEvolucaoChart.destroy();
-        dashEvolucaoChart = new Chart(ctxEvolucao, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [
-                    { label: 'Faturamento', data: fatData, borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,0.1)', fill: true, tension: 0.3, pointRadius: 3 },
-                    { label: 'Lucro Bruto', data: lucroData, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', fill: true, tension: 0.3, pointRadius: 3 }
-                ]
-            },
-            options: {
-                responsive: true, plugins: { legend: { labels: { color: '#fff', font: { size: 10 } } } },
-                scales: { x: { ticks: { color: '#a1a1aa' } }, y: { ticks: { color: '#a1a1aa' } } }
-            }
-        });
-
-        // Top 5 produtos
-        const sortedRank = Object.entries(rank).sort((a,b) => b[1]-a[1]).slice(0,5);
-        const topLabels = sortedRank.map(([nome]) => nome);
-        const topData = sortedRank.map(([_,qtd]) => qtd);
-        const ctxTop = document.getElementById('dashTopChart').getContext('2d');
-        if(dashTopChart) dashTopChart.destroy();
-        dashTopChart = new Chart(ctxTop, {
-            type: 'bar',
-            data: {
-                labels: topLabels,
-                datasets: [{ label: 'Quantidade', data: topData, backgroundColor: 'rgba(34,197,94,0.6)', borderColor: '#22c55e', borderWidth: 1 }]
-            },
-            options: {
-                responsive: true, plugins: { legend: { labels: { color: '#fff', font: { size: 10 } } } },
-                scales: { x: { ticks: { color: '#a1a1aa' } }, y: { ticks: { color: '#a1a1aa' } } }
-            }
-        });
-
-        // Pizza tipo entrega
-        const ctxTipo = document.getElementById('dashTipoChart').getContext('2d');
-        if(dashTipoChart) dashTipoChart.destroy();
-        dashTipoChart = new Chart(ctxTipo, {
-            type: 'pie',
-            data: {
-                labels: ['Delivery', 'Retirada'],
-                datasets: [{ data: [delivery, retirada], backgroundColor: ['#3b82f6', '#22c55e'], borderColor: '#09090b', borderWidth: 2 }]
-            },
-            options: {
-                responsive: true, plugins: { legend: { labels: { color: '#fff', font: { size: 10 } } } }
-            }
-        });
-
-        // Faturamento por categoria
-        const catLabels = Object.keys(categoriaFat).sort((a,b) => categoriaFat[b]-categoriaFat[a]);
-        const catData = catLabels.map(c => categoriaFat[c]);
-        const ctxCat = document.getElementById('dashCategoriaChart').getContext('2d');
-        if(dashCategoriaChart) dashCategoriaChart.destroy();
-        dashCategoriaChart = new Chart(ctxCat, {
-            type: 'bar',
-            data: {
-                labels: catLabels,
-                datasets: [{ label: 'Faturamento (R$)', data: catData, backgroundColor: 'rgba(245,158,11,0.6)', borderColor: '#f59e0b', borderWidth: 1 }]
-            },
-            options: {
-                responsive: true, plugins: { legend: { labels: { color: '#fff', font: { size: 10 } } } },
-                scales: { x: { ticks: { color: '#a1a1aa' } }, y: { ticks: { color: '#a1a1aa' } } }
-            }
-        });
-
-        if(produtosSemCusto.size > 0) {
-            console.warn('⚠️ Produtos sem custo no dashboard:', Array.from(produtosSemCusto));
-        }
-    };
-
-    // =======================================================
     // ================== PRODUTOS ===========================
     // =======================================================
     function updateCatSelect(){
@@ -896,17 +597,6 @@
             opt.textContent = c.nome;
             sel.appendChild(opt);
         });
-        // Atualiza filtro do dashboard
-        const dashCat = document.getElementById('dashCategoria');
-        if(dashCat){
-            dashCat.innerHTML = '<option value="">Todas</option>';
-            categories.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c.nome;
-                opt.textContent = c.nome;
-                dashCat.appendChild(opt);
-            });
-        }
     }
 
     function handleProductImage(input){const file=input.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){if(cropper)cropper.destroy();document.getElementById('cropBox').style.display='block';document.getElementById('cropImg').src=e.target.result;cropper=new Cropper(document.getElementById('cropImg'),{aspectRatio:1.33,viewMode:1,autoCropArea:0.9});document.getElementById('uploadLabel').textContent='📱 Ajuste'};reader.readAsDataURL(file)}
@@ -1867,7 +1557,6 @@
             if(sel){
                 sel.innerHTML = '<option value="">Todos</option>' + products.map(p => `<option value="${p.nome}">${p.nome}</option>`).join('');
             }
-            atualizarDashboard();
         });
         window.fsSnap(window.fsColl(window.db, "adicionais"), snap => {
             adicionais = [];
@@ -1887,21 +1576,27 @@
         window.fsSnap(window.fsColl(window.db, "vendas"), snap => {
             sales = [];
             snap.forEach(d => sales.push({id: d.id, ...d.data()}));
+            // Se a aba de relatórios estiver ativa, gera relatório
             if(document.getElementById('sec-relatorios').classList.contains('active')){
                 window.handlePeriodChange();
                 window.generateReport();
             }
             updateResumoFinanceiro();
-            atualizarDashboard();
         });
         loadMovimentos();
         calcCMV();
-        const hoje = new Date();
-        const semanaAtras = new Date(hoje.getTime() - 6*86400000);
-        document.getElementById('dashDataInicio').value = semanaAtras.toISOString().split('T')[0];
-        document.getElementById('dashDataFim').value = hoje.toISOString().split('T')[0];
+        // Inicializa com a aba de relatórios ativa
+        // Como a aba já está ativa no HTML, só precisamos garantir que o relatório seja gerado
+        // Se já houver vendas, gera o relatório imediatamente
+        if(sales.length > 0){
+            setTimeout(() => {
+                window.handlePeriodChange();
+                window.generateReport();
+            }, 500);
+        }
     }
 
+    // Chama init quando a página carregar
     init();
 </script>
 </body>
