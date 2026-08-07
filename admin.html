@@ -196,9 +196,79 @@
         .sub-sec { display:none }
         .sub-sec.active { display:block }
 
+        /* Layout pedidos */
+        .pedidos-layout {
+            display:flex; gap:20px; min-height:400px;
+        }
+        .pedidos-lista {
+            flex:1; max-height:600px; overflow-y:auto; border-right:1px solid var(--bb); padding-right:10px;
+        }
+        .pedidos-detalhe {
+            flex:2; padding-left:10px;
+        }
+        @media(max-width:768px){
+            .pedidos-layout { flex-direction:column; }
+            .pedidos-lista { border-right:none; padding-right:0; max-height:300px; }
+            .pedidos-detalhe { padding-left:0; }
+        }
+        .pedido-item {
+            background:var(--card-bg); border:1px solid var(--bb);
+            border-radius:10px; padding:10px 14px; margin-bottom:6px;
+            cursor:pointer; transition:all .2s;
+        }
+        .pedido-item:hover { border-color:var(--v); background:rgba(34,197,94,0.03); }
+        .pedido-item.selected { border-color:var(--v); background:rgba(34,197,94,0.06); }
+        .pedido-item .p-header { display:flex; justify-content:space-between; font-weight:700; font-size:13px; }
+        .pedido-item .p-cliente { font-size:12px; color:var(--tm); }
+        .pedido-item .p-meta { display:flex; gap:8px; font-size:10px; margin-top:4px; flex-wrap:wrap; }
+        .pedido-item .p-status { padding:2px 8px; border-radius:10px; font-size:9px; font-weight:700; }
+        .pedido-item .p-status.pendente { background:rgba(245,158,11,.2); color:#f59e0b; }
+        .pedido-item .p-status.confirmado { background:rgba(139,92,246,.2); color:#8b5cf6; }
+        .pedido-item .p-status.preparando { background:rgba(59,130,246,.2); color:#3b82f6; }
+        .pedido-item .p-status.pronto { background:rgba(34,197,94,.2); color:#22c55e; }
+        .pedido-item .p-status.finalizado { background:rgba(34,197,94,.1); color:#22c55e; }
+        .pedido-item .p-status.cancelado { background:rgba(239,68,68,.2); color:#ef4444; }
+
+        /* Edição */
+        .edit-group { margin-bottom:10px; }
+        .edit-group label { font-size:10px; color:var(--tm); display:block; margin-bottom:2px; }
+        .edit-group input, .edit-group select, .edit-group textarea {
+            width:100%; padding:8px 12px; border-radius:8px;
+            background:#1c1c1f; color:#fff; border:1px solid var(--bb);
+            font-size:12px; outline:none;
+        }
+        .edit-group input:focus, .edit-group select:focus, .edit-group textarea:focus {
+            border-color:var(--v);
+        }
+        .edit-group textarea { resize:vertical; min-height:40px; }
+
+        .btn-salvar-edicao {
+            width:100%; padding:10px; border:none; border-radius:8px;
+            background:var(--v); color:#000; font-weight:700; font-size:13px;
+            cursor:pointer; transition:.2s; margin-top:10px;
+        }
+        .btn-salvar-edicao:hover { transform:scale(1.02); }
+
+        .pedido-info-grid {
+            display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0;
+        }
+        .pedido-info-grid .info-item {
+            background:var(--card-bg); border:1px solid var(--bb);
+            border-radius:8px; padding:8px 10px;
+        }
+        .pedido-info-grid .info-item .label { font-size:8px; color:var(--tm); text-transform:uppercase; letter-spacing:1px; }
+        .pedido-info-grid .info-item .value { font-weight:700; font-size:13px; margin-top:2px; }
+
+        .pedido-total-display {
+            font-size:20px; font-weight:900; color:#4ade80; text-align:right;
+            border-top:1px solid var(--bb); padding-top:10px; margin-top:6px;
+        }
+        .pedido-total-display span { font-weight:400; font-size:13px; color:var(--tm); }
+
         @media(max-width:768px){
             .indicator-row { grid-template-columns:repeat(2,1fr) }
             .modal-grid { grid-template-columns:1fr }
+            .pedido-info-grid { grid-template-columns:1fr; }
         }
     </style>
 </head>
@@ -215,7 +285,8 @@
     </div>
 
     <div class="tabs">
-        <button class="tab active" onclick="switchTab('relatorios')">📊 Relatórios</button>
+        <button class="tab" onclick="switchTab('relatorios')">📊 Relatórios</button>
+        <button class="tab active" onclick="switchTab('pedidos')">📋 Pedidos</button>
         <button class="tab" onclick="switchTab('produtos')">📦 Produtos</button>
         <button class="tab" onclick="switchTab('categorias')">📁 Categorias</button>
         <button class="tab" onclick="switchTab('adicionais')">🍟 Adicionais</button>
@@ -226,8 +297,37 @@
         <button class="tab" onclick="switchTab('expediente')">🕐 Expediente</button>
     </div>
 
-    <!-- ================= RELATÓRIOS (agora primeira) ================= -->
-    <div class="sec active" id="sec-relatorios">
+    <!-- ================= PEDIDOS ================= -->
+    <div class="sec active" id="sec-pedidos">
+        <div class="card">
+            <h3>📋 Gerenciar Pedidos</h3>
+            <div class="filter-row">
+                <select id="pedidosFiltroStatus" onchange="carregarPedidos()">
+                    <option value="todos">Todos status</option>
+                    <option value="pendente">⏳ Pendente</option>
+                    <option value="confirmado">✅ Confirmado</option>
+                    <option value="preparando">👨‍🍳 Preparando</option>
+                    <option value="pronto">🎯 Pronto</option>
+                    <option value="finalizado">🎉 Finalizado</option>
+                    <option value="cancelado">❌ Cancelado</option>
+                </select>
+                <input type="date" id="pedidosDataInicio" placeholder="Data início" onchange="carregarPedidos()">
+                <input type="date" id="pedidosDataFim" placeholder="Data fim" onchange="carregarPedidos()">
+                <button class="btn btn-v" onclick="carregarPedidos()">🔍 Filtrar</button>
+            </div>
+            <div class="pedidos-layout">
+                <div class="pedidos-lista" id="pedidosListaContainer">
+                    <div id="pedidosLista"></div>
+                </div>
+                <div class="pedidos-detalhe" id="pedidosDetalhe">
+                    <p style="color:var(--tm); text-align:center; padding:40px 0;">Selecione um pedido</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= RELATÓRIOS ================= -->
+    <div class="sec" id="sec-relatorios">
         <div class="card">
             <h3>📅 Filtrar Período</h3>
             <div style="display:flex;gap:10px;align-items:end;flex-wrap:wrap;">
@@ -264,78 +364,24 @@
                 <div class="indicator-card"><div class="indicator-value yellow" id="rMargemLiquida">0%</div><div class="indicator-label">📊 Margem Líquida</div></div>
             </div>
 
-            <div class="card" style="margin-bottom:16px;">
-                <h3>📈 Evolução Diária - Faturamento vs Lucro Bruto</h3>
-                <div class="chart-container"><canvas id="salesChart"></canvas></div>
-            </div>
-
-            <div class="card" style="margin-bottom:16px;">
-                <h3>📊 Comparativo Mensal - Pedidos, Faturamento, Custo e Lucro</h3>
-                <div class="chart-container" style="max-height:350px;"><canvas id="monthlyChart"></canvas></div>
-            </div>
-
-            <div class="card" style="margin-bottom:16px;">
-                <h3>🏆 Ranking dos Mais Vendidos</h3>
-                <div class="chart-container" style="max-height:350px;"><canvas id="rankingChart"></canvas></div>
-            </div>
-
-            <div class="card" style="margin-bottom:16px;">
-                <h3>💳 Vendas por Forma de Pagamento</h3>
-                <div style="overflow-x:auto;">
-                    <table>
-                        <thead><tr><th>Forma</th><th style="text-align:center">Pedidos</th><th style="text-align:right">Total</th><th style="text-align:right">%</th></tr></thead>
-                        <tbody id="pagamentoTableBody"><tr><td colspan="4" style="text-align:center;color:var(--tm);">Nenhum dado</td></tr></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="card" style="margin-bottom:16px;">
-                <h3>🏆 Ranking de Mais Vendidos (Tabela)</h3>
-                <div style="overflow-x:auto;">
-                    <table><thead><tr><th>#</th><th>Produto</th><th style="text-align:center">Qtd</th><th style="text-align:right">Receita</th><th style="text-align:right">Custo</th><th style="text-align:right">Lucro</th><th style="text-align:right">Margem</th></tr></thead><tbody id="rankingTableBody"></tbody></table>
-                </div>
-            </div>
-
-            <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
-                <button class="btn btn-v" onclick="exportCSV()">📥 CSV</button>
-                <button class="btn btn-o" onclick="exportJSON()">📥 JSON</button>
-                <button class="btn btn-pdf" onclick="exportPDF()">📄 PDF</button>
-            </div>
-
-            <h3 style="margin-bottom:8px;">📋 Pedidos no Período</h3>
-            <div id="salesList" style="max-height:400px;overflow-y:auto;"></div>
+            <div class="card" style="margin-bottom:16px;"><h3>📈 Evolução Diária - Faturamento vs Lucro Bruto</h3><div class="chart-container"><canvas id="salesChart"></canvas></div></div>
+            <div class="card" style="margin-bottom:16px;"><h3>📊 Comparativo Mensal - Pedidos, Faturamento, Custo e Lucro</h3><div class="chart-container" style="max-height:350px;"><canvas id="monthlyChart"></canvas></div></div>
+            <div class="card" style="margin-bottom:16px;"><h3>🏆 Ranking dos Mais Vendidos</h3><div class="chart-container" style="max-height:350px;"><canvas id="rankingChart"></canvas></div></div>
+            <div class="card" style="margin-bottom:16px;"><h3>💳 Vendas por Forma de Pagamento</h3><div style="overflow-x:auto;"><table><thead><tr><th>Forma</th><th style="text-align:center">Pedidos</th><th style="text-align:right">Total</th><th style="text-align:right">%</th></tr></thead><tbody id="pagamentoTableBody"><tr><td colspan="4" style="text-align:center;color:var(--tm);">Nenhum dado</td></tr></tbody></table></div></div>
+            <div class="card" style="margin-bottom:16px;"><h3>🏆 Ranking de Mais Vendidos (Tabela)</h3><div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Produto</th><th style="text-align:center">Qtd</th><th style="text-align:right">Receita</th><th style="text-align:right">Custo</th><th style="text-align:right">Lucro</th><th style="text-align:right">Margem</th></tr></thead><tbody id="rankingTableBody"></tbody></table></div></div>
+            <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;"><button class="btn btn-v" onclick="exportCSV()">📥 CSV</button><button class="btn btn-o" onclick="exportJSON()">📥 JSON</button><button class="btn btn-pdf" onclick="exportPDF()">📄 PDF</button></div>
         </div>
 
-        <!-- Relatório por Categoria -->
         <div class="sub-sec" id="sub-relatorio-categorias">
-            <div class="card">
-                <h3>📁 Vendas por Categoria</h3>
-                <div class="chart-container" style="max-height:350px;"><canvas id="categoryChart"></canvas></div>
-                <div style="overflow-x:auto;margin-top:10px;">
-                    <table><thead><tr><th>Categoria</th><th style="text-align:center">Qtd</th><th style="text-align:right">Receita</th><th style="text-align:right">%</th></tr></thead><tbody id="categoryTableBody"></tbody></table>
-                </div>
-            </div>
+            <div class="card"><h3>📁 Vendas por Categoria</h3><div class="chart-container" style="max-height:350px;"><canvas id="categoryChart"></canvas></div><div style="overflow-x:auto;margin-top:10px;"><table><thead><tr><th>Categoria</th><th style="text-align:center">Qtd</th><th style="text-align:right">Receita</th><th style="text-align:right">%</th></tr></thead><tbody id="categoryTableBody"></tbody></table></div></div>
         </div>
 
-        <!-- Relatório por Hora -->
         <div class="sub-sec" id="sub-relatorio-horas">
-            <div class="card">
-                <h3>⏰ Vendas por Hora do Dia</h3>
-                <div class="chart-container" style="max-height:350px;"><canvas id="hourlyChart"></canvas></div>
-                <div style="overflow-x:auto;margin-top:10px;">
-                    <table><thead><tr><th>Hora</th><th style="text-align:center">Pedidos</th><th style="text-align:right">Faturamento</th></tr></thead><tbody id="hourlyTableBody"></tbody></table>
-                </div>
-            </div>
+            <div class="card"><h3>⏰ Vendas por Hora do Dia</h3><div class="chart-container" style="max-height:350px;"><canvas id="hourlyChart"></canvas></div><div style="overflow-x:auto;margin-top:10px;"><table><thead><tr><th>Hora</th><th style="text-align:center">Pedidos</th><th style="text-align:right">Faturamento</th></tr></thead><tbody id="hourlyTableBody"></tbody></table></div></div>
         </div>
 
-        <!-- Relatório de Cupons -->
         <div class="sub-sec" id="sub-relatorio-cupons">
-            <div class="card">
-                <h3>🎫 Análise de Uso de Cupons</h3>
-                <div style="overflow-x:auto;">
-                    <table><thead><tr><th>Cupom</th><th style="text-align:center">Usos</th><th style="text-align:right">Desconto Total</th><th style="text-align:right">Ticket Médio</th></tr></thead><tbody id="couponReportBody"></tbody></table>
-                </div>
-            </div>
+            <div class="card"><h3>🎫 Análise de Uso de Cupons</h3><div style="overflow-x:auto;"><table><thead><tr><th>Cupom</th><th style="text-align:center">Usos</th><th style="text-align:right">Desconto Total</th><th style="text-align:right">Ticket Médio</th></tr></thead><tbody id="couponReportBody"></tbody></table></div></div>
         </div>
     </div>
 
@@ -407,7 +453,6 @@
                 <button class="btn btn-v" onclick="filtrarFinanceiro()">🔍 Filtrar</button>
             </div>
         </div>
-
         <div class="card">
             <h3>➕ Lançar Movimentação</h3>
             <select id="movTipo" style="margin-bottom:8px;">
@@ -431,17 +476,14 @@
             </select>
             <button class="btn btn-v" onclick="saveMovimento()">💾 Lançar</button>
         </div>
-
         <div style="display:flex;gap:6px;margin-bottom:12px;">
             <button class="btn btn-o" onclick="filtrarPorCategoria('insumos')" style="font-size:10px;">🛒 Ver só Insumos</button>
             <button class="btn btn-o" onclick="filtrarPorCategoria('todos')" style="font-size:10px;">📋 Todos</button>
             <button class="btn btn-o" onclick="filtrarPorTipo('receita')" style="font-size:10px;">📈 Só Receitas</button>
             <button class="btn btn-o" onclick="filtrarPorTipo('despesa')" style="font-size:10px;">📉 Só Despesas</button>
         </div>
-
         <h3 style="margin-bottom:8px;">📋 Movimentações</h3>
         <div id="movimentosList" style="margin-bottom:16px;"></div>
-
         <h3 style="margin:16px 0 8px;">📊 Demonstrativo de Resultado (DRE)</h3>
         <div class="indicator-row">
             <div class="indicator-card"><div class="indicator-value green" id="finReceita">R$ 0,00</div><div class="indicator-label">💰 Receita Bruta</div></div>
@@ -478,10 +520,10 @@
 <!-- ================= FIREBASE MODULE ================= -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc, onSnapshot, setDoc, query, orderBy, where, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     const fc={apiKey:"AIzaSyABe9h5dM1FHrsYOI9vPiEvHsozqb-9PYI",authDomain:"aquarius-burguer.firebaseapp.com",projectId:"aquarius-burguer",storageBucket:"aquarius-burguer.firebasestorage.app",messagingSenderId:"1014795439621",appId:"1:1014795439621:web:1aef68c277c1e2f8aa966c"};
     const app=initializeApp(fc);const db=getFirestore(app);
-    window.db=db;window.fsColl=collection;window.fsAdd=addDoc;window.fsGet=getDocs;window.fsDoc=doc;window.fsDel=deleteDoc;window.fsUpd=updateDoc;window.fsSnap=onSnapshot;window.fsSet=setDoc;
+    window.db=db;window.fsColl=collection;window.fsAdd=addDoc;window.fsGet=getDocs;window.fsDoc=doc;window.fsDel=deleteDoc;window.fsUpd=updateDoc;window.fsSnap=onSnapshot;window.fsSet=setDoc;window.fsQ=query;window.fsOB=orderBy;window.fsWhere=where;window.fsLim=limit;
 </script>
 
 <!-- ================= JAVASCRIPT PRINCIPAL ================= -->
@@ -497,6 +539,11 @@
     let filtroAtualCategoria = 'todos';
     let filtroAtualTipo = 'todos';
     let chartInstance = null, rankingChartInstance = null, monthlyChartInstance = null, categoryChartInstance = null, hourlyChartInstance = null;
+
+    // Variáveis para pedidos
+    let pedidos = [];
+    let pedidoSelecionadoId = null;
+    let unsubscribePedidos = null;
 
     // =======================================================
     // ================== FUNÇÕES AUXILIARES ==================
@@ -566,6 +613,7 @@
         const sec=document.getElementById('sec-'+t); if(sec) sec.classList.add('active');
         document.querySelectorAll('.tab').forEach(tab=>{ if(tab.textContent.toLowerCase().includes(t.toLowerCase())) tab.classList.add('active'); });
         if(t==='relatorios'){ handlePeriodChange(); generateReport(); }
+        if(t==='pedidos'){ carregarPedidos(); }
         if(t==='expediente') loadHorarios();
         if(t==='adicionais') updateAddonCatSelect();
         if(t==='produtos') updateCatSelect();
@@ -583,6 +631,276 @@
         if(id==='relatorio-categorias') renderCategoryReport();
         if(id==='relatorio-horas') renderHourlyReport();
         if(id==='relatorio-cupons') renderCouponReport();
+    }
+
+    // =======================================================
+    // ================== PEDIDOS ============================
+    // =======================================================
+    function carregarPedidos() {
+        if(!window.db) return;
+        if(unsubscribePedidos) unsubscribePedidos();
+
+        const statusFiltro = document.getElementById('pedidosFiltroStatus').value;
+        const dataInicio = document.getElementById('pedidosDataInicio').value;
+        const dataFim = document.getElementById('pedidosDataFim').value;
+
+        let constraints = [];
+        if(statusFiltro !== 'todos') {
+            constraints.push(window.fsWhere("status", "==", statusFiltro));
+        }
+        if(dataInicio) {
+            constraints.push(window.fsWhere("dataHora", ">=", new Date(dataInicio+'T00:00:00').toISOString()));
+        }
+        if(dataFim) {
+            const fim = new Date(dataFim+'T23:59:59');
+            constraints.push(window.fsWhere("dataHora", "<=", fim.toISOString()));
+        }
+
+        const q = window.fsQ(window.fsColl(window.db, "pedidos_ativos"), ...constraints, window.fsOB("dataHora", "desc"), window.fsLim(200));
+        unsubscribePedidos = window.fsSnap(q, (snap) => {
+            pedidos = [];
+            snap.forEach(d => {
+                const data = d.data();
+                if(!data.dataHora) data.dataHora = new Date().toISOString();
+                pedidos.push({ id: d.id, ...data });
+            });
+            renderPedidosLista();
+            if(pedidoSelecionadoId) {
+                const pedido = pedidos.find(p => p.id === pedidoSelecionadoId);
+                if(pedido) renderPedidoDetalhe(pedido);
+                else { pedidoSelecionadoId = null; renderPedidoDetalhe(null); }
+            }
+        }, (err) => {
+            console.error('Erro ao carregar pedidos:', err);
+            toast('Erro ao carregar pedidos');
+        });
+    }
+
+    function renderPedidosLista() {
+        const container = document.getElementById('pedidosLista');
+        if(!container) return;
+        if(pedidos.length === 0) {
+            container.innerHTML = '<p style="color:var(--tm);text-align:center;padding:20px;">Nenhum pedido encontrado.</p>';
+            return;
+        }
+        let html = '';
+        pedidos.forEach(p => {
+            const statusLabel = {
+                pendente: '⏳ Pendente',
+                confirmado: '✅ Confirmado',
+                preparando: '👨‍🍳 Preparando',
+                pronto: '🎯 Pronto',
+                finalizado: '🎉 Finalizado',
+                cancelado: '❌ Cancelado'
+            }[p.status] || p.status;
+            const statusClass = p.status || 'pendente';
+            const total = parseFloat(p.total || 0).toFixed(2);
+            const data = new Date(p.dataHora);
+            const cliente = p.cliente || 'N/A';
+            const numero = p.numeroPedido || p.id.substring(0,6);
+            const selected = p.id === pedidoSelecionadoId ? 'selected' : '';
+            html += `<div class="pedido-item ${selected}" onclick="selecionarPedido('${p.id}')">
+                <div class="p-header">
+                    <span>#${numero}</span>
+                    <span style="color:#4ade80;">R$ ${total}</span>
+                </div>
+                <div class="p-cliente">${cliente}</div>
+                <div class="p-meta">
+                    <span class="p-status ${statusClass}">${statusLabel}</span>
+                    <span style="font-size:10px;color:var(--tm);">${data.toLocaleDateString('pt-BR')} ${data.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}</span>
+                    ${p.tipoEntrega === 'entrega' ? '<span style="font-size:10px;color:#3b82f6;">🛵</span>' : '<span style="font-size:10px;color:#22c55e;">🏪</span>'}
+                </div>
+            </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    window.selecionarPedido = function(id) {
+        pedidoSelecionadoId = id;
+        const pedido = pedidos.find(p => p.id === id);
+        if(pedido) renderPedidoDetalhe(pedido);
+        renderPedidosLista();
+    };
+
+    function renderPedidoDetalhe(pedido) {
+        const container = document.getElementById('pedidosDetalhe');
+        if(!container) return;
+        if(!pedido) {
+            container.innerHTML = '<p style="color:var(--tm);text-align:center;padding:40px 0;">Selecione um pedido</p>';
+            return;
+        }
+
+        const subtotal = parseFloat(pedido.subtotal || 0);
+        const addonsTotal = pedido.adicionais ? pedido.adicionais.reduce((s, a) => s + parseFloat(a.preco || 0), 0) : 0;
+        const taxa = parseFloat(pedido.taxaEntrega || 0);
+        const desconto = parseFloat(pedido.desconto || 0);
+        const acrescimo = parseFloat(pedido.acrescimo || 0);
+        const total = subtotal + addonsTotal + taxa - desconto + acrescimo;
+
+        const statusMap = {
+            pendente: '⏳ Pendente',
+            confirmado: '✅ Confirmado',
+            preparando: '👨‍🍳 Preparando',
+            pronto: '🎯 Pronto',
+            finalizado: '🎉 Finalizado',
+            cancelado: '❌ Cancelado'
+        };
+
+        let itensHtml = '';
+        if(pedido.itens && pedido.itens.length) {
+            pedido.itens.forEach(i => {
+                const qtd = parseInt(i.qtd)||0;
+                const nome = i.nome || 'Item';
+                const preco = parseFloat(i.precoUn||0) * qtd;
+                const obs = i.obs ? ` <span style="color:#f59e0b;font-size:10px;">(${i.obs})</span>` : '';
+                itensHtml += `<div class="modal-item"><div><strong>${qtd}x</strong> ${nome}${obs}</div><div style="text-align:right;">R$ ${preco.toFixed(2)}</div></div>`;
+            });
+        } else {
+            itensHtml = '<p style="color:var(--tm);font-size:12px;">Nenhum item</p>';
+        }
+
+        let addonsHtml = '';
+        if(pedido.adicionais && pedido.adicionais.length) {
+            addonsHtml = '<h4 style="font-size:12px;margin-bottom:6px;">🍟 Adicionais</h4>';
+            pedido.adicionais.forEach(a => {
+                addonsHtml += `<div class="modal-item"><span>• ${a.nome || 'Adicional'}</span><span style="color:#4ade80;">+R$ ${parseFloat(a.preco||0).toFixed(2)}</span></div>`;
+            });
+        }
+
+        const statusOptions = ['pendente','confirmado','preparando','pronto','finalizado','cancelado'];
+        const statusSelect = statusOptions.map(s => `<option value="${s}" ${pedido.status === s ? 'selected' : ''}>${statusMap[s]}</option>`).join('');
+
+        container.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid var(--bb);padding-bottom:8px;">
+                <div style="font-size:20px;font-weight:900;">#${pedido.numeroPedido || pedido.id.substring(0,6)}</div>
+                <div style="font-size:12px;color:var(--tm);">${new Date(pedido.dataHora).toLocaleString('pt-BR')}</div>
+            </div>
+
+            <div class="pedido-info-grid">
+                <div class="info-item"><div class="label">Cliente</div><div class="value">${pedido.cliente || '-'}</div></div>
+                <div class="info-item"><div class="label">Telefone</div><div class="value">${pedido.telefone || 'N/A'}</div></div>
+                <div class="info-item"><div class="label">Pagamento</div><div class="value">${pedido.formaPagamento || 'N/A'}</div></div>
+                <div class="info-item"><div class="label">Tipo</div><div class="value">${pedido.tipoEntrega === 'entrega' ? '🛵 Delivery' : '🏪 Retirada'}</div></div>
+                ${pedido.tipoEntrega === 'entrega' ? `<div class="info-item"><div class="label">Endereço</div><div class="value">${pedido.endereco || 'Não informado'}</div></div>` : ''}
+                ${pedido.cupomCodigo ? `<div class="info-item"><div class="label">Cupom</div><div class="value">${pedido.cupomCodigo} (-R$ ${parseFloat(pedido.desconto||0).toFixed(2)})</div></div>` : ''}
+                ${pedido.troco ? `<div class="info-item"><div class="label">Troco</div><div class="value">R$ ${parseFloat(pedido.troco).toFixed(2)}</div></div>` : ''}
+            </div>
+
+            <div style="margin:12px 0;">
+                <h4 style="font-size:13px;margin-bottom:6px;">📋 Itens</h4>
+                ${itensHtml}
+                ${addonsHtml}
+            </div>
+
+            <div style="margin:12px 0;padding-top:8px;border-top:1px solid var(--bb);">
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--tm);"><span>Subtotal</span><span>R$ ${subtotal.toFixed(2)}</span></div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--tm);"><span>Adicionais</span><span>R$ ${addonsTotal.toFixed(2)}</span></div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--tm);"><span>Taxa Entrega</span><span>R$ ${taxa.toFixed(2)}</span></div>
+                ${desconto > 0 ? `<div style="display:flex;justify-content:space-between;font-size:12px;color:#f59e0b;"><span>Desconto</span><span>-R$ ${desconto.toFixed(2)}</span></div>` : ''}
+                ${acrescimo > 0 ? `<div style="display:flex;justify-content:space-between;font-size:12px;color:#3b82f6;"><span>Acréscimo</span><span>+R$ ${acrescimo.toFixed(2)}</span></div>` : ''}
+                <div class="pedido-total-display">Total: R$ ${total.toFixed(2)} <span>(atualizado)</span></div>
+            </div>
+
+            <hr style="border-color:var(--bb);margin:12px 0;">
+
+            <h4 style="font-size:13px;margin-bottom:8px;">✏️ Editar Pedido</h4>
+
+            <div class="edit-group">
+                <label>Status</label>
+                <select id="editPedidoStatus">${statusSelect}</select>
+            </div>
+            <div class="edit-group">
+                <label>Cliente</label>
+                <input type="text" id="editPedidoCliente" value="${pedido.cliente || ''}" placeholder="Nome do cliente">
+            </div>
+            <div class="edit-group">
+                <label>Telefone</label>
+                <input type="text" id="editPedidoTelefone" value="${pedido.telefone || ''}" placeholder="(XX) XXXXX-XXXX">
+            </div>
+            <div class="edit-group">
+                <label>Tipo de Entrega</label>
+                <select id="editPedidoTipoEntrega" onchange="toggleEnderecoEditPedido()">
+                    <option value="entrega" ${pedido.tipoEntrega === 'entrega' ? 'selected' : ''}>Delivery</option>
+                    <option value="retirada" ${pedido.tipoEntrega === 'retirada' ? 'selected' : ''}>Retirada</option>
+                </select>
+            </div>
+            <div class="edit-group" id="editEnderecoGroup" style="${pedido.tipoEntrega === 'entrega' ? 'display:block' : 'display:none'}">
+                <label>Endereço</label>
+                <input type="text" id="editPedidoEndereco" value="${pedido.endereco || ''}" placeholder="Endereço completo">
+            </div>
+            <div class="edit-group">
+                <label>Desconto (R$)</label>
+                <input type="number" step="0.01" id="editPedidoDesconto" value="${desconto}" placeholder="0.00">
+            </div>
+            <div class="edit-group">
+                <label>Acréscimo (R$)</label>
+                <input type="number" step="0.01" id="editPedidoAcrescimo" value="${acrescimo}" placeholder="0.00">
+            </div>
+            <div class="edit-group">
+                <label>Observação</label>
+                <textarea id="editPedidoObservacao" placeholder="Observações sobre o pedido...">${pedido.observacao || ''}</textarea>
+            </div>
+
+            <button class="btn-salvar-edicao" onclick="salvarEdicaoPedido('${pedido.id}')">💾 Salvar alterações</button>
+        `;
+    }
+
+    function toggleEnderecoEditPedido() {
+        const tipo = document.getElementById('editPedidoTipoEntrega').value;
+        const group = document.getElementById('editEnderecoGroup');
+        if(group) {
+            group.style.display = tipo === 'entrega' ? 'block' : 'none';
+        }
+    }
+
+    async function salvarEdicaoPedido(id) {
+        try {
+            const status = document.getElementById('editPedidoStatus').value;
+            const cliente = document.getElementById('editPedidoCliente').value.trim();
+            const telefone = document.getElementById('editPedidoTelefone').value.trim();
+            const tipoEntrega = document.getElementById('editPedidoTipoEntrega').value;
+            const endereco = document.getElementById('editPedidoEndereco').value.trim();
+            const desconto = parseFloat(document.getElementById('editPedidoDesconto').value) || 0;
+            const acrescimo = parseFloat(document.getElementById('editPedidoAcrescimo').value) || 0;
+            const observacao = document.getElementById('editPedidoObservacao').value.trim();
+
+            const pedido = pedidos.find(p => p.id === id);
+            if(!pedido) { toast('Pedido não encontrado', 'error'); return; }
+
+            const subtotal = parseFloat(pedido.subtotal || 0);
+            const addonsTotal = pedido.adicionais ? pedido.adicionais.reduce((s, a) => s + parseFloat(a.preco || 0), 0) : 0;
+            let taxa = parseFloat(pedido.taxaEntrega || 0);
+            if(tipoEntrega === 'retirada') taxa = 0;
+            if(tipoEntrega === 'entrega' && taxa === 0) taxa = 10;
+            const total = subtotal + addonsTotal + taxa - desconto + acrescimo;
+
+            const updateData = {
+                status: status,
+                cliente: cliente,
+                telefone: telefone,
+                tipoEntrega: tipoEntrega,
+                endereco: endereco,
+                desconto: desconto,
+                acrescimo: acrescimo,
+                taxaEntrega: taxa,
+                observacao: observacao,
+                total: total,
+                ultimaAtualizacao: new Date().toISOString()
+            };
+
+            await window.fsUpd(window.fsDoc(window.db, "pedidos_ativos", id), updateData);
+            toast('✅ Pedido atualizado!');
+            const idx = pedidos.findIndex(p => p.id === id);
+            if(idx > -1) {
+                pedidos[idx] = { ...pedidos[idx], ...updateData };
+            }
+            const pedidoAtualizado = pedidos.find(p => p.id === id);
+            if(pedidoAtualizado) renderPedidoDetalhe(pedidoAtualizado);
+            renderPedidosLista();
+        } catch(e) {
+            console.error(e);
+            toast('Erro ao salvar: ' + e.message, 'error');
+        }
     }
 
     // =======================================================
@@ -1171,45 +1489,8 @@
             return `<tr><td>${i+1}º</td><td><strong>${nm}</strong></td><td style="text-align:center">${d.qtd}</td><td style="text-align:right">R$ ${d.receita.toFixed(2)}</td><td style="text-align:right">R$ ${d.custo.toFixed(2)}</td><td style="text-align:right">R$ ${li.toFixed(2)}</td><td style="text-align:right">${mg.toFixed(1)}%</td></tr>`;
         }).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--tm);padding:20px;">Nenhum item vendido</td></tr>';
 
-        // Lista de pedidos
-        filtered.sort((a,b) => new Date(b.dataHora) - new Date(a.dataHora));
-        document.getElementById('salesList').innerHTML = filtered.slice(0, 100).map(v => {
-            const d = new Date(v.dataHora);
-            const totalItens = v.itens ? v.itens.reduce((s,i) => s + (parseInt(i.qtd)||0), 0) : 0;
-            let custoVenda = 0;
-            if (v.itens) {
-                v.itens.forEach(i => {
-                    const cu = getCustoProduto(i.nome, i.custoUn);
-                    custoVenda += cu * (parseInt(i.qtd)||0);
-                });
-            }
-            const lucroVenda = parseFloat(v.total||0) - custoVenda - (parseFloat(v.taxaEntrega)||0);
-            return `<div class="li" onclick="showSaleDetail('${v.id}')">
-                <div style="flex:1;">
-                    <div style="display:flex;justify-content:space-between;">
-                        <strong>${v.cliente}</strong>
-                        <span style="color:#4ade80;">R$ ${parseFloat(v.total).toFixed(2)}</span>
-                    </div>
-                    <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;align-items:center;">
-                        <span style="font-size:10px;color:var(--tm);">#${v.numeroPedido||v.id.substring(0,6)}</span>
-                        <span class="badge badge-i">${totalItens} itens</span>
-                        <span class="badge ${v.tipoEntrega==='entrega'?'badge-w':'badge-v'}">${v.tipoEntrega==='entrega'?'🛵':'🏪'}</span>
-                        <span class="badge" style="background:rgba(255,255,255,.05);">${v.formaPagamento}</span>
-                        <span style="font-size:10px;color:var(--tm);">${d.toLocaleDateString('pt-BR')} ${d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span>
-                        <span style="font-size:9px;color:${lucroVenda>=0?'#22c55e':'#ef4444'};">Lucro: R$ ${lucroVenda.toFixed(2)}</span>
-                    </div>
-                </div>
-                <div style="display:flex;gap:4px;margin-left:10px;">
-                    <button class="btn btn-i" style="padding:4px 10px;font-size:10px;" onclick="event.stopPropagation();showSaleDetail('${v.id}')">👁️</button>
-                    <button class="btn btn-d" style="padding:4px 10px;font-size:10px;" onclick="event.stopPropagation();deleteSale('${v.id}')">🗑️</button>
-                </div>
-            </div>`;
-        }).join('') || '<p style="color:var(--tm);text-align:center;padding:20px;">Nenhuma venda.</p>';
-
-        updateResumoFinanceiro();
-        if (document.getElementById('sub-relatorio-categorias').classList.contains('active')) renderCategoryReport();
-        if (document.getElementById('sub-relatorio-horas').classList.contains('active')) renderHourlyReport();
-        if (document.getElementById('sub-relatorio-cupons').classList.contains('active')) renderCouponReport();
+        // A LISTA DE PEDIDOS ABAIXO DOS RELATÓRIOS FOI REMOVIDA
+        // para evitar redundância com a aba "Pedidos".
     };
 
     // ===== RELATÓRIO POR CATEGORIA =====
@@ -1576,7 +1857,6 @@
         window.fsSnap(window.fsColl(window.db, "vendas"), snap => {
             sales = [];
             snap.forEach(d => sales.push({id: d.id, ...d.data()}));
-            // Se a aba de relatórios estiver ativa, gera relatório
             if(document.getElementById('sec-relatorios').classList.contains('active')){
                 window.handlePeriodChange();
                 window.generateReport();
@@ -1585,18 +1865,20 @@
         });
         loadMovimentos();
         calcCMV();
-        // Inicializa com a aba de relatórios ativa
-        // Como a aba já está ativa no HTML, só precisamos garantir que o relatório seja gerado
-        // Se já houver vendas, gera o relatório imediatamente
-        if(sales.length > 0){
+        if(document.getElementById('sec-pedidos').classList.contains('active')){
+            setTimeout(carregarPedidos, 300);
+        }
+        if(sales.length > 0 && document.getElementById('sec-relatorios').classList.contains('active')){
             setTimeout(() => {
                 window.handlePeriodChange();
                 window.generateReport();
             }, 500);
         }
+        if(document.getElementById('sec-pedidos').classList.contains('active')){
+            setTimeout(carregarPedidos, 300);
+        }
     }
 
-    // Chama init quando a página carregar
     init();
 </script>
 </body>
