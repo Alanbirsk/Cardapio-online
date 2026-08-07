@@ -938,7 +938,6 @@
         if (!audioCtx) {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }
-        // Se estiver suspenso, retoma (necessário para autoplay)
         if (audioCtx.state === 'suspended') {
             audioCtx.resume().catch(() => {});
         }
@@ -1013,15 +1012,13 @@
         setTimeout(initKitchen, 300);
     }
 
-    // ===== SOUND – VERSÃO VIBRANTE (CORRIGIDA) =====
+    // ===== SOUND – VERSÃO VIBRANTE =====
     function playBellSound() {
         if (!snd) return;
         try {
             const ctx = getAudioContext();
-            // Se o contexto não estiver em 'running', tenta retomar
             if (ctx.state !== 'running') {
                 ctx.resume().catch(() => {});
-                // Pequeno delay para o resume
                 setTimeout(() => playBellSoundInternal(ctx), 100);
             } else {
                 playBellSoundInternal(ctx);
@@ -1032,7 +1029,6 @@
     function playBellSoundInternal(ctx) {
         if (!snd) return;
         try {
-            // Padrão vibrante: onda quadrada + harmônicos, repetido 2 vezes
             const frequencies = [880, 1100, 1320, 1100, 880];
             const durations = [0.12, 0.12, 0.12, 0.12, 0.16];
             const gainValues = [0.35, 0.35, 0.35, 0.35, 0.35];
@@ -1056,7 +1052,6 @@
                     osc.start(startTime);
                     osc.stop(startTime + durations[i]);
 
-                    // Harmônico nas notas quadradas
                     if (i < 2) {
                         const osc2 = ctx.createOscillator();
                         const gain2 = ctx.createGain();
@@ -1076,7 +1071,6 @@
         } catch(e) { /* silencia */ }
     }
 
-    // ===== ATIVAÇÃO DO ÁUDIO POR INTERAÇÃO DO USUÁRIO =====
     function enableAudio() {
         const ctx = getAudioContext();
         if (ctx.state === 'suspended') {
@@ -1086,11 +1080,8 @@
         }
     }
 
-    // Adiciona listener para ativar áudio em qualquer clique na página
     document.addEventListener('click', enableAudio, { once: false });
     document.addEventListener('touchstart', enableAudio, { once: false });
-
-    // Também ativa ao clicar no botão de som
     document.getElementById('sndBtn').addEventListener('click', enableAudio);
 
     function toggleSound() {
@@ -1099,7 +1090,6 @@
         if (snd) {
             btn.textContent = '🔊';
             btn.classList.remove('muted');
-            // Ativa o contexto de áudio ao ligar o som
             enableAudio();
             if (newIds.size > 0 || hasAtrasados()) startAlertInterval();
             toast('🔊 Som ativado');
@@ -1157,7 +1147,6 @@
                     orders.push({ id: d.id, ...data });
                     newOrderIds.add(d.id);
                 });
-                // Novos pedidos pendentes
                 const nw = orders.filter(o => !oi.has(o.id) && o.status === 'pendente');
                 nw.forEach(o => {
                     newIds.add(o.id);
@@ -1171,7 +1160,6 @@
                     );
                     notifCount++;
                     updateTitleBadge();
-                    // Toca o som imediatamente
                     playBellSound();
                 });
                 updAlert();
@@ -1189,10 +1177,18 @@
                 toast("❌ Erro ao carregar pedidos. Reconectando...", "error");
             }
         );
+        // Buscar status atual da cozinha no Firebase
         const statusRef = window.fsDoc(window.db, "status_cozinha", "online");
         window.fsSnap(statusRef, (snap) => {
             updatePollCounter();
-            if (snap.exists()) { isOnline = snap.data().online !== false; updateOnlineUI(); }
+            if (snap.exists()) {
+                isOnline = snap.data().online !== false;
+            } else {
+                // Se não existir, criar como online
+                window.fsSet(statusRef, { online: true, ultimaAtualizacao: new Date().toISOString() });
+                isOnline = true;
+            }
+            updateOnlineUI();
         });
     }
 
@@ -1579,10 +1575,12 @@
     // ===== INICIALIZAÇÃO =====
     requestNotificationPermission();
     window.initKitchen = initKitchen;
-    updateOnlineUI();
-    window.addEventListener('beforeunload', () => { if (isOnline) setOnline(false); });
 
-    console.log('✅ Aquarius Cozinha - Som automático corrigido!');
+    // Buscar status atual ao carregar (já feito dentro de initKitchen)
+    // Não desligar a cozinha ao recarregar
+    // window.addEventListener('beforeunload', () => { if (isOnline) setOnline(false); }); // REMOVIDO
+
+    console.log('✅ Aquarius Cozinha - Status persistente (não desliga ao recarregar)!');
 </script>
 </body>
 </html>
