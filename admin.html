@@ -40,6 +40,8 @@
         .btn-a { background:#eab308; color:#000 }
         .btn-i { background:var(--i); color:#fff }
         .btn-pdf { background:#dc2626; color:#fff }
+        .btn-excluir { background:rgba(239,68,68,.15); color:#ef4444; border:1px solid rgba(239,68,68,.3); width:100%; padding:10px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer; transition:.2s; margin-top:8px; }
+        .btn-excluir:hover { background:rgba(239,68,68,.25); }
 
         .tabs {
             display:flex; gap:6px; margin-bottom:20px;
@@ -248,6 +250,13 @@
             cursor:pointer; transition:.2s; margin-top:10px;
         }
         .btn-salvar-edicao:hover { transform:scale(1.02); }
+
+        .btn-excluir-pedido {
+            width:100%; padding:10px; border:none; border-radius:8px;
+            background:rgba(239,68,68,0.12); color:#ef4444; border:1px solid rgba(239,68,68,0.2);
+            font-weight:700; font-size:13px; cursor:pointer; transition:.2s; margin-top:8px;
+        }
+        .btn-excluir-pedido:hover { background:rgba(239,68,68,0.2); }
 
         .pedido-info-grid {
             display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0;
@@ -722,6 +731,26 @@
         renderPedidosLista();
     };
 
+    // ===== EXCLUIR PEDIDO =====
+    async function excluirPedido(id) {
+        if(!confirm('Tem certeza que deseja EXCLUIR este pedido permanentemente?')) return;
+        try {
+            await window.fsDel(window.fsDoc(window.db, "pedidos_ativos", id));
+            toast('🗑️ Pedido excluído!');
+            // Atualiza lista local
+            pedidos = pedidos.filter(p => p.id !== id);
+            if(pedidoSelecionadoId === id) {
+                pedidoSelecionadoId = null;
+                renderPedidoDetalhe(null);
+            }
+            renderPedidosLista();
+        } catch(e) {
+            console.error(e);
+            toast('Erro ao excluir pedido: ' + e.message, 'error');
+        }
+    }
+    window.excluirPedido = excluirPedido;
+
     function renderPedidoDetalhe(pedido) {
         const container = document.getElementById('pedidosDetalhe');
         if(!container) return;
@@ -842,6 +871,7 @@
             </div>
 
             <button class="btn-salvar-edicao" onclick="salvarEdicaoPedido('${pedido.id}')">💾 Salvar alterações</button>
+            <button class="btn-excluir-pedido" onclick="excluirPedido('${pedido.id}')">🗑️ Excluir Pedido</button>
         `;
     }
 
@@ -1488,9 +1518,6 @@
             const mg = d.receita > 0 ? (li / d.receita * 100) : 0;
             return `<tr><td>${i+1}º</td><td><strong>${nm}</strong></td><td style="text-align:center">${d.qtd}</td><td style="text-align:right">R$ ${d.receita.toFixed(2)}</td><td style="text-align:right">R$ ${d.custo.toFixed(2)}</td><td style="text-align:right">R$ ${li.toFixed(2)}</td><td style="text-align:right">${mg.toFixed(1)}%</td></tr>`;
         }).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--tm);padding:20px;">Nenhum item vendido</td></tr>';
-
-        // A LISTA DE PEDIDOS ABAIXO DOS RELATÓRIOS FOI REMOVIDA
-        // para evitar redundância com a aba "Pedidos".
     };
 
     // ===== RELATÓRIO POR CATEGORIA =====
