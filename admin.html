@@ -343,9 +343,16 @@
                 <div style="flex:1;min-width:150px;"><label style="font-size:10px;color:var(--tm);display:block;margin-bottom:4px;">Período</label><select id="reportFilter" onchange="handlePeriodChange()" style="margin-bottom:0;"><option value="today">Hoje</option><option value="yesterday">Ontem</option><option value="7days">Últimos 7 dias</option><option value="30days">Últimos 30 dias</option><option value="month">Este Mês</option><option value="lastmonth">Mês Passado</option><option value="custom">📅 Personalizado</option><option value="all" selected>Todo Período</option></select></div>
                 <div id="customDateFields" style="display:none;display:flex;gap:10px;flex-wrap:wrap;"><div style="flex:1;min-width:130px;"><label style="font-size:10px;color:var(--tm);display:block;margin-bottom:4px;">Data Inicial</label><input type="date" id="customStartDate" onchange="generateReport()" style="margin-bottom:0;"></div><div style="flex:1;min-width:130px;"><label style="font-size:10px;color:var(--tm);display:block;margin-bottom:4px;">Data Final</label><input type="date" id="customEndDate" onchange="generateReport()" style="margin-bottom:0;"></div></div>
             </div>
-            <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+            <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:end;">
                 <label style="font-size:10px;color:var(--tm);display:flex;align-items:center;gap:4px;">Produto: <select id="reportProdutoFilter" onchange="generateReport()" style="width:auto;min-width:120px;padding:4px 8px;margin:0;"><option value="">Todos</option></select></label>
                 <label style="font-size:10px;color:var(--tm);display:flex;align-items:center;gap:4px;">Cliente: <input type="text" id="reportClienteFilter" placeholder="Nome do cliente" onchange="generateReport()" style="width:150px;padding:4px 8px;margin:0;"></label>
+                <label style="font-size:10px;color:var(--tm);display:flex;align-items:center;gap:4px;">Status venda: 
+                    <select id="reportStatusFilter" onchange="generateReport()" style="width:auto;min-width:150px;padding:4px 8px;margin:0;">
+                        <option value="todas-validas" selected>Todas válidas (exceto canceladas)</option>
+                        <option value="finalizadas">Apenas finalizadas</option>
+                        <option value="canceladas">Apenas canceladas</option>
+                    </select>
+                </label>
             </div>
         </div>
 
@@ -457,7 +464,7 @@
         <div class="card">
             <h3>📅 Filtrar Período</h3>
             <div class="filter-row">
-                <div><label style="font-size:10px;color:var(--tm);display:block;margin-bottom:4px;">Período</label><select id="finPeriodoRapido" onchange="handleFinPeriodoRapido()"><option value="today">Hoje</option><option value="yesterday">Ontem</option><option value="7days">Últimos 7 dias</option><option value="30days">Últimos 30 dias</option><option value="month" selected>Este Mês</option><option value="lastmonth">Mês Passado</option><option value="custom">📅 Personalizado</option><option value="all">Todo Período</option></select></div>
+                <div><label style="font-size:10px;color:var(--tm);display:block;margin-bottom:4px;">Período</label><select id="finPeriodoRapido" onchange="handleFinPeriodoRapido()"><option value="today">Hoje</option><option value="yesterday">Ontem</option><option value="7days">Últimos 7 dias</option><option value="30days">Últimos 30 dias</option><option value="month">Este Mês</option><option value="lastmonth">Mês Passado</option><option value="custom">📅 Personalizado</option><option value="all" selected>Todo Período</option></select></div>
                 <div id="finCustomDateFields" style="display:none; gap:10px; flex-wrap:wrap;"><div><label style="font-size:10px;color:var(--tm);display:block;margin-bottom:4px;">Data Inicial</label><input type="date" id="finDataInicial" onchange="filtrarFinanceiro()"></div><div><label style="font-size:10px;color:var(--tm);display:block;margin-bottom:4px;">Data Final</label><input type="date" id="finDataFinal" onchange="filtrarFinanceiro()"></div></div>
                 <button class="btn btn-v" onclick="filtrarFinanceiro()">🔍 Filtrar</button>
             </div>
@@ -549,10 +556,28 @@
     let filtroAtualTipo = 'todos';
     let chartInstance = null, rankingChartInstance = null, monthlyChartInstance = null, categoryChartInstance = null, hourlyChartInstance = null;
 
-    // Variáveis para pedidos
     let pedidos = [];
     let pedidoSelecionadoId = null;
     let unsubscribePedidos = null;
+
+    let salesFromVendas = [];
+    let salesFromPedidos = [];
+
+    function updateCombinedSales() {
+        const combined = [...salesFromVendas];
+        const ids = new Set(salesFromVendas.map(s => s.id));
+        salesFromPedidos.forEach(p => {
+            if (!ids.has(p.id)) {
+                combined.push(p);
+            }
+        });
+        sales = combined;
+        if(document.getElementById('sec-relatorios') && document.getElementById('sec-relatorios').classList.contains('active')){
+            window.handlePeriodChange();
+            window.generateReport();
+        }
+        updateResumoFinanceiro();
+    }
 
     // =======================================================
     // ================== FUNÇÕES AUXILIARES ==================
@@ -731,13 +756,11 @@
         renderPedidosLista();
     };
 
-    // ===== EXCLUIR PEDIDO =====
     async function excluirPedido(id) {
         if(!confirm('Tem certeza que deseja EXCLUIR este pedido permanentemente?')) return;
         try {
             await window.fsDel(window.fsDoc(window.db, "pedidos_ativos", id));
             toast('🗑️ Pedido excluído!');
-            // Atualiza lista local
             pedidos = pedidos.filter(p => p.id !== id);
             if(pedidoSelecionadoId === id) {
                 pedidoSelecionadoId = null;
@@ -1352,8 +1375,9 @@
 
         const produtoFilter = document.getElementById('reportProdutoFilter').value;
         const clienteFilter = document.getElementById('reportClienteFilter').value.toLowerCase().trim();
+        const statusFilter = document.getElementById('reportStatusFilter').value; // NOVO
 
-        const filtered = sales.filter(v => {
+        let filtered = sales.filter(v => {
             const d = new Date(v.dataHora);
             if (d < s || d > e) return false;
             if (produtoFilter) {
@@ -1363,6 +1387,14 @@
             if (clienteFilter) {
                 const cliente = (v.cliente || '').toLowerCase();
                 if (!cliente.includes(clienteFilter)) return false;
+            }
+            // Filtro de status
+            if (statusFilter === 'todas-validas') {
+                if (v.status === 'cancelado') return false;
+            } else if (statusFilter === 'finalizadas') {
+                if (v.status !== 'finalizado') return false;
+            } else if (statusFilter === 'canceladas') {
+                if (v.status !== 'cancelado') return false;
             }
             return true;
         });
@@ -1538,9 +1570,14 @@
             e = ev ? new Date(ev+'T23:59:59') : new Date(todayStart.getTime()+86400000);
         }
 
-        const filtered = sales.filter(v => {
+        const statusFilter = document.getElementById('reportStatusFilter').value;
+        let filtered = sales.filter(v => {
             const d = new Date(v.dataHora);
-            return d >= s && d <= e;
+            if (d < s || d > e) return false;
+            if (statusFilter === 'todas-validas' && v.status === 'cancelado') return false;
+            if (statusFilter === 'finalizadas' && v.status !== 'finalizado') return false;
+            if (statusFilter === 'canceladas' && v.status !== 'cancelado') return false;
+            return true;
         });
 
         const catMap = {};
@@ -1585,9 +1622,14 @@
             e = ev ? new Date(ev+'T23:59:59') : new Date(todayStart.getTime()+86400000);
         }
 
-        const filtered = sales.filter(v => {
+        const statusFilter = document.getElementById('reportStatusFilter').value;
+        let filtered = sales.filter(v => {
             const d = new Date(v.dataHora);
-            return d >= s && d <= e;
+            if (d < s || d > e) return false;
+            if (statusFilter === 'todas-validas' && v.status === 'cancelado') return false;
+            if (statusFilter === 'finalizadas' && v.status !== 'finalizado') return false;
+            if (statusFilter === 'canceladas' && v.status !== 'cancelado') return false;
+            return true;
         });
 
         const hourMap = {};
@@ -1627,9 +1669,14 @@
             e = ev ? new Date(ev+'T23:59:59') : new Date(todayStart.getTime()+86400000);
         }
 
-        const filtered = sales.filter(v => {
+        const statusFilter = document.getElementById('reportStatusFilter').value;
+        let filtered = sales.filter(v => {
             const d = new Date(v.dataHora);
-            return d >= s && d <= e && v.cupomCodigo;
+            if (d < s || d > e) return false;
+            if (statusFilter === 'todas-validas' && v.status === 'cancelado') return false;
+            if (statusFilter === 'finalizadas' && v.status !== 'finalizado') return false;
+            if (statusFilter === 'canceladas' && v.status !== 'cancelado') return false;
+            return v.cupomCodigo;
         });
 
         const cupomMap = {};
@@ -1664,8 +1711,43 @@
     // =======================================================
     // ================== FINANCEIRO =========================
     // =======================================================
-    window.handleFinPeriodoRapido=function(){const p=document.getElementById('finPeriodoRapido').value,cf=document.getElementById('finCustomDateFields'),h=new Date(),ts=new Date(h.getFullYear(),h.getMonth(),h.getDate()),tm=new Date(ts.getTime()+86400000),ys=new Date(ts.getTime()-86400000);let s,e;switch(p){case'today':s=ts;e=tm;break;case'yesterday':s=ys;e=ts;break;case'7days':s=new Date(ts.getTime()-7*86400000);e=tm;break;case'30days':s=new Date(ts.getTime()-30*86400000);e=tm;break;case'month':s=new Date(h.getFullYear(),h.getMonth(),1);e=tm;break;case'lastmonth':s=new Date(h.getFullYear(),h.getMonth()-1,1);e=new Date(h.getFullYear(),h.getMonth(),1);break;case'all':s=new Date(2000,0,1);e=new Date(2099,11,31);break;case'custom':cf.style.display='flex';if(!document.getElementById('finDataInicial').value){document.getElementById('finDataInicial').value=new Date(ts.getTime()-7*86400000).toISOString().split('T')[0];document.getElementById('finDataFinal').value=h.toISOString().split('T')[0]}filtrarFinanceiro();return}cf.style.display='none';document.getElementById('finDataInicial').value=s.toISOString().split('T')[0];document.getElementById('finDataFinal').value=e.toISOString().split('T')[0];filtrarFinanceiro()}
-    function initFinanceiroDates(){document.getElementById('finPeriodoRapido').value='month';handleFinPeriodoRapido()}
+    window.handleFinPeriodoRapido=function(){
+        const p=document.getElementById('finPeriodoRapido').value,
+              cf=document.getElementById('finCustomDateFields'),
+              h=new Date(),
+              ts=new Date(h.getFullYear(),h.getMonth(),h.getDate()),
+              tm=new Date(ts.getTime()+86400000),
+              ys=new Date(ts.getTime()-86400000);
+        let s,e;
+        switch(p){
+            case'today':s=ts;e=tm;break;
+            case'yesterday':s=ys;e=ts;break;
+            case'7days':s=new Date(ts.getTime()-7*86400000);e=tm;break;
+            case'30days':s=new Date(ts.getTime()-30*86400000);e=tm;break;
+            case'month':s=new Date(h.getFullYear(),h.getMonth(),1);e=tm;break;
+            case'lastmonth':s=new Date(h.getFullYear(),h.getMonth()-1,1);e=new Date(h.getFullYear(),h.getMonth(),1);break;
+            case'all':
+                s=new Date(2000,0,1); e=new Date(2099,11,31);
+                break;
+            case'custom':
+                cf.style.display='flex';
+                if(!document.getElementById('finDataInicial').value){
+                    document.getElementById('finDataInicial').value=new Date(ts.getTime()-7*86400000).toISOString().split('T')[0];
+                    document.getElementById('finDataFinal').value=h.toISOString().split('T')[0];
+                }
+                filtrarFinanceiro();
+                return;
+        }
+        cf.style.display='none';
+        document.getElementById('finDataInicial').value=s.toISOString().split('T')[0];
+        document.getElementById('finDataFinal').value=e.toISOString().split('T')[0];
+        filtrarFinanceiro();
+    }
+
+    function initFinanceiroDates(){
+        document.getElementById('finPeriodoRapido').value='all';
+        handleFinPeriodoRapido();
+    }
 
     async function saveMovimento(){
         const tipo = document.getElementById('movTipo').value;
@@ -1717,7 +1799,9 @@
         let s=null, e=null;
         if(di) s = new Date(di+'T00:00:00');
         if(df) e = new Date(df+'T23:59:59');
+        // Exclui vendas canceladas do financeiro por padrão
         const vf = sales.filter(v => {
+            if (v.status === 'cancelado') return false;
             const d = new Date(v.dataHora);
             if(s && d < s) return false;
             if(e && d > e) return false;
@@ -1797,6 +1881,7 @@
     function updateResumoFinanceiro(){
         let rec=0,cus=0,tax=0;
         sales.forEach(v => {
+            if (v.status === 'cancelado') return;
             rec += parseFloat(v.total)||0;
             tax += parseFloat(v.taxaEntrega)||0;
             if(v.itens) v.itens.forEach(i => {
@@ -1881,26 +1966,27 @@
             snap.forEach(d => promocoes.push({id: d.id, ...d.data()}));
             renderPromoTable();
         });
+
+        // ---- LISTENERS UNIFICADOS PARA VENDAS ----
         window.fsSnap(window.fsColl(window.db, "vendas"), snap => {
-            sales = [];
-            snap.forEach(d => sales.push({id: d.id, ...d.data()}));
-            if(document.getElementById('sec-relatorios').classList.contains('active')){
-                window.handlePeriodChange();
-                window.generateReport();
-            }
-            updateResumoFinanceiro();
+            salesFromVendas = [];
+            snap.forEach(d => salesFromVendas.push({id: d.id, ...d.data()}));
+            updateCombinedSales();
         });
+
+        window.fsSnap(window.fsColl(window.db, "pedidos_ativos"), snap => {
+            salesFromPedidos = [];
+            snap.forEach(d => {
+                const data = d.data();
+                if (data.status === 'finalizado' || data.status === 'cancelado' || data.status === 'pronto' || data.status === 'preparando' || data.status === 'confirmado') {
+                    salesFromPedidos.push({id: d.id, ...data});
+                }
+            });
+            updateCombinedSales();
+        });
+
         loadMovimentos();
         calcCMV();
-        if(document.getElementById('sec-pedidos').classList.contains('active')){
-            setTimeout(carregarPedidos, 300);
-        }
-        if(sales.length > 0 && document.getElementById('sec-relatorios').classList.contains('active')){
-            setTimeout(() => {
-                window.handlePeriodChange();
-                window.generateReport();
-            }, 500);
-        }
         if(document.getElementById('sec-pedidos').classList.contains('active')){
             setTimeout(carregarPedidos, 300);
         }
