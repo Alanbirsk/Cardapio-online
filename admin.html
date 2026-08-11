@@ -40,6 +40,8 @@
         .btn-a { background:#eab308; color:#000 }
         .btn-i { background:var(--i); color:#fff }
         .btn-pdf { background:#dc2626; color:#fff }
+        .btn-migracao { background:#8b5cf6; color:#fff; border:1px solid #8b5cf6; }
+        .btn-migracao:hover { background:#7c3aed; transform:translateY(-2px); }
         .btn-excluir { background:rgba(239,68,68,.15); color:#ef4444; border:1px solid rgba(239,68,68,.3); width:100%; padding:10px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer; transition:.2s; margin-top:8px; }
         .btn-excluir:hover { background:rgba(239,68,68,.25); }
 
@@ -53,6 +55,8 @@
             cursor:pointer; font-weight:700; font-size:12px; white-space:nowrap
         }
         .tab.active, .tab:hover { background:var(--v); color:#000; border-color:var(--v) }
+        .tab.migracao { background:#8b5cf6; color:#fff; border-color:#8b5cf6; }
+        .tab.migracao.active { background:#7c3aed; }
         .sec { display:none }
         .sec.active { display:block }
 
@@ -61,6 +65,7 @@
             border-radius:16px; padding:18px; margin-bottom:14px
         }
         .card h3 { font-size:15px; margin-bottom:12px; color:var(--v) }
+        .card h4 { font-size:13px; color:var(--tm); margin-bottom:8px; }
 
         input, select, textarea {
             width:100%; padding:10px; margin-bottom:8px;
@@ -98,6 +103,7 @@
         .badge-r { background:rgba(239,68,68,.2); color:#ef4444 }
         .badge-w { background:rgba(245,158,11,.2); color:#f59e0b }
         .badge-i { background:rgba(59,130,246,.2); color:#3b82f6 }
+        .badge-m { background:rgba(139,92,246,.2); color:#8b5cf6 }
 
         table { width:100%; border-collapse:collapse; font-size:11px }
         th { padding:8px 10px; border-bottom:1px solid var(--bb); color:var(--tm); text-align:left }
@@ -132,6 +138,7 @@
         .indicator-value.blue { color:#3b82f6 }
         .indicator-value.yellow { color:#f59e0b }
         .indicator-value.white { color:#fff }
+        .indicator-value.purple { color:#8b5cf6 }
 
         .modal-overlay {
             display:none; position:fixed; inset:0;
@@ -231,6 +238,23 @@
         .pedido-item .p-status.finalizado { background:rgba(34,197,94,.1); color:#22c55e; }
         .pedido-item .p-status.cancelado { background:rgba(239,68,68,.2); color:#ef4444; }
 
+        /* Status indicator */
+        .status-indicator {
+            display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px;
+        }
+        .status-indicator.ativo { background:#22c55e; }
+        .status-indicator.inativo { background:#ef4444; }
+        .status-indicator.alerta { background:#f59e0b; }
+
+        .log-container {
+            background:#1c1c1f; border-radius:8px; padding:12px;
+            max-height:300px; overflow-y:auto; font-family:monospace; font-size:11px; color:var(--tm);
+        }
+        .log-container .success { color:#22c55e; }
+        .log-container .error { color:#ef4444; }
+        .log-container .warning { color:#f59e0b; }
+        .log-container .info { color:#3b82f6; }
+
         /* Edição */
         .edit-group { margin-bottom:10px; }
         .edit-group label { font-size:10px; color:var(--tm); display:block; margin-bottom:2px; }
@@ -285,13 +309,16 @@
 <div class="container">
     <div class="hdr">
         <h1>⚙️ Painel Admin - Aquarius Burguer</h1>
-        <div style="display:flex;gap:6px;">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
             <button class="btn btn-o" onclick="window.open('index.html')">📋 Cardápio</button>
             <button class="btn btn-o" onclick="window.open('cozinha.html')">👨‍🍳 Cozinha</button>
             <button class="btn btn-o" onclick="window.open('tv.html')">📺 TV</button>
+            <button class="btn btn-o" onclick="verificarConsistencia()" style="background:#8b5cf6;color:#fff;border-color:#8b5cf6;">🔍 Verificar</button>
             <button class="btn btn-d" onclick="logout()">🚪 Sair</button>
         </div>
     </div>
+
+    <div id="statusAlert" style="display:none;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-weight:600;"></div>
 
     <div class="tabs">
         <button class="tab" onclick="switchTab('relatorios')">📊 Relatórios</button>
@@ -304,6 +331,7 @@
         <button class="tab" onclick="switchTab('promocoes')">🔥 Promoções TV</button>
         <button class="tab" onclick="switchTab('financeiro')">💰 Financeiro</button>
         <button class="tab" onclick="switchTab('expediente')">🕐 Expediente</button>
+        <button class="tab migracao" onclick="switchTab('migracao')">🔄 Migração</button>
     </div>
 
     <!-- ================= PEDIDOS ================= -->
@@ -343,16 +371,9 @@
                 <div style="flex:1;min-width:150px;"><label style="font-size:10px;color:var(--tm);display:block;margin-bottom:4px;">Período</label><select id="reportFilter" onchange="handlePeriodChange()" style="margin-bottom:0;"><option value="today">Hoje</option><option value="yesterday">Ontem</option><option value="7days">Últimos 7 dias</option><option value="30days">Últimos 30 dias</option><option value="month">Este Mês</option><option value="lastmonth">Mês Passado</option><option value="custom">📅 Personalizado</option><option value="all" selected>Todo Período</option></select></div>
                 <div id="customDateFields" style="display:none;display:flex;gap:10px;flex-wrap:wrap;"><div style="flex:1;min-width:130px;"><label style="font-size:10px;color:var(--tm);display:block;margin-bottom:4px;">Data Inicial</label><input type="date" id="customStartDate" onchange="generateReport()" style="margin-bottom:0;"></div><div style="flex:1;min-width:130px;"><label style="font-size:10px;color:var(--tm);display:block;margin-bottom:4px;">Data Final</label><input type="date" id="customEndDate" onchange="generateReport()" style="margin-bottom:0;"></div></div>
             </div>
-            <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:end;">
+            <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
                 <label style="font-size:10px;color:var(--tm);display:flex;align-items:center;gap:4px;">Produto: <select id="reportProdutoFilter" onchange="generateReport()" style="width:auto;min-width:120px;padding:4px 8px;margin:0;"><option value="">Todos</option></select></label>
                 <label style="font-size:10px;color:var(--tm);display:flex;align-items:center;gap:4px;">Cliente: <input type="text" id="reportClienteFilter" placeholder="Nome do cliente" onchange="generateReport()" style="width:150px;padding:4px 8px;margin:0;"></label>
-                <label style="font-size:10px;color:var(--tm);display:flex;align-items:center;gap:4px;">Status venda: 
-                    <select id="reportStatusFilter" onchange="generateReport()" style="width:auto;min-width:150px;padding:4px 8px;margin:0;">
-                        <option value="todas-validas" selected>Todas válidas (exceto canceladas)</option>
-                        <option value="finalizadas">Apenas finalizadas</option>
-                        <option value="canceladas">Apenas canceladas</option>
-                    </select>
-                </label>
             </div>
         </div>
 
@@ -464,7 +485,7 @@
         <div class="card">
             <h3>📅 Filtrar Período</h3>
             <div class="filter-row">
-                <div><label style="font-size:10px;color:var(--tm);display:block;margin-bottom:4px;">Período</label><select id="finPeriodoRapido" onchange="handleFinPeriodoRapido()"><option value="today">Hoje</option><option value="yesterday">Ontem</option><option value="7days">Últimos 7 dias</option><option value="30days">Últimos 30 dias</option><option value="month">Este Mês</option><option value="lastmonth">Mês Passado</option><option value="custom">📅 Personalizado</option><option value="all" selected>Todo Período</option></select></div>
+                <div><label style="font-size:10px;color:var(--tm);display:block;margin-bottom:4px;">Período</label><select id="finPeriodoRapido" onchange="handleFinPeriodoRapido()"><option value="today">Hoje</option><option value="yesterday">Ontem</option><option value="7days">Últimos 7 dias</option><option value="30days">Últimos 30 dias</option><option value="month" selected>Este Mês</option><option value="lastmonth">Mês Passado</option><option value="custom">📅 Personalizado</option><option value="all">Todo Período</option></select></div>
                 <div id="finCustomDateFields" style="display:none; gap:10px; flex-wrap:wrap;"><div><label style="font-size:10px;color:var(--tm);display:block;margin-bottom:4px;">Data Inicial</label><input type="date" id="finDataInicial" onchange="filtrarFinanceiro()"></div><div><label style="font-size:10px;color:var(--tm);display:block;margin-bottom:4px;">Data Final</label><input type="date" id="finDataFinal" onchange="filtrarFinanceiro()"></div></div>
                 <button class="btn btn-v" onclick="filtrarFinanceiro()">🔍 Filtrar</button>
             </div>
@@ -518,6 +539,38 @@
     <!-- ================= EXPEDIENTE ================= -->
     <div class="sec" id="sec-expediente"><div class="card"><h3>🕐 Expediente</h3><div class="toggle-row"><span>Status:</span><button class="btn btn-v" id="btnAbrirLoja" onclick="toggleLoja(true)">🟢 Abrir</button><button class="btn btn-d" id="btnFecharLoja" onclick="toggleLoja(false)">🔴 Fechar</button></div><h4 style="margin-bottom:6px;font-size:13px">Horários</h4><div class="g2"><div><label style="font-size:10px;color:var(--tm)">Seg-Sex Início</label><input type="time" id="hSegSexIni" value="18:00"></div><div><label style="font-size:10px;color:var(--tm)">Seg-Sex Fim</label><input type="time" id="hSegSexFim" value="23:00"></div><div><label style="font-size:10px;color:var(--tm)">Sáb Início</label><input type="time" id="hSabIni" value="18:00"></div><div><label style="font-size:10px;color:var(--tm)">Sáb Fim</label><input type="time" id="hSabFim" value="23:00"></div><div><label style="font-size:10px;color:var(--tm)">Dom Início</label><input type="time" id="hDomIni" value="18:00"></div><div><label style="font-size:10px;color:var(--tm)">Dom Fim</label><input type="time" id="hDomFim" value="22:00"></div></div><button class="btn btn-v" onclick="saveHorarios()" style="margin-top:10px">💾 Salvar</button></div></div>
 
+    <!-- ================= MIGRAÇÃO ================= -->
+    <div class="sec" id="sec-migracao">
+        <div class="card">
+            <h3>🔄 Sistema de Migração de Dados</h3>
+            <p style="color:var(--tm);font-size:12px;margin-bottom:16px;">
+                Esta ferramenta unifica os dados de pedidos em uma única coleção, eliminando duplicidades e garantindo indicadores precisos.
+            </p>
+            
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+                <div class="card" style="margin:0;">
+                    <h4 style="font-size:13px;color:var(--v);">📊 Status Atual</h4>
+                    <div id="statusAtual">
+                        <p><span class="status-indicator" id="indPedidos"></span> Pedidos ativos: <strong id="countPedidos">0</strong></p>
+                        <p><span class="status-indicator" id="indVendas"></span> Vendas (legado): <strong id="countVendas">0</strong></p>
+                        <p><span class="status-indicator" id="indOrfaos"></span> Registros órfãos: <strong id="countOrfaos">0</strong></p>
+                        <p><span class="status-indicator" id="indUnificados"></span> Pedidos unificados: <strong id="countUnificados">0</strong></p>
+                    </div>
+                </div>
+                <div class="card" style="margin:0;">
+                    <h4 style="font-size:13px;color:var(--v);">⚙️ Ações</h4>
+                    <button class="btn btn-v" onclick="verificarConsistencia()" style="width:100%;margin-bottom:8px;">🔍 Verificar Consistência</button>
+                    <button class="btn btn-a" onclick="migrarDados()" style="width:100%;margin-bottom:8px;">🔄 Migrar Dados</button>
+                    <button class="btn btn-d" onclick="limparOrfaos()" style="width:100%;">🗑️ Limpar Órfãos</button>
+                </div>
+            </div>
+            
+            <div class="log-container" id="logMigracao">
+                <p>📋 Aguardando ação...</p>
+            </div>
+        </div>
+    </div>
+
     <!-- ================= MODAL DETALHES ================= -->
     <div class="modal-overlay" id="saleDetailModal">
         <div class="modal-dialog">
@@ -550,34 +603,13 @@
     function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2000)}
 
     // ----- VARIÁVEIS GLOBAIS -----
-    let products=[], categories=[], coupons=[], adicionais=[], promocoes=[], sales=[], movimentos=[];
+    let products=[], categories=[], coupons=[], adicionais=[], promocoes=[], pedidos=[], movimentos=[];
     let cropper=null, finalImage='', promoImage='';
     let filtroAtualCategoria = 'todos';
     let filtroAtualTipo = 'todos';
     let chartInstance = null, rankingChartInstance = null, monthlyChartInstance = null, categoryChartInstance = null, hourlyChartInstance = null;
-
-    let pedidos = [];
     let pedidoSelecionadoId = null;
     let unsubscribePedidos = null;
-
-    let salesFromVendas = [];
-    let salesFromPedidos = [];
-
-    function updateCombinedSales() {
-        const combined = [...salesFromVendas];
-        const ids = new Set(salesFromVendas.map(s => s.id));
-        salesFromPedidos.forEach(p => {
-            if (!ids.has(p.id)) {
-                combined.push(p);
-            }
-        });
-        sales = combined;
-        if(document.getElementById('sec-relatorios') && document.getElementById('sec-relatorios').classList.contains('active')){
-            window.handlePeriodChange();
-            window.generateReport();
-        }
-        updateResumoFinanceiro();
-    }
 
     // =======================================================
     // ================== FUNÇÕES AUXILIARES ==================
@@ -611,7 +643,6 @@
         if (custoUnSalvo !== undefined && custoUnSalvo !== null && !isNaN(custoUnSalvo)) {
             return parseFloat(custoUnSalvo) || 0;
         }
-        console.warn('⚠️ Custo não encontrado para o item:', nomeItem);
         return 0;
     }
 
@@ -640,12 +671,16 @@
         return 'Sem categoria';
     }
 
-    // ----- NAVEGAÇÃO -----
+    // =======================================================
+    // ================== NAVEGAÇÃO ==========================
+    // =======================================================
     function switchTab(t){
         document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
         document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
         const sec=document.getElementById('sec-'+t); if(sec) sec.classList.add('active');
-        document.querySelectorAll('.tab').forEach(tab=>{ if(tab.textContent.toLowerCase().includes(t.toLowerCase())) tab.classList.add('active'); });
+        document.querySelectorAll('.tab').forEach(tab=>{ 
+            if(tab.textContent.toLowerCase().includes(t.toLowerCase())) tab.classList.add('active');
+        });
         if(t==='relatorios'){ handlePeriodChange(); generateReport(); }
         if(t==='pedidos'){ carregarPedidos(); }
         if(t==='expediente') loadHorarios();
@@ -654,6 +689,7 @@
         if(t==='upsell'){ updateUpsellSelects(); renderUpsellTable(); clearUpsellForm(); }
         if(t==='promocoes'){ updatePromoProdutoSelect(); renderPromoTable(); }
         if(t==='financeiro'){ initFinanceiroDates(); }
+        if(t==='migracao'){ verificarConsistencia(); }
     }
 
     function switchSubTab(id){
@@ -690,7 +726,7 @@
             constraints.push(window.fsWhere("dataHora", "<=", fim.toISOString()));
         }
 
-        const q = window.fsQ(window.fsColl(window.db, "pedidos_ativos"), ...constraints, window.fsOB("dataHora", "desc"), window.fsLim(200));
+        const q = window.fsQ(window.fsColl(window.db, "pedidos"), ...constraints, window.fsOB("dataHora", "desc"), window.fsLim(200));
         unsubscribePedidos = window.fsSnap(q, (snap) => {
             pedidos = [];
             snap.forEach(d => {
@@ -704,6 +740,11 @@
                 if(pedido) renderPedidoDetalhe(pedido);
                 else { pedidoSelecionadoId = null; renderPedidoDetalhe(null); }
             }
+            // Atualiza relatórios se necessário
+            if(document.getElementById('sec-relatorios').classList.contains('active')){
+                generateReport();
+            }
+            updateResumoFinanceiro();
         }, (err) => {
             console.error('Erro ao carregar pedidos:', err);
             toast('Erro ao carregar pedidos');
@@ -756,10 +797,16 @@
         renderPedidosLista();
     };
 
+    // ===== EXCLUIR PEDIDO =====
     async function excluirPedido(id) {
         if(!confirm('Tem certeza que deseja EXCLUIR este pedido permanentemente?')) return;
         try {
-            await window.fsDel(window.fsDoc(window.db, "pedidos_ativos", id));
+            await window.fsDel(window.fsDoc(window.db, "pedidos", id));
+            // Remove também da coleção legado se existir
+            try {
+                await window.fsDel(window.fsDoc(window.db, "pedidos_ativos", id));
+                await window.fsDel(window.fsDoc(window.db, "vendas", id));
+            } catch (e) {}
             toast('🗑️ Pedido excluído!');
             pedidos = pedidos.filter(p => p.id !== id);
             if(pedidoSelecionadoId === id) {
@@ -767,6 +814,10 @@
                 renderPedidoDetalhe(null);
             }
             renderPedidosLista();
+            if(document.getElementById('sec-relatorios').classList.contains('active')){
+                generateReport();
+            }
+            updateResumoFinanceiro();
         } catch(e) {
             console.error(e);
             toast('Erro ao excluir pedido: ' + e.message, 'error');
@@ -938,10 +989,15 @@
                 taxaEntrega: taxa,
                 observacao: observacao,
                 total: total,
-                ultimaAtualizacao: new Date().toISOString()
+                atualizadoEm: new Date().toISOString()
             };
 
-            await window.fsUpd(window.fsDoc(window.db, "pedidos_ativos", id), updateData);
+            await window.fsUpd(window.fsDoc(window.db, "pedidos", id), updateData);
+            // Atualiza também coleções legado
+            try {
+                await window.fsUpd(window.fsDoc(window.db, "pedidos_ativos", id), updateData);
+            } catch (e) {}
+            
             toast('✅ Pedido atualizado!');
             const idx = pedidos.findIndex(p => p.id === id);
             if(idx > -1) {
@@ -1375,29 +1431,28 @@
 
         const produtoFilter = document.getElementById('reportProdutoFilter').value;
         const clienteFilter = document.getElementById('reportClienteFilter').value.toLowerCase().trim();
-        const statusFilter = document.getElementById('reportStatusFilter').value; // NOVO
 
-        let filtered = sales.filter(v => {
-            const d = new Date(v.dataHora);
+        // FILTRO: usa a coleção unificada "pedidos"
+        const filtered = pedidos.filter(p => {
+            // Ignora cancelados
+            if (p.status && p.status.toLowerCase() === 'cancelado') return false;
+            // Filtro de data
+            const d = new Date(p.dataHora);
             if (d < s || d > e) return false;
+            // Filtro produto
             if (produtoFilter) {
-                const hasProduto = v.itens && v.itens.some(i => i.nome === produtoFilter);
+                const hasProduto = p.itens && p.itens.some(i => i.nome === produtoFilter);
                 if (!hasProduto) return false;
             }
+            // Filtro cliente
             if (clienteFilter) {
-                const cliente = (v.cliente || '').toLowerCase();
+                const cliente = (p.cliente || '').toLowerCase();
                 if (!cliente.includes(clienteFilter)) return false;
-            }
-            // Filtro de status
-            if (statusFilter === 'todas-validas') {
-                if (v.status === 'cancelado') return false;
-            } else if (statusFilter === 'finalizadas') {
-                if (v.status !== 'finalizado') return false;
-            } else if (statusFilter === 'canceladas') {
-                if (v.status !== 'cancelado') return false;
             }
             return true;
         });
+
+        console.log('📊 RELATÓRIO - Pedidos considerados:', filtered.map(p => ({ numero: p.numeroPedido, cliente: p.cliente, total: p.total, status: p.status })));
 
         let fatTotal = 0, custoTotal = 0, txTotal = 0, descTotal = 0, itensTotal = 0, delTotal = 0, retTotal = 0;
         const rankMap = {};
@@ -1408,16 +1463,16 @@
         const monthly = {};
         let produtosSemCusto = new Set();
 
-        filtered.forEach(v => {
-            const totalVenda = parseFloat(v.total) || 0;
-            const txVenda = parseFloat(v.taxaEntrega) || 0;
-            const desconto = parseFloat(v.desconto) || 0;
+        filtered.forEach(p => {
+            const totalVenda = parseFloat(p.total) || 0;
+            const txVenda = parseFloat(p.taxaEntrega) || 0;
+            const desconto = parseFloat(p.desconto) || 0;
             fatTotal += totalVenda;
             descTotal += desconto;
             txTotal += txVenda;
-            if (v.tipoEntrega === 'entrega') delTotal++; else retTotal++;
+            if (p.tipoEntrega === 'entrega') delTotal++; else retTotal++;
 
-            const d = new Date(v.dataHora);
+            const d = new Date(p.dataHora);
             const day = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
             const monthKey = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
 
@@ -1431,13 +1486,13 @@
             monthly[monthKey].pedidos += 1;
             monthly[monthKey].faturamento += totalVenda;
 
-            const forma = v.formaPagamento || 'Não informado';
+            const forma = p.formaPagamento || 'Não informado';
             if (!pagMap[forma]) pagMap[forma] = { qtd: 0, total: 0 };
             pagMap[forma].qtd += 1;
             pagMap[forma].total += totalVenda;
 
-            if (v.itens && v.itens.length) {
-                v.itens.forEach(item => {
+            if (p.itens && p.itens.length) {
+                p.itens.forEach(item => {
                     const qtd = parseInt(item.qtd) || 0;
                     const precoUn = parseFloat(item.precoUn) || 0;
                     const custoUn = getCustoProduto(item.nome, item.custoUn);
@@ -1460,7 +1515,6 @@
 
         if (produtosSemCusto.size > 0) {
             console.warn('⚠️ Produtos sem custo no período:', Array.from(produtosSemCusto));
-            toast('⚠️ Alguns produtos sem custo! Verifique o console.');
         }
 
         for (let key in monthly) {
@@ -1570,19 +1624,15 @@
             e = ev ? new Date(ev+'T23:59:59') : new Date(todayStart.getTime()+86400000);
         }
 
-        const statusFilter = document.getElementById('reportStatusFilter').value;
-        let filtered = sales.filter(v => {
-            const d = new Date(v.dataHora);
-            if (d < s || d > e) return false;
-            if (statusFilter === 'todas-validas' && v.status === 'cancelado') return false;
-            if (statusFilter === 'finalizadas' && v.status !== 'finalizado') return false;
-            if (statusFilter === 'canceladas' && v.status !== 'cancelado') return false;
-            return true;
+        const filtered = pedidos.filter(p => {
+            if (p.status && p.status.toLowerCase() === 'cancelado') return false;
+            const d = new Date(p.dataHora);
+            return d >= s && d <= e;
         });
 
         const catMap = {};
-        filtered.forEach(v => {
-            if (v.itens) v.itens.forEach(i => {
+        filtered.forEach(p => {
+            if (p.itens) p.itens.forEach(i => {
                 const cat = getCategoriaProduto(i.nome);
                 if (!catMap[cat]) catMap[cat] = { qtd: 0, receita: 0 };
                 catMap[cat].qtd += parseInt(i.qtd)||0;
@@ -1622,22 +1672,18 @@
             e = ev ? new Date(ev+'T23:59:59') : new Date(todayStart.getTime()+86400000);
         }
 
-        const statusFilter = document.getElementById('reportStatusFilter').value;
-        let filtered = sales.filter(v => {
-            const d = new Date(v.dataHora);
-            if (d < s || d > e) return false;
-            if (statusFilter === 'todas-validas' && v.status === 'cancelado') return false;
-            if (statusFilter === 'finalizadas' && v.status !== 'finalizado') return false;
-            if (statusFilter === 'canceladas' && v.status !== 'cancelado') return false;
-            return true;
+        const filtered = pedidos.filter(p => {
+            if (p.status && p.status.toLowerCase() === 'cancelado') return false;
+            const d = new Date(p.dataHora);
+            return d >= s && d <= e;
         });
 
         const hourMap = {};
         for (let i=0; i<24; i++) hourMap[i] = { pedidos: 0, faturamento: 0 };
-        filtered.forEach(v => {
-            const h = new Date(v.dataHora).getHours();
+        filtered.forEach(p => {
+            const h = new Date(p.dataHora).getHours();
             hourMap[h].pedidos += 1;
-            hourMap[h].faturamento += parseFloat(v.total||0);
+            hourMap[h].faturamento += parseFloat(p.total||0);
         });
 
         const labels = Array.from({length:24}, (_,i) => i+':00');
@@ -1669,23 +1715,19 @@
             e = ev ? new Date(ev+'T23:59:59') : new Date(todayStart.getTime()+86400000);
         }
 
-        const statusFilter = document.getElementById('reportStatusFilter').value;
-        let filtered = sales.filter(v => {
-            const d = new Date(v.dataHora);
-            if (d < s || d > e) return false;
-            if (statusFilter === 'todas-validas' && v.status === 'cancelado') return false;
-            if (statusFilter === 'finalizadas' && v.status !== 'finalizado') return false;
-            if (statusFilter === 'canceladas' && v.status !== 'cancelado') return false;
-            return v.cupomCodigo;
+        const filtered = pedidos.filter(p => {
+            if (p.status && p.status.toLowerCase() === 'cancelado') return false;
+            const d = new Date(p.dataHora);
+            return d >= s && d <= e && p.cupomCodigo;
         });
 
         const cupomMap = {};
-        filtered.forEach(v => {
-            const cod = v.cupomCodigo || 'Cupom';
+        filtered.forEach(p => {
+            const cod = p.cupomCodigo || 'Cupom';
             if (!cupomMap[cod]) cupomMap[cod] = { usos: 0, totalDesconto: 0, totalPedido: 0 };
             cupomMap[cod].usos += 1;
-            cupomMap[cod].totalDesconto += parseFloat(v.desconto||0);
-            cupomMap[cod].totalPedido += parseFloat(v.total||0);
+            cupomMap[cod].totalDesconto += parseFloat(p.desconto||0);
+            cupomMap[cod].totalPedido += parseFloat(p.total||0);
         });
 
         let html = '';
@@ -1700,54 +1742,62 @@
     // =======================================================
     // ================== MODAL DETALHES =====================
     // =======================================================
-    window.showSaleDetail=function(id){const v=sales.find(x=>x.id===id);if(!v)return;document.getElementById('modalPedidoNum').textContent='#'+(v.numeroPedido||v.id.substring(0,6));const d=new Date(v.dataHora),tx=parseFloat(v.taxaEntrega)||0;document.getElementById('modalGrid').innerHTML=`<div class="modal-card"><div class="modal-card-label">Cliente</div><div class="modal-card-value">${v.cliente}</div></div><div class="modal-card"><div class="modal-card-label">Telefone</div><div class="modal-card-value">${v.telefone||'N/A'}</div></div><div class="modal-card"><div class="modal-card-label">Data/Hora</div><div class="modal-card-value">${d.toLocaleDateString('pt-BR')} ${d.toLocaleTimeString('pt-BR')}</div></div><div class="modal-card"><div class="modal-card-label">Tipo</div><div class="modal-card-value">${v.tipoEntrega==='entrega'?'🛵 Delivery':'🏪 Retirada'}</div></div><div class="modal-card"><div class="modal-card-label">Pagamento</div><div class="modal-card-value">${v.formaPagamento}</div></div>${v.tipoEntrega==='entrega'?`<div class="modal-card"><div class="modal-card-label">Endereço</div><div class="modal-card-value">${v.endereco||'N/A'}</div></div>`:'<div class="modal-card"><div class="modal-card-label">Retirada</div><div class="modal-card-value">Balcão</div></div>'}${tx>0?`<div class="modal-card"><div class="modal-card-label">Taxa de Entrega</div><div class="modal-card-value" style="color:#f59e0b;">R$ ${tx.toFixed(2)} (repasse)</div></div>`:''}${v.cupomCodigo?`<div class="modal-card"><div class="modal-card-label">Cupom</div><div class="modal-card-value">${v.cupomCodigo} (-R$ ${parseFloat(v.desconto||0).toFixed(2)})</div></div>`:''}`;
-    let ih='';if(v.itens)v.itens.forEach(i=>{const cu=getCustoProduto(i.nome, i.custoUn),pu=parseFloat(i.precoUn)||0,q=parseInt(i.qtd)||0,li=(pu-cu)*q;ih+=`<div class="modal-item"><div><strong>${q}x</strong> ${i.nome}${i.obs?` <span style="color:#f59e0b;font-size:10px;">(${i.obs})</span>`:''}</div><div style="text-align:right;">R$ ${(pu*q).toFixed(2)} <span style="color:var(--tm);font-size:10px;">| Custo: R$ ${(cu*q).toFixed(2)} | Lucro: R$ ${li.toFixed(2)}</span></div></div>`});document.getElementById('modalItems').innerHTML=ih||'<p style="color:var(--tm);">Nenhum item.</p>';let ah='';if(v.adicionais&&v.adicionais.length){ah='<h4 style="font-size:12px;margin-bottom:6px;">🍟 Adicionais</h4>';v.adicionais.forEach(a=>ah+=`<div class="modal-item"><span>• ${a.nome}</span><span style="color:#4ade80;">+R$ ${parseFloat(a.preco).toFixed(2)}</span></div>`)}document.getElementById('modalAdicionais').innerHTML=ah;const ct=v.itens?v.itens.reduce((s,i)=>{const cu=getCustoProduto(i.nome, i.custoUn);return s+cu*(parseInt(i.qtd)||0)},0):0,ll=parseFloat(v.total||0)-ct-tx;document.getElementById('modalTotal').innerHTML=`<span>Total: R$ ${parseFloat(v.total).toFixed(2)}</span><span style="font-size:12px;">Custo: R$ ${ct.toFixed(2)} | Taxa: R$ ${tx.toFixed(2)} | Lucro: R$ ${ll.toFixed(2)}</span>`;document.getElementById('saleDetailModal').classList.add('show')}
+    window.showSaleDetail=function(id){
+        const p=pedidos.find(x=>x.id===id);
+        if(!p)return;
+        document.getElementById('modalPedidoNum').textContent='#'+(p.numeroPedido||p.id.substring(0,6));
+        const d=new Date(p.dataHora),tx=parseFloat(p.taxaEntrega)||0;
+        document.getElementById('modalGrid').innerHTML=`<div class="modal-card"><div class="modal-card-label">Cliente</div><div class="modal-card-value">${p.cliente}</div></div><div class="modal-card"><div class="modal-card-label">Telefone</div><div class="modal-card-value">${p.telefone||'N/A'}</div></div><div class="modal-card"><div class="modal-card-label">Data/Hora</div><div class="modal-card-value">${d.toLocaleDateString('pt-BR')} ${d.toLocaleTimeString('pt-BR')}</div></div><div class="modal-card"><div class="modal-card-label">Tipo</div><div class="modal-card-value">${p.tipoEntrega==='entrega'?'🛵 Delivery':'🏪 Retirada'}</div></div><div class="modal-card"><div class="modal-card-label">Pagamento</div><div class="modal-card-value">${p.formaPagamento}</div></div>${p.tipoEntrega==='entrega'?`<div class="modal-card"><div class="modal-card-label">Endereço</div><div class="modal-card-value">${p.endereco||'N/A'}</div></div>`:'<div class="modal-card"><div class="modal-card-label">Retirada</div><div class="modal-card-value">Balcão</div></div>'}${tx>0?`<div class="modal-card"><div class="modal-card-label">Taxa de Entrega</div><div class="modal-card-value" style="color:#f59e0b;">R$ ${tx.toFixed(2)} (repasse)</div></div>`:''}${p.cupomCodigo?`<div class="modal-card"><div class="modal-card-label">Cupom</div><div class="modal-card-value">${p.cupomCodigo} (-R$ ${parseFloat(p.desconto||0).toFixed(2)})</div></div>`:''}`;
+        let ih='';
+        if(p.itens)p.itens.forEach(i=>{
+            const cu=getCustoProduto(i.nome, i.custoUn),pu=parseFloat(i.precoUn)||0,q=parseInt(i.qtd)||0,li=(pu-cu)*q;
+            ih+=`<div class="modal-item"><div><strong>${q}x</strong> ${i.nome}${i.obs?` <span style="color:#f59e0b;font-size:10px;">(${i.obs})</span>`:''}</div><div style="text-align:right;">R$ ${(pu*q).toFixed(2)} <span style="color:var(--tm);font-size:10px;">| Custo: R$ ${(cu*q).toFixed(2)} | Lucro: R$ ${li.toFixed(2)}</span></div></div>`;
+        });
+        document.getElementById('modalItems').innerHTML=ih||'<p style="color:var(--tm);">Nenhum item.</p>';
+        let ah='';
+        if(p.adicionais&&p.adicionais.length){
+            ah='<h4 style="font-size:12px;margin-bottom:6px;">🍟 Adicionais</h4>';
+            p.adicionais.forEach(a=>ah+=`<div class="modal-item"><span>• ${a.nome}</span><span style="color:#4ade80;">+R$ ${parseFloat(a.preco).toFixed(2)}</span></div>`);
+        }
+        document.getElementById('modalAdicionais').innerHTML=ah;
+        const ct=p.itens?p.itens.reduce((s,i)=>{const cu=getCustoProduto(i.nome, i.custoUn);return s+cu*(parseInt(i.qtd)||0)},0):0;
+        const ll=parseFloat(p.total||0)-ct-tx;
+        document.getElementById('modalTotal').innerHTML=`<span>Total: R$ ${parseFloat(p.total).toFixed(2)}</span><span style="font-size:12px;">Custo: R$ ${ct.toFixed(2)} | Taxa: R$ ${tx.toFixed(2)} | Lucro: R$ ${ll.toFixed(2)}</span>`;
+        document.getElementById('saleDetailModal').classList.add('show');
+    }
     window.closeSaleDetail=function(){document.getElementById('saleDetailModal').classList.remove('show')}
-    window.deleteSale=async function(id){if(confirm('Excluir esta venda?')){await window.fsDel(window.fsDoc(window.db,"vendas",id));toast('Venda removida!')}}
-    window.exportCSV=function(){let csv='Data,Cliente,Telefone,Total,Custo,TaxaEntrega,Desconto,Lucro,Pagamento,Tipo,Endereço,Itens\n';sales.forEach(v=>{const itens=v.itens?v.itens.map(i=>i.qtd+'x '+i.nome).join('; '):'',custo=v.itens?v.itens.reduce((s,i)=>{const cu=getCustoProduto(i.nome, i.custoUn);return s+cu*(parseInt(i.qtd)||0)},0):0,total=parseFloat(v.total)||0,taxa=parseFloat(v.taxaEntrega)||0;csv+=`"${new Date(v.dataHora).toLocaleString('pt-BR')}","${v.cliente}","${v.telefone||''}","${total.toFixed(2)}","${custo.toFixed(2)}","${taxa.toFixed(2)}","${v.desconto||0}","${(total-custo-taxa).toFixed(2)}","${v.formaPagamento}","${v.tipoEntrega||''}","${v.endereco||''}","${itens}"\n`});const b=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='relatorio.csv';a.click();toast('✅ CSV!')}
-    window.exportJSON=function(){const b=new Blob([JSON.stringify(sales,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='relatorio.json';a.click();toast('✅ JSON!')}
+
+    window.exportCSV=function(){
+        let csv='Numero,Data,Cliente,Telefone,Total,Custo,TaxaEntrega,Desconto,Lucro,Pagamento,Tipo,Endereço,Status,Itens\n';
+        pedidos.forEach(p=>{
+            const itens=p.itens?p.itens.map(i=>i.qtd+'x '+i.nome).join('; '):'';
+            const custo=p.itens?p.itens.reduce((s,i)=>{const cu=getCustoProduto(i.nome, i.custoUn);return s+cu*(parseInt(i.qtd)||0)},0):0;
+            const total=parseFloat(p.total)||0;
+            const taxa=parseFloat(p.taxaEntrega)||0;
+            csv+=`"${p.numeroPedido}","${new Date(p.dataHora).toLocaleString('pt-BR')}","${p.cliente}","${p.telefone||''}","${total.toFixed(2)}","${custo.toFixed(2)}","${taxa.toFixed(2)}","${p.desconto||0}","${(total-custo-taxa).toFixed(2)}","${p.formaPagamento}","${p.tipoEntrega||''}","${p.endereco||''}","${p.status}","${itens}"\n`;
+        });
+        const b=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(b);
+        a.download='relatorio.csv';
+        a.click();
+        toast('✅ CSV exportado!');
+    }
+    window.exportJSON=function(){
+        const b=new Blob([JSON.stringify(pedidos,null,2)],{type:'application/json'});
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(b);
+        a.download='relatorio.json';
+        a.click();
+        toast('✅ JSON exportado!');
+    }
     window.exportPDF=function(){window.print();}
 
     // =======================================================
     // ================== FINANCEIRO =========================
     // =======================================================
-    window.handleFinPeriodoRapido=function(){
-        const p=document.getElementById('finPeriodoRapido').value,
-              cf=document.getElementById('finCustomDateFields'),
-              h=new Date(),
-              ts=new Date(h.getFullYear(),h.getMonth(),h.getDate()),
-              tm=new Date(ts.getTime()+86400000),
-              ys=new Date(ts.getTime()-86400000);
-        let s,e;
-        switch(p){
-            case'today':s=ts;e=tm;break;
-            case'yesterday':s=ys;e=ts;break;
-            case'7days':s=new Date(ts.getTime()-7*86400000);e=tm;break;
-            case'30days':s=new Date(ts.getTime()-30*86400000);e=tm;break;
-            case'month':s=new Date(h.getFullYear(),h.getMonth(),1);e=tm;break;
-            case'lastmonth':s=new Date(h.getFullYear(),h.getMonth()-1,1);e=new Date(h.getFullYear(),h.getMonth(),1);break;
-            case'all':
-                s=new Date(2000,0,1); e=new Date(2099,11,31);
-                break;
-            case'custom':
-                cf.style.display='flex';
-                if(!document.getElementById('finDataInicial').value){
-                    document.getElementById('finDataInicial').value=new Date(ts.getTime()-7*86400000).toISOString().split('T')[0];
-                    document.getElementById('finDataFinal').value=h.toISOString().split('T')[0];
-                }
-                filtrarFinanceiro();
-                return;
-        }
-        cf.style.display='none';
-        document.getElementById('finDataInicial').value=s.toISOString().split('T')[0];
-        document.getElementById('finDataFinal').value=e.toISOString().split('T')[0];
-        filtrarFinanceiro();
-    }
-
-    function initFinanceiroDates(){
-        document.getElementById('finPeriodoRapido').value='all';
-        handleFinPeriodoRapido();
-    }
+    window.handleFinPeriodoRapido=function(){const p=document.getElementById('finPeriodoRapido').value,cf=document.getElementById('finCustomDateFields'),h=new Date(),ts=new Date(h.getFullYear(),h.getMonth(),h.getDate()),tm=new Date(ts.getTime()+86400000),ys=new Date(ts.getTime()-86400000);let s,e;switch(p){case'today':s=ts;e=tm;break;case'yesterday':s=ys;e=ts;break;case'7days':s=new Date(ts.getTime()-7*86400000);e=tm;break;case'30days':s=new Date(ts.getTime()-30*86400000);e=tm;break;case'month':s=new Date(h.getFullYear(),h.getMonth(),1);e=tm;break;case'lastmonth':s=new Date(h.getFullYear(),h.getMonth()-1,1);e=new Date(h.getFullYear(),h.getMonth(),1);break;case'all':s=new Date(2000,0,1);e=new Date(2099,11,31);break;case'custom':cf.style.display='flex';if(!document.getElementById('finDataInicial').value){document.getElementById('finDataInicial').value=new Date(ts.getTime()-7*86400000).toISOString().split('T')[0];document.getElementById('finDataFinal').value=h.toISOString().split('T')[0]}filtrarFinanceiro();return}cf.style.display='none';document.getElementById('finDataInicial').value=s.toISOString().split('T')[0];document.getElementById('finDataFinal').value=e.toISOString().split('T')[0];filtrarFinanceiro()}
+    function initFinanceiroDates(){document.getElementById('finPeriodoRapido').value='month';handleFinPeriodoRapido()}
 
     async function saveMovimento(){
         const tipo = document.getElementById('movTipo').value;
@@ -1799,10 +1849,9 @@
         let s=null, e=null;
         if(di) s = new Date(di+'T00:00:00');
         if(df) e = new Date(df+'T23:59:59');
-        // Exclui vendas canceladas do financeiro por padrão
-        const vf = sales.filter(v => {
-            if (v.status === 'cancelado') return false;
-            const d = new Date(v.dataHora);
+        const vf = pedidos.filter(p => {
+            if (p.status && p.status.toLowerCase() === 'cancelado') return false;
+            const d = new Date(p.dataHora);
             if(s && d < s) return false;
             if(e && d > e) return false;
             return true;
@@ -1821,10 +1870,10 @@
         }
 
         let rec=0, cus=0, tax=0;
-        vf.forEach(v => {
-            rec += parseFloat(v.total)||0;
-            tax += parseFloat(v.taxaEntrega)||0;
-            if(v.itens) v.itens.forEach(i => {
+        vf.forEach(p => {
+            rec += parseFloat(p.total)||0;
+            tax += parseFloat(p.taxaEntrega)||0;
+            if(p.itens) p.itens.forEach(i => {
                 const q = parseInt(i.qtd)||0;
                 const cu = getCustoProduto(i.nome, i.custoUn);
                 cus += cu*q;
@@ -1879,12 +1928,12 @@
     }
 
     function updateResumoFinanceiro(){
+        const vf = pedidos.filter(p => p.status && p.status.toLowerCase() !== 'cancelado');
         let rec=0,cus=0,tax=0;
-        sales.forEach(v => {
-            if (v.status === 'cancelado') return;
-            rec += parseFloat(v.total)||0;
-            tax += parseFloat(v.taxaEntrega)||0;
-            if(v.itens) v.itens.forEach(i => {
+        vf.forEach(p => {
+            rec += parseFloat(p.total)||0;
+            tax += parseFloat(p.taxaEntrega)||0;
+            if(p.itens) p.itens.forEach(i => {
                 const q = parseInt(i.qtd)||0;
                 const cu = getCustoProduto(i.nome, i.custoUn);
                 cus += cu*q;
@@ -1911,6 +1960,168 @@
     }
 
     // =======================================================
+    // ================== MIGRAÇÃO ===========================
+    // =======================================================
+    async function verificarConsistencia() {
+        const log = document.getElementById('logMigracao');
+        log.innerHTML = '<p>🔍 Verificando consistência dos dados...</p>';
+        
+        try {
+            const snapPedidos = await window.fsGet(window.fsColl(window.db, "pedidos"));
+            const snapPedidosAtivos = await window.fsGet(window.fsColl(window.db, "pedidos_ativos"));
+            const snapVendas = await window.fsGet(window.fsColl(window.db, "vendas"));
+            
+            const pedidosIds = new Set();
+            snapPedidos.forEach(d => pedidosIds.add(d.id));
+            
+            let orfaos = 0;
+            snapVendas.forEach(d => {
+                if (!pedidosIds.has(d.id)) orfaos++;
+            });
+            
+            document.getElementById('countPedidos').textContent = snapPedidos.size;
+            document.getElementById('countVendas').textContent = snapVendas.size;
+            document.getElementById('countOrfaos').textContent = orfaos;
+            document.getElementById('countUnificados').textContent = snapPedidos.size;
+            document.getElementById('indPedidos').className = 'status-indicator ' + (snapPedidos.size > 0 ? 'ativo' : 'inativo');
+            document.getElementById('indVendas').className = 'status-indicator ' + (snapVendas.size > 0 ? 'ativo' : 'inativo');
+            document.getElementById('indOrfaos').className = 'status-indicator ' + (orfaos > 0 ? 'inativo' : 'ativo');
+            document.getElementById('indUnificados').className = 'status-indicator ' + (snapPedidos.size > 0 ? 'ativo' : 'inativo');
+            
+            log.innerHTML = `
+                <p class="success">✅ <strong>Verificação concluída!</strong></p>
+                <p>📋 Pedidos unificados: ${snapPedidos.size}</p>
+                <p>📋 Pedidos ativos (legado): ${snapPedidosAtivos.size}</p>
+                <p>📋 Vendas (legado): ${snapVendas.size}</p>
+                <p>${orfaos > 0 ? '⚠️' : '✅'} Registros órfãos: ${orfaos}</p>
+                ${orfaos > 0 ? `<p class="warning">⚠️ Execute "Limpar Órfãos" para remover registros inconsistentes.</p>` : '<p class="success">✅ Sistema consistente!</p>'}
+            `;
+            
+            const alert = document.getElementById('statusAlert');
+            if (orfaos > 0) {
+                alert.style.display = 'block';
+                alert.style.background = 'rgba(245,158,11,0.15)';
+                alert.style.border = '1px solid #f59e0b';
+                alert.style.color = '#f59e0b';
+                alert.innerHTML = `⚠️ <strong>ATENÇÃO:</strong> ${orfaos} registros órfãos encontrados! Clique em "Limpar Órfãos" na aba Migração.`;
+            } else {
+                alert.style.display = 'none';
+            }
+        } catch(e) {
+            log.innerHTML = `<p class="error">❌ Erro ao verificar: ${e.message}</p>`;
+        }
+    }
+
+    async function migrarDados() {
+        const log = document.getElementById('logMigracao');
+        log.innerHTML = '<p>🔄 Iniciando migração de dados...</p>';
+        
+        if (!confirm('⚠️ Esta ação irá:\n\n1. Unificar todos os pedidos em uma única coleção\n2. Eliminar registros duplicados\n3. Corrigir inconsistências\n\nDeseja continuar?')) {
+            log.innerHTML += '<p>⏹️ Migração cancelada.</p>';
+            return;
+        }
+        
+        try {
+            log.innerHTML += '<p>📥 Carregando dados...</p>';
+            const snapPedidosAtivos = await window.fsGet(window.fsColl(window.db, "pedidos_ativos"));
+            const snapVendas = await window.fsGet(window.fsColl(window.db, "vendas"));
+            
+            const vendasMap = new Map();
+            snapVendas.forEach(d => vendasMap.set(d.id, d.data()));
+            
+            log.innerHTML += '<p>🔄 Criando coleção unificada...</p>';
+            let migrados = 0, erros = 0;
+            
+            for (const doc of snapPedidosAtivos.docs) {
+                try {
+                    const pedido = doc.data();
+                    const venda = vendasMap.get(doc.id);
+                    
+                    const dadosUnificados = {
+                        ...pedido,
+                        id: doc.id,
+                        numeroPedido: pedido.numeroPedido || doc.id.substring(0,6),
+                        dataHora: pedido.dataHora || (venda ? venda.dataHora : new Date().toISOString()),
+                        status: pedido.status || 'pendente',
+                        cliente: pedido.cliente || (venda ? venda.cliente : 'Cliente'),
+                        telefone: pedido.telefone || (venda ? venda.telefone : ''),
+                        tipoEntrega: pedido.tipoEntrega || (venda ? venda.tipoEntrega : 'retirada'),
+                        endereco: pedido.endereco || (venda ? venda.endereco : ''),
+                        formaPagamento: pedido.formaPagamento || (venda ? venda.formaPagamento : ''),
+                        subtotal: parseFloat(pedido.subtotal || 0),
+                        taxaEntrega: parseFloat(pedido.taxaEntrega || (venda ? venda.taxaEntrega : 0)),
+                        desconto: parseFloat(pedido.desconto || 0),
+                        acrescimo: parseFloat(pedido.acrescimo || 0),
+                        total: parseFloat(pedido.total || (venda ? venda.total : 0)),
+                        itens: pedido.itens || (venda ? venda.itens : []),
+                        adicionais: pedido.adicionais || (venda ? venda.adicionais : []),
+                        cupomCodigo: pedido.cupomCodigo || (venda ? venda.cupomCodigo : null),
+                        observacao: pedido.observacao || (venda ? venda.observacao : ''),
+                        criadoEm: pedido.criadoEm || (venda ? venda.dataHora : new Date().toISOString()),
+                        atualizadoEm: new Date().toISOString()
+                    };
+                    
+                    await window.fsSet(window.fsDoc(window.db, "pedidos", doc.id), dadosUnificados);
+                    migrados++;
+                } catch(e) {
+                    erros++;
+                    log.innerHTML += `<p class="error">❌ Erro ao migrar ${doc.id}: ${e.message}</p>`;
+                }
+            }
+            
+            log.innerHTML += `
+                <p class="success">✅ Migração concluída!</p>
+                <p>📊 Resumo:</p>
+                <p>• Pedidos migrados: ${migrados}</p>
+                <p>• Erros: ${erros}</p>
+                <p class="info">💡 A nova coleção "pedidos" agora é a fonte única de verdade.</p>
+            `;
+            
+            toast('✅ Migração concluída! Recarregando...');
+            setTimeout(() => location.reload(), 2000);
+            
+        } catch(e) {
+            log.innerHTML = `<p class="error">❌ Erro na migração: ${e.message}</p>`;
+        }
+    }
+
+    async function limparOrfaos() {
+        const log = document.getElementById('logMigracao');
+        log.innerHTML = '<p>🗑️ Removendo registros órfãos...</p>';
+        
+        if (!confirm('⚠️ Isso irá EXCLUIR permanentemente todos os registros órfãos da coleção "vendas".\n\nTem certeza?')) {
+            log.innerHTML += '<p>⏹️ Operação cancelada.</p>';
+            return;
+        }
+        
+        try {
+            const snapPedidos = await window.fsGet(window.fsColl(window.db, "pedidos"));
+            const snapVendas = await window.fsGet(window.fsColl(window.db, "vendas"));
+            
+            const pedidosIds = new Set();
+            snapPedidos.forEach(d => pedidosIds.add(d.id));
+            
+            let removidos = 0;
+            for (const doc of snapVendas.docs) {
+                if (!pedidosIds.has(doc.id)) {
+                    await window.fsDel(window.fsDoc(window.db, "vendas", doc.id));
+                    removidos++;
+                    log.innerHTML += `<p>🗑️ Removido: ${doc.id}</p>`;
+                }
+            }
+            
+            log.innerHTML += `<p class="success">✅ ${removidos} registros órfãos removidos!</p>`;
+            document.getElementById('countVendas').textContent = snapVendas.size - removidos;
+            document.getElementById('countOrfaos').textContent = 0;
+            document.getElementById('indOrfaos').className = 'status-indicator ativo';
+            
+            toast('✅ Órfãos removidos!');
+        } catch(e) {
+            log.innerHTML = `<p class="error">❌ Erro: ${e.message}</p>`;
+        }
+    }
+
+    // =======================================================
     // ================== EXPEDIENTE =========================
     // =======================================================
     async function toggleLoja(a){try{await window.fsSet(window.fsDoc(window.db,"configuracoes","expediente"),{aberto:a},{merge:!0});document.getElementById('btnAbrirLoja').style.opacity=a?'1':'0.5';document.getElementById('btnFecharLoja').style.opacity=a?'0.5':'1';toast(a?'🟢 Aberta!':'🔴 Fechada!')}catch(e){}}
@@ -1922,6 +2133,11 @@
     // =======================================================
     function init(){
         if(!window.db){ setTimeout(init, 500); return; }
+        
+        // Carrega pedidos da coleção unificada
+        carregarPedidos();
+        
+        // Carrega categorias
         window.fsSnap(window.fsColl(window.db, "categorias"), snap => {
             categories = [];
             snap.forEach(d => categories.push({id: d.id, ...d.data()}));
@@ -1930,6 +2146,8 @@
             updateAddonCatSelect();
             renderCategories();
         });
+        
+        // Carrega produtos
         window.fsSnap(window.fsColl(window.db, "produtos"), snap => {
             products = [];
             snap.forEach(d => {
@@ -1951,46 +2169,39 @@
                 sel.innerHTML = '<option value="">Todos</option>' + products.map(p => `<option value="${p.nome}">${p.nome}</option>`).join('');
             }
         });
+        
+        // Carrega adicionais
         window.fsSnap(window.fsColl(window.db, "adicionais"), snap => {
             adicionais = [];
             snap.forEach(d => adicionais.push({id: d.id, ...d.data()}));
             renderAddons();
         });
+        
+        // Carrega cupons
         window.fsSnap(window.fsColl(window.db, "cupons"), snap => {
             coupons = [];
             snap.forEach(d => coupons.push({id: d.id, ...d.data()}));
             renderCoupons();
         });
+        
+        // Carrega promoções
         window.fsSnap(window.fsColl(window.db, "promocoes"), snap => {
             promocoes = [];
             snap.forEach(d => promocoes.push({id: d.id, ...d.data()}));
             renderPromoTable();
         });
-
-        // ---- LISTENERS UNIFICADOS PARA VENDAS ----
-        window.fsSnap(window.fsColl(window.db, "vendas"), snap => {
-            salesFromVendas = [];
-            snap.forEach(d => salesFromVendas.push({id: d.id, ...d.data()}));
-            updateCombinedSales();
-        });
-
-        window.fsSnap(window.fsColl(window.db, "pedidos_ativos"), snap => {
-            salesFromPedidos = [];
-            snap.forEach(d => {
-                const data = d.data();
-                if (data.status === 'finalizado' || data.status === 'cancelado' || data.status === 'pronto' || data.status === 'preparando' || data.status === 'confirmado') {
-                    salesFromPedidos.push({id: d.id, ...data});
-                }
-            });
-            updateCombinedSales();
-        });
-
+        
+        // Carrega movimentos
         loadMovimentos();
         calcCMV();
-        if(document.getElementById('sec-pedidos').classList.contains('active')){
-            setTimeout(carregarPedidos, 300);
-        }
+        
+        // Verifica consistência automaticamente
+        setTimeout(verificarConsistencia, 3000);
     }
+
+    window.verificarConsistencia = verificarConsistencia;
+    window.migrarDados = migrarDados;
+    window.limparOrfaos = limparOrfaos;
 
     init();
 </script>
